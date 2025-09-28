@@ -19,20 +19,60 @@ public abstract class Room {
     /**
      * Room "tag/shortcut" (todo: maybe make this the Id? idk tbh)
      */
-    String shortcut;
+    private String shortcut;
 
     /**
      * Room building.
      */
-    String building;
+    private String building;
 
     /**
      * Room floor. Is a string ("basement, etc.")
      */
-    String floor;
+    private String floor;
 
     /**
      * Room capacity.
      */
-    Integer capacity;
+    private Integer capacity;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getShortcut() {
+        return shortcut;
+    }
+
+    public void setShortcut(String shortcut) {
+        this.shortcut = shortcut;
+    }
+
+    public String getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(String building) {
+        this.building = building;
+    }
+
+    public String getFloor() {
+        return floor;
+    }
+
+    public void setFloor(String floor) {
+        this.floor = floor;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
 }
