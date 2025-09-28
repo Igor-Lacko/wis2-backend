@@ -18,6 +18,8 @@ public class Lab extends Lesson {
      */
     private Integer maxPoints;
 
+    protected Lab() {}
+
     public Integer getMinPoints() {
         return minPoints;
     }

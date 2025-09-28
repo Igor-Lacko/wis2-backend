@@ -75,6 +75,8 @@ public class Course {
     @ManyToMany
     private Set<Teacher> teachers;
 
+    protected Course() {}
+
     public Long getId() {
         return id;
     }

@@ -8,5 +8,5 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "LECTURES")
 public class Lecture extends Lesson {
-    
+    protected Lecture() {}
 }

@@ -48,6 +48,8 @@ public abstract class Lesson {
     @ManyToOne
     private Course course;
 
+    protected Lesson() {}
+
     public Long getId() {
         return id;
     }

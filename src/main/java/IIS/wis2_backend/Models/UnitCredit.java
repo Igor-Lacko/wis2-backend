@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 /**
  * Model representing a course unit credit.
+ * @todo This class is one big todo.
  */
 @Entity
 @Table(name = "UNIT_CREDITS")
@@ -19,6 +20,8 @@ public class UnitCredit {
      * If the unit credit is automatic.
      */
     private Boolean automatic;
+
+    protected UnitCredit() {}
 
     public Long getId() {
         return id;

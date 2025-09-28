@@ -17,6 +17,8 @@ public class Office extends Room {
     @OneToMany(mappedBy = "office")
     private Set<Teacher> teachers;
 
+    protected Office() {}
+
     public Set<Teacher> getTeachers() {
         return teachers;
     }

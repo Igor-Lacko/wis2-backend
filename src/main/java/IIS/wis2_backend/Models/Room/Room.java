@@ -36,6 +36,8 @@ public abstract class Room {
      */
     private Integer capacity;
 
+    protected Room() {}
+
     public Long getId() {
         return id;
     }

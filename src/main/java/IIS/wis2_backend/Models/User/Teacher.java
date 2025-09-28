@@ -8,5 +8,5 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "TEACHERS")
 public class Teacher extends User {
-
+    protected Teacher() {}
 }

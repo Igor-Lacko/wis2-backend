@@ -13,6 +13,8 @@ public class LabRoom extends Room {
      */
     private Boolean pcSupport;
 
+    protected LabRoom() {}
+
     public Boolean getPcSupport() {
         return pcSupport;
     }

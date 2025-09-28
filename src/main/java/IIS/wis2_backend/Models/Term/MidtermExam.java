@@ -5,5 +5,5 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "MIDTERM_EXAMS")
 public class MidtermExam extends Term {
-    
+    protected MidtermExam() {}
 }

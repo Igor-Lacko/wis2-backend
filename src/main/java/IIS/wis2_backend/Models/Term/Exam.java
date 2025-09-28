@@ -13,6 +13,8 @@ public class Exam extends Term {
      */
     Integer attempts;
 
+    protected Exam() {}
+
     public Integer getAttempts() {
         return attempts;
     }

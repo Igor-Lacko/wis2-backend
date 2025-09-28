@@ -12,4 +12,6 @@ public class Student extends User {
      * Student's GPA
      */
     Float gradeAverage;
+
+    protected Student() {}
 }

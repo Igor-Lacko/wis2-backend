@@ -58,6 +58,8 @@ public abstract class Assignment {
     @ManyToOne
     private Course course;
 
+    protected Assignment() {}
+
     public Long getId() {
         return id;
     }

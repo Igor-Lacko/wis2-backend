@@ -71,6 +71,8 @@ public abstract class Term {
     @ManyToOne
     private Course course;
 
+    protected Term() {}
+
     public Long getId() {
         return id;
     }
