@@ -3,12 +3,17 @@ package IIS.wis2_backend.Models;
 import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.User.User;
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * Model representing one schedule.
  */
 @Entity
 @Table(name = "SCHEDULE")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Schedule {
     /**
      * Schedule ID.
@@ -34,38 +39,4 @@ public class Schedule {
      */
     @OneToOne(optional = true)
     private Course course;
-
-    protected Schedule() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
 }

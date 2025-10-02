@@ -7,6 +7,7 @@ import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Models.Course;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * Abstract model representing an assignment (e.g. projects, homework).
@@ -14,10 +15,14 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "ASSIGNMENTS")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Data
+@NoArgsConstructor
 public abstract class Assignment {
     /**
      * Assignment ID.
      */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**
@@ -57,70 +62,4 @@ public abstract class Assignment {
      */
     @ManyToOne
     private Course course;
-
-    protected Assignment() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Date getDeadline() {
-        return deadline;
-    }
-
-    public void setDeadline(Date deadline) {
-        this.deadline = deadline;
-    }
-
-    public Integer getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
-
-    public Integer getMinPoints() {
-        return minPoints;
-    }
-
-    public void setMinPoints(Integer minPoints) {
-        this.minPoints = minPoints;
-    }
-
-    public Integer getMaxPoints() {
-        return maxPoints;
-    }
-
-    public void setMaxPoints(Integer maxPoints) {
-        this.maxPoints = maxPoints;
-    }
-
-    public Set<Student> getRegisteredStudents() {
-        return registeredStudents;
-    }
-
-    public void setRegisteredStudents(Set<Student> registeredStudents) {
-        this.registeredStudents = registeredStudents;
-    }
-
-    public Teacher getSupervisor() {
-        return supervisor;
-    }
-
-    public void setSupervisor(Teacher supervisor) {
-        this.supervisor = supervisor;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
 }

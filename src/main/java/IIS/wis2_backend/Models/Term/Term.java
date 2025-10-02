@@ -7,6 +7,7 @@ import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * Base model for all term types.
@@ -14,6 +15,9 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "TERMS")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public abstract class Term {
     /**
      * Term ID.
@@ -70,88 +74,4 @@ public abstract class Term {
      */
     @ManyToOne
     private Course course;
-
-    protected Term() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Integer getMinPoints() {
-        return minPoints;
-    }
-
-    public void setMinPoints(Integer minPoints) {
-        this.minPoints = minPoints;
-    }
-
-    public Integer getMaxPoints() {
-        return maxPoints;
-    }
-
-    public void setMaxPoints(Integer maxPoints) {
-        this.maxPoints = maxPoints;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Boolean getMandatory() {
-        return mandatory;
-    }
-
-    public void setMandatory(Boolean mandatory) {
-        this.mandatory = mandatory;
-    }
-
-    public Set<Student> getStudents() {
-        return students;
-    }
-
-    public void setStudents(Set<Student> students) {
-        this.students = students;
-    }
-
-    public Teacher getSupervisor() {
-        return supervisor;
-    }
-
-    public void setSupervisor(Teacher supervisor) {
-        this.supervisor = supervisor;
-    }
-
-    public Set<Room> getRooms() {
-        return rooms;
-    }
-
-    public void setRooms(Set<Room> rooms) {
-        this.rooms = rooms;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    
 }

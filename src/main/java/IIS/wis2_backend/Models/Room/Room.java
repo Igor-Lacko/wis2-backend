@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Models.Room;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * Abstract model representing one room on the campus.
@@ -8,6 +9,9 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "ROOMS")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public abstract class Room {
     /**
      * Room identifier.
@@ -35,46 +39,4 @@ public abstract class Room {
      * Room capacity.
      */
     private Integer capacity;
-
-    protected Room() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getShortcut() {
-        return shortcut;
-    }
-
-    public void setShortcut(String shortcut) {
-        this.shortcut = shortcut;
-    }
-
-    public String getBuilding() {
-        return building;
-    }
-
-    public void setBuilding(String building) {
-        this.building = building;
-    }
-
-    public String getFloor() {
-        return floor;
-    }
-
-    public void setFloor(String floor) {
-        this.floor = floor;
-    }
-
-    public Integer getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
 }

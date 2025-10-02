@@ -5,12 +5,17 @@ import java.sql.Date;
 import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Models.Term.Term;
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * Model representing one schedule item (term or lesson).
  */
 @Entity
 @Table(name = "SCHEDULE_ITEMS")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ScheduleItem implements Comparable<ScheduleItem> {
     /**
      * Schedule item ID.
@@ -50,47 +55,5 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     @Override
     public int compareTo(ScheduleItem other) {
         return this.date.compareTo(other.date);
-    }
-
-    protected ScheduleItem() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Term getTerm() {
-        return term;
-    }
-
-    public void setTerm(Term term) {
-        this.term = term;
-    }
-
-    public Lesson getLesson() {
-        return lesson;
-    }
-
-    public void setLesson(Lesson lesson) {
-        this.lesson = lesson;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
     }
 }
