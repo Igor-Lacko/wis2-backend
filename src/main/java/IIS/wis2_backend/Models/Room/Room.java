@@ -7,7 +7,6 @@ import lombok.*;
  * Abstract model representing one room on the campus.
  */
 @Entity
-@Table(name = "ROOMS")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor

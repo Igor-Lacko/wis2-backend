@@ -13,7 +13,6 @@ import lombok.*;
  * Model representing an abstract lesson (e.g. lectures or labs)
  */
 @Entity
-@Table(name = "LESSONS")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor

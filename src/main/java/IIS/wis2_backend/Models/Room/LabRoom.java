@@ -7,7 +7,6 @@ import lombok.*;
  * Model representing a lab room.
  */
 @Entity
-@Table(name = "LAB_ROOMS")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

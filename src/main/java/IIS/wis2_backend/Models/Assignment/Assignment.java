@@ -13,7 +13,6 @@ import lombok.*;
  * Abstract model representing an assignment (e.g. projects, homework).
  */
 @Entity
-@Table(name = "ASSIGNMENTS")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor

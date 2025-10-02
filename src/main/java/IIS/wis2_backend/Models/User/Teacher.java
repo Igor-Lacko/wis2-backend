@@ -9,7 +9,6 @@ import lombok.experimental.SuperBuilder;
  * Model representing a teacher. Inherits from User.
  */
 @Entity
-@Table(name = "TEACHERS")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

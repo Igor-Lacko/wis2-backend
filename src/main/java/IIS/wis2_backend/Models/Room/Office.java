@@ -10,7 +10,6 @@ import lombok.*;
  * Model representing a office of academic workers.
  */
 @Entity
-@Table(name = "OFFICES")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

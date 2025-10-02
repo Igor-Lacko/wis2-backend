@@ -9,7 +9,6 @@ import lombok.*;
  * Model representing one schedule.
  */
 @Entity
-@Table(name = "SCHEDULE")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

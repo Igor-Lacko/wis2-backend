@@ -13,7 +13,6 @@ import lombok.*;
  * Model representing one course.
  */
 @Entity
-@Table(name = "COURSES")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

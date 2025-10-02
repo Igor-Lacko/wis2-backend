@@ -13,7 +13,6 @@ import lombok.*;
  * Base model for all term types.
  */
 @Entity
-@Table(name = "TERMS")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor

@@ -11,7 +11,6 @@ import lombok.*;
  * Model representing one schedule item (term or lesson).
  */
 @Entity
-@Table(name = "SCHEDULE_ITEMS")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

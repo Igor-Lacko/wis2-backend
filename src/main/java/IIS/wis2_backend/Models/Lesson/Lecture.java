@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
  * Model representing a lecture.
  */
 @Entity
-@Table(name = "LECTURES")
 @NoArgsConstructor
 public class Lecture extends Lesson {
 }

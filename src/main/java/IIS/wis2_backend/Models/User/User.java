@@ -11,10 +11,10 @@ import lombok.experimental.SuperBuilder;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "USERS")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 @SuperBuilder
 public class User {
     /**

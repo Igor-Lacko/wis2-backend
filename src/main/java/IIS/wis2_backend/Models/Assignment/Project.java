@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
  * Model representing a project.
  */
 @Entity
-@Table(name = "PROJECTS")
 @NoArgsConstructor
 public class Project extends Assignment {
 }
