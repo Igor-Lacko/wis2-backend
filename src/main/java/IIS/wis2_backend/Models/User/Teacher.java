@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Teacher extends WIS2User {
+public class Teacher extends Wis2User {
     /**
      * Teacher's office.
      */

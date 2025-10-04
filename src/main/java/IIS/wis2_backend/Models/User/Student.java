@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Student extends WIS2User {
+public class Student extends Wis2User {
     /**
      * Student's GPA
      */

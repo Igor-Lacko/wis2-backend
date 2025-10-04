@@ -5,17 +5,17 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import IIS.wis2_backend.Models.User.WIS2User;
+import IIS.wis2_backend.Models.User.Wis2User;
 
 /**
  * Repository for shared user CRUD operations.
  */
 @Repository
-public interface UserRepository extends JpaRepository<WIS2User, Long> {
+public interface UserRepository extends JpaRepository<Wis2User, Long> {
     /**
      * Finds users by name containing the given string.
      */
-    List<WIS2User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+    List<Wis2User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 
     /**
      * Checks if a user with the given username (case insensitive) or email exists.

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import IIS.wis2_backend.DTO.User.RegisterDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
-import IIS.wis2_backend.Models.User.WIS2User;
+import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import jakarta.transaction.Transactional;
 
@@ -48,7 +48,7 @@ public class AuthService implements UserDetailsService {
      * @param registerDTO DTO containing the registration details.
      * @return UserDTO of the newly registered user.
      */
-    public WIS2User RegisterUser(RegisterDTO registerDTO) {
+    public Wis2User RegisterUser(RegisterDTO registerDTO) {
         // Check for same email
         String email = registerDTO.getEmail();
         if (userRepository.existsByEmail(email)) {
@@ -56,7 +56,7 @@ public class AuthService implements UserDetailsService {
         }
 
         // Create user
-        WIS2User user = WIS2User.builder()
+        Wis2User user = Wis2User.builder()
                 .firstName(registerDTO.getFirstName())
                 .lastName(registerDTO.getLastName())
                 .email(registerDTO.getEmail())

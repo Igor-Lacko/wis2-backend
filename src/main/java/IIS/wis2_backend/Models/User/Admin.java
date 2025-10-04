@@ -5,5 +5,5 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
-public class Admin extends WIS2User {
+public class Admin extends Wis2User {
 }

@@ -81,12 +81,12 @@ public class UserService {
      * @return DTO of the created user.
      */
     public UserDTO CreateUser(UserDTO userDTO) {
-        WIS2User user = WIS2User.builder()
+        Wis2User user = Wis2User.builder()
                 .firstName(userDTO.getFirstName())
                 .lastName(userDTO.getLastName())
                 .email(userDTO.getEmail())
                 .build();
-        WIS2User savedUser = userRepository.save(user);
+        Wis2User savedUser = userRepository.save(user);
         return UserToDTO(savedUser);
     }
 
@@ -102,7 +102,7 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setFirstName(userDTO.getFirstName());
                     existingUser.setLastName(userDTO.getLastName());
-                    WIS2User updatedUser = userRepository.save(existingUser);
+                    Wis2User updatedUser = userRepository.save(existingUser);
                     return UserToDTO(updatedUser);
                 })
                 .orElse(null);
@@ -187,7 +187,7 @@ public class UserService {
      * @param user User entity.
      * @return UserDTO.
      */
-    private UserDTO UserToDTO(WIS2User user) {
+    private UserDTO UserToDTO(Wis2User user) {
         return UserDTO.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())

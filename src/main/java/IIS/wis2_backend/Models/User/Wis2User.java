@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Table(name = "users")
 @SuperBuilder
-public class WIS2User {
+public class Wis2User {
     /**
      * User ID.
      */
