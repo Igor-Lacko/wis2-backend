@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.User.TeacherDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
-import IIS.wis2_backend.Models.User.Teacher;
-import IIS.wis2_backend.Models.User.User;
+import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -82,12 +81,12 @@ public class UserService {
      * @return DTO of the created user.
      */
     public UserDTO CreateUser(UserDTO userDTO) {
-        User user = User.builder()
+        WIS2User user = WIS2User.builder()
                 .firstName(userDTO.getFirstName())
                 .lastName(userDTO.getLastName())
                 .email(userDTO.getEmail())
                 .build();
-        User savedUser = userRepository.save(user);
+        WIS2User savedUser = userRepository.save(user);
         return UserToDTO(savedUser);
     }
 
@@ -103,7 +102,7 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setFirstName(userDTO.getFirstName());
                     existingUser.setLastName(userDTO.getLastName());
-                    User updatedUser = userRepository.save(existingUser);
+                    WIS2User updatedUser = userRepository.save(existingUser);
                     return UserToDTO(updatedUser);
                 })
                 .orElse(null);
@@ -188,7 +187,7 @@ public class UserService {
      * @param user User entity.
      * @return UserDTO.
      */
-    private UserDTO UserToDTO(User user) {
+    private UserDTO UserToDTO(WIS2User user) {
         return UserDTO.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())

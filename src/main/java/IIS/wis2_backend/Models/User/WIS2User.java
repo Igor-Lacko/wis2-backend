@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Table(name = "users")
 @SuperBuilder
-public class User {
+public class WIS2User {
     /**
      * User ID.
      */
@@ -47,6 +47,12 @@ public class User {
      */
     @Column(nullable = false, unique = true)
     private String email;
+
+    /**
+     * User password hash.
+     */
+    @Column(nullable = false)
+    private String password;
 
     /**
      * User birthday.

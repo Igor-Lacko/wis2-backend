@@ -6,7 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Model representing a teacher. Inherits from User.
+ * Model representing a teacher. Inherits from WIS2User.
  */
 @Entity
 @Data
@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Teacher extends User {
+public class Teacher extends WIS2User {
     /**
      * Teacher's office.
      */

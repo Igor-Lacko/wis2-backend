@@ -2,6 +2,12 @@ package IIS.wis2_backend.DTO.User;
 
 import java.sql.Date;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+
+
 /**
  * DTO sent to the backend when a user tries to register.
  */
@@ -24,6 +30,5 @@ public class RegisterDTO {
     private String password;
 
     @NotNull
-    @NotEmpty
     private Date birthday;
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 /**
- * Model representing one student. Inherits from User.
+ * Model representing one student. Inherits from WIS2User.
  */
 @Entity
 @Data
@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Student extends User {
+public class Student extends WIS2User {
     /**
      * Student's GPA
      */

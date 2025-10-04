@@ -1,7 +1,7 @@
 package IIS.wis2_backend.Models;
 
 import IIS.wis2_backend.Models.Room.Room;
-import IIS.wis2_backend.Models.User.User;
+import IIS.wis2_backend.Models.User.WIS2User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,7 +25,7 @@ public class Schedule {
      * Schedule user.
      */
     @OneToOne(optional = true)
-    private User user;
+    private WIS2User user;
 
     /**
      * Or schedule room!

@@ -3,7 +3,7 @@ package IIS.wis2_backend.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import IIS.wis2_backend.Models.User.User;
+import IIS.wis2_backend.Models.User.WIS2User;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 /**
@@ -29,25 +29,25 @@ public class MockDBService {
          * Initialize the mock database with test data.
          */
         public void InsertMockUsers() {
-                User user1 = User.builder()
+                WIS2User user1 = WIS2User.builder()
                                 .firstName("Test")
                                 .lastName("User1")
                                 .email("testuser1@example.com")
                                 .build();
 
-                User user2 = User.builder()
+                WIS2User user2 = WIS2User.builder()
                                 .firstName("Test")
                                 .lastName("User2")
                                 .email("testuser2@example.com")
                                 .build();
 
-                User user3 = User.builder()
+                WIS2User user3 = WIS2User.builder()
                                 .firstName("Test")
                                 .lastName("User3")
                                 .email("testuser3@example.com")
                                 .build();
 
-                User user4 = User.builder()
+                WIS2User user4 = WIS2User.builder()
                                 .firstName("Test")
                                 .lastName("User4")
                                 .email("testuser4@example.com")
