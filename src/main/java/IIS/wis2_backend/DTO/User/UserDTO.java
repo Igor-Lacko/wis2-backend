@@ -1,6 +1,6 @@
 package IIS.wis2_backend.DTO.User;
 
-import IIS.wis2_backend.Models.User.WIS2User;
+import IIS.wis2_backend.Models.User.Wis2User;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -22,7 +22,7 @@ public class UserDTO {
      * 
      * @param user User entity.
      */
-    public UserDTO(WIS2User user) {
+    public UserDTO(Wis2User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();

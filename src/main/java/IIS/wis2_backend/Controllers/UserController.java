@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import IIS.wis2_backend.Services.UserService;
@@ -10,6 +11,7 @@ import IIS.wis2_backend.Services.UserService;
  * Controller for user-related requests.
  */
 @RestController
+@RequestMapping("/user")
 public class UserController {
     /**
      * Service for user-related operations.

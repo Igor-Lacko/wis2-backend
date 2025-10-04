@@ -3,6 +3,7 @@ package IIS.wis2_backend.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import IIS.wis2_backend.DTO.User.RegisterDTO;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
  * Controller for handling authentication related requests.
  */
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
     /**
      * Service for authentication related operations.
