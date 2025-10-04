@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import IIS.wis2_backend.JWTUtils;
 import IIS.wis2_backend.Services.AuthService;
 
 /**
@@ -108,6 +109,6 @@ public class AuthConfig {
      */
     @Bean
     public OncePerRequestFilter authenticationJwtTokenFilter() {
-        return new JWTFilter();
+        return new JWTFilter(new JWTUtils(), authService);
     }
 }
