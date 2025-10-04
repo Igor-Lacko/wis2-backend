@@ -25,27 +25,38 @@ public class User {
     private Long id;
 
     /**
+     * Unique username.
+     */
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    /**
      * User first name.
      */
-    String firstName;
+    @Column(nullable = false)
+    private String firstName;
 
     /**
      * User last name.
      */
-    String lastName;
+    @Column(nullable = false)
+    private String lastName;
 
     /**
      * User email.
      */
-    String email;
+    @Column(nullable = false, unique = true)
+    private String email;
 
     /**
      * User birthday.
      */
-    Date birthday;
+    @Column(nullable = false)
+    private Date birthday;
 
     /**
      * User tel. number (todo: more appropriate data type?)
      */
-    String telephoneNumber;
+    @Column(nullable = true, unique = true)
+    private String telephoneNumber;
 }
