@@ -2,6 +2,7 @@ package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
 
+import IIS.wis2_backend.Enum.Roles;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -65,4 +66,11 @@ public class Wis2User {
      */
     @Column(nullable = true, unique = true)
     private String telephoneNumber;
+
+    /**
+     * User role.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Roles role;
 }
