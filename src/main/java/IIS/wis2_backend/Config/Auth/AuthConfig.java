@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import IIS.wis2_backend.JWTUtils;
+import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Services.AuthService;
 
 /**
@@ -43,14 +44,20 @@ public class AuthConfig {
     private final AuthenticationEntryPoint unauthorizedHandler;
 
     /**
+     * User repository for subject check.
+     */
+    private final UserRepository userRepository;
+
+    /**
      * Constructor for AuthConfig.
      * 
      * @param authService The authentication service.
      */
     @Autowired
-    public AuthConfig(AuthService authService, AuthenticationEntryPoint unauthorizedHandler) {
+    public AuthConfig(AuthService authService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository) {
         this.authService = authService;
         this.unauthorizedHandler = unauthorizedHandler;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -109,6 +116,6 @@ public class AuthConfig {
      */
     @Bean
     public OncePerRequestFilter authenticationJwtTokenFilter() {
-        return new JWTFilter(new JWTUtils(), authService);
+        return new JWTFilter(new JWTUtils(userRepository), authService);
     }
 }

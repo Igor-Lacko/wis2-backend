@@ -58,7 +58,8 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring("Bearer ".length());
+
         if (!jwtUtils.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
@@ -71,7 +72,10 @@ public class JWTFilter extends OncePerRequestFilter {
                     null,
                     userDetails.getAuthorities());
 
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+
             filterChain.doFilter(request, response);
         }
     }
