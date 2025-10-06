@@ -15,7 +15,8 @@ public class Wis2ExceptionHandler {
     /**
      * Handler for UserAlreadyExistsException.
      * 
-     * @param e the UserAlreadyExistsException. Thrown (probably) during registration.
+     * @param e the UserAlreadyExistsException. Thrown (probably) during
+     *          registration.
      */
     @ExceptionHandler(value = UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -31,7 +32,7 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public @ResponseBody ExceptionResponseType handleAuthenticationException(AuthenticationException e) {
-        return new ExceptionResponseType(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        return new ExceptionResponseType("Login failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
     /**

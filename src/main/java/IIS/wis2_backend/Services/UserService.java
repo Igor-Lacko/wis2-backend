@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import IIS.wis2_backend.DTO.Auth.RegisterDTO;
 import IIS.wis2_backend.DTO.User.TeacherDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
+import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
@@ -72,36 +74,6 @@ public class UserService {
                 .findById(id)
                 .map(this::UserToDTO)
                 .orElse(null);
-    }
-
-    /**
-     * Create a new user.
-     * 
-     * @param userDTO DTO of the user to create.
-     * @return DTO of the created user.
-     */
-    public UserDTO CreateUser(UserDTO userDTO) {
-        Wis2User user = Wis2User.builder()
-                .firstName(userDTO.getFirstName())
-                .lastName(userDTO.getLastName())
-                .email(userDTO.getEmail())
-                .build();
-
-        // Generate a username based on first and last name
-        String baseUsername = (userDTO.getFirstName().substring(0, 4).toLowerCase() +
-                userDTO.getLastName().substring(0, 4).toLowerCase());
-        String username = baseUsername;
-        int suffix = 2;
-
-        // Add random digits until a unique username is found
-        while (userRepository.existsByUsername(username)) {
-            username = baseUsername + suffix;
-            suffix++;
-        }
-
-        user.setUsername(username);
-        Wis2User savedUser = userRepository.save(user);
-        return UserToDTO(savedUser);
     }
 
     /**
@@ -193,6 +165,39 @@ public class UserService {
                 .findById(id)
                 .map(this::UserToDTO)
                 .orElse(null);
+    }
+
+    /**
+     * Create a new user during registration.
+     * 
+     * @param registerDTO DTO with registration data.
+     * @return Created UserDTO.
+     */
+    public UserDTO CreateUser(RegisterDTO registerDTO) {
+        // Generate a username based on first and last name
+        String baseUsername = (registerDTO.getFirstName().substring(0, 4).toLowerCase() +
+                registerDTO.getLastName().substring(0, 4).toLowerCase());
+        String username = baseUsername;
+        int suffix = 2;
+
+        // Add random digits until a unique username is found
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + suffix;
+            suffix++;
+        }
+
+        // Create user
+        Wis2User user = Wis2User.builder()
+                .firstName(registerDTO.getFirstName())
+                .lastName(registerDTO.getLastName())
+                .email(registerDTO.getEmail())
+                .username(username)
+                .birthday(registerDTO.getBirthday())
+                .password(registerDTO.getPassword())
+                .role(Roles.USER)
+                .build();
+
+        return UserToDTO(userRepository.save(user));
     }
 
     /**

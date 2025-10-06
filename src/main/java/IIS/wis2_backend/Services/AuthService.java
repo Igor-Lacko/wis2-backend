@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Auth.LoginDTO;
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.User.UserDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
-import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Utils.JWTUtils;
 import jakarta.transaction.Transactional;
@@ -41,6 +41,11 @@ public class AuthService {
     private final JWTUtils jwtUtils;
 
     /**
+     * User service to convert users to DTOs, etc.
+     */
+    private final UserService userService;
+
+    /**
      * Constructor for AuthService.
      * 
      * @param userService           User service to create users, get user details,
@@ -51,11 +56,12 @@ public class AuthService {
      */
     @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
+            AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.userService = userService;
     }
 
     /**
@@ -64,22 +70,15 @@ public class AuthService {
      * @param registerDTO DTO containing the registration details.
      * @return UserDTO of the newly registered user.
      */
-    public Wis2User RegisterUser(RegisterDTO registerDTO) {
+    public UserDTO RegisterUser(RegisterDTO registerDTO) {
         // Check for same email
         String email = registerDTO.getEmail();
         if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException(email, true);
         }
 
-        // Create user
-        Wis2User user = Wis2User.builder()
-                .firstName(registerDTO.getFirstName())
-                .lastName(registerDTO.getLastName())
-                .email(registerDTO.getEmail())
-                .password(passwordEncoder.encode(registerDTO.getPassword()))
-                .build();
-
-        return userRepository.save(user);
+        registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+        return userService.CreateUser(registerDTO);
     }
 
     /**
