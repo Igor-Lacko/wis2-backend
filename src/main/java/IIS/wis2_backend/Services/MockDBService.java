@@ -11,52 +11,53 @@ import IIS.wis2_backend.Repositories.User.UserRepository;
  */
 @Service
 public class MockDBService {
-        /**
-         * User repo to create test users.
-         */
-        private final UserRepository userRepository;
+	/**
+	 * User repo to create test users.
+	 */
+	private final UserRepository userRepository;
 
-        /**
-         * Constructor for MockDBService.
-         * 
-         * @param userRepository User repository.
-         */
-        public MockDBService(@Autowired UserRepository userRepository) {
-                this.userRepository = userRepository;
-        }
+	/**
+	 * Constructor for MockDBService.
+	 * 
+	 * @param userRepository User repository.
+	 */
+	public MockDBService(@Autowired UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
 
-        /**
-         * Initialize the mock database with test data.
-         */
-        public void InsertMockUsers() {
-                Wis2User user1 = Wis2User.builder()
-                                .firstName("Test")
-                                .lastName("User1")
-                                .email("testuser1@example.com")
-                                .build();
+	/**
+	 * Inserts a user into the mock db if he doesn't exist yet.
+	 * 
+	 * @param firstName First name of the user.
+	 * @param lastName  Last name of the user.
+	 * @param email     Email of the user.
+	 */
+	public void InsertMockUserIfNotExists(String firstName, String lastName, String email) {
+		if (!userRepository.existsByEmail(email)) {
+			Wis2User user = Wis2User.builder()
+					.firstName(firstName)
+					.lastName(lastName)
+					.email(email)
+					.build();
+			userRepository.save(user);
+		}
+	}
 
-                Wis2User user2 = Wis2User.builder()
-                                .firstName("Test")
-                                .lastName("User2")
-                                .email("testuser2@example.com")
-                                .build();
+	/**
+	 * Initialize the mock database with test data.
+	 */
+	public void InsertMockUsers() {
+		InsertMockUserIfNotExists("Igor", "Lacko", "xlackoi00@fit.vutbr.cz");
+		InsertMockUserIfNotExists("Jakub", "Kapitulcin", "xkapitj00@fit.vutbr.cz");
+		InsertMockUserIfNotExists("Milan", "Babuljak", "xbabulm00@fit.vutbr.cz");
+		InsertMockUserIfNotExists("Jaroslav", "Synek", "xsynekj00@fit.vutbr.cz");
+		InsertMockUserIfNotExists("Adam", "Bisa", "xbisaad00@fit.vutbr.cz");
+	}
 
-                Wis2User user3 = Wis2User.builder()
-                                .firstName("Test")
-                                .lastName("User3")
-                                .email("testuser3@example.com")
-                                .build();
-
-                Wis2User user4 = Wis2User.builder()
-                                .firstName("Test")
-                                .lastName("User4")
-                                .email("testuser4@example.com")
-                                .build();
-
-                // Save
-                userRepository.save(user1);
-                userRepository.save(user2);
-                userRepository.save(user3);
-                userRepository.save(user4);
-        }
+	/**
+	 * Clear the mock database.
+	 */
+	public void ClearMockDB() {
+		userRepository.deleteAll();
+	}
 }

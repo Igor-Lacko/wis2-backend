@@ -36,6 +36,13 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      */
     boolean existsByEmail(String email);
 
+    /**
+     * Checks only by username.
+     * 
+     * @param username Username to check.
+     * @return True if a user with the given username exists, false otherwise.
+     */
+    boolean existsByUsername(String username);
 
     /**
      * Finds a user by username.

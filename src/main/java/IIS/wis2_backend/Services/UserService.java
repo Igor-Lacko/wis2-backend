@@ -86,6 +86,20 @@ public class UserService {
                 .lastName(userDTO.getLastName())
                 .email(userDTO.getEmail())
                 .build();
+
+        // Generate a username based on first and last name
+        String baseUsername = (userDTO.getFirstName().substring(0, 4).toLowerCase() +
+                userDTO.getLastName().substring(0, 4).toLowerCase());
+        String username = baseUsername;
+        int suffix = 2;
+
+        // Add random digits until a unique username is found
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + suffix;
+            suffix++;
+        }
+
+        user.setUsername(username);
         Wis2User savedUser = userRepository.save(user);
         return UserToDTO(savedUser);
     }
