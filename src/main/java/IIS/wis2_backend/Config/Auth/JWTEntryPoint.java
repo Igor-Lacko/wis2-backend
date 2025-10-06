@@ -25,7 +25,6 @@ class JWTEntryPoint implements AuthenticationEntryPoint {
     ) {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setCharacterEncoding("UTF-8");
         try {
             response.getWriter().write("{\"error\": \"Unauthorized\"}");
         } catch (Exception e) {

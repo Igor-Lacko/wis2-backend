@@ -2,11 +2,10 @@ package IIS.wis2_backend.Config.Auth;
 
 import java.io.IOException;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import IIS.wis2_backend.JWTUtils;
-import IIS.wis2_backend.Services.AuthService;
+import IIS.wis2_backend.Services.Wis2UserDetailsService;
+import IIS.wis2_backend.Utils.JWTUtils;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Filter to add to the chain for JWT verification.
  */
-@Component
 public class JWTFilter extends OncePerRequestFilter {
     /**
      * Class to filter JWTs from requests.
@@ -30,9 +28,9 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtils jwtUtils;
 
     /**
-     * AuthService to load user details.
+     * Service to load user details.
      */
-    private final AuthService authService;
+    private final Wis2UserDetailsService wis2UserDetailsService;
 
     /**
      * Constructor for JWTFilter.
@@ -40,9 +38,9 @@ public class JWTFilter extends OncePerRequestFilter {
      * @param jwtUtils    the JWTUtils instance
      * @param authService the AuthService instance
      */
-    public JWTFilter(JWTUtils jwtUtils, AuthService authService) {
+    public JWTFilter(JWTUtils jwtUtils, Wis2UserDetailsService wis2UserDetailsService) {
         this.jwtUtils = jwtUtils;
-        this.authService = authService;
+        this.wis2UserDetailsService = wis2UserDetailsService;
     }
 
     /**
@@ -60,6 +58,15 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Also skip public endpoints, TODO maybe remove
+        String path = request.getServletPath();
+        for (String endpoint : AuthConfig.PUBLIC_ENDPOINTS) {
+            if (path.startsWith(endpoint)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
+
         String token = authHeader.substring("Bearer ".length());
 
         if (!jwtUtils.validateToken(token)) {
@@ -69,7 +76,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String username = jwtUtils.Subject(token);
         try {
-            UserDetails userDetails = authService.loadUserByUsername(username);
+            UserDetails userDetails = wis2UserDetailsService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,

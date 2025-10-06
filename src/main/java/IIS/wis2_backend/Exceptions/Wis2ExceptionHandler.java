@@ -2,6 +2,7 @@ package IIS.wis2_backend.Exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
@@ -31,5 +32,17 @@ public class Wis2ExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public @ResponseBody ExceptionResponseType handleAuthenticationException(AuthenticationException e) {
         return new ExceptionResponseType(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Handler for MethodArgumentNotValidException.
+     * 
+     * @param e the MethodArgumentNotValidException. Thrown when a method argument
+     *          annotated with @Valid fails validation.
+     */
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ExceptionResponseType handleInvalidMethodArgument(MethodArgumentNotValidException e) {
+        return new ExceptionResponseType(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

@@ -3,21 +3,15 @@ package IIS.wis2_backend.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import IIS.wis2_backend.JWTUtils;
 import IIS.wis2_backend.DTO.Auth.LoginDTO;
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
-import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.User.UserRepository;
+import IIS.wis2_backend.Utils.JWTUtils;
 import jakarta.transaction.Transactional;
 
 /**
@@ -25,7 +19,7 @@ import jakarta.transaction.Transactional;
  */
 @Service
 @Transactional
-public class AuthService implements UserDetailsService {
+public class AuthService {
     /**
      * User repository to create users, get user details, etc.
      */
@@ -97,22 +91,5 @@ public class AuthService implements UserDetailsService {
     public String LoginUser(LoginDTO loginDTO) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
         return jwtUtils.generateToken(loginDTO.getUsername());
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Wis2User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-
-        String[] authorities = user.getRole() == Roles.ADMIN ? new String[] { "ROLE_ADMIN", "ROLE_USER" }
-                : new String[] { "ROLE_USER" };
-
-        return User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .authorities(authorities)
-                .build();
     }
 }

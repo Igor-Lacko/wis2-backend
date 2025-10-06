@@ -1,4 +1,4 @@
-package IIS.wis2_backend;
+package IIS.wis2_backend.Utils;
 
 import java.util.Date;
 

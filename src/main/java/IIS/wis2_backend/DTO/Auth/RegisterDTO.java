@@ -1,4 +1,4 @@
-package IIS.wis2_backend.DTO.User;
+package IIS.wis2_backend.DTO.Auth;
 
 import java.sql.Date;
 

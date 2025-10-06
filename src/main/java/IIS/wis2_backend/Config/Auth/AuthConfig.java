@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,9 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import IIS.wis2_backend.JWTUtils;
 import IIS.wis2_backend.Repositories.User.UserRepository;
-import IIS.wis2_backend.Services.AuthService;
+import IIS.wis2_backend.Services.Wis2UserDetailsService;
+import IIS.wis2_backend.Utils.JWTUtils;
 
 /**
  * Configuration class for authentication settings.
@@ -28,17 +26,21 @@ public class AuthConfig {
     /**
      * List of public endpoints. They will be added here as the development goes on.
      */
-    private static final String[] PUBLIC_ENDPOINTS = {
+    public static final String[] PUBLIC_ENDPOINTS = {
         "/auth/login",
         "/auth/register",
         "/home",
+        "/swagger-ui/**",
+        "/swagger-ui.html",
+        "/v8/api-docs/**",
+        "/v8/**",
         "/"
     };
 
     /**
-     * Auth service for UserDetailsService for AuthenticationProvider.
+     * Service for user details.
      */
-    private final AuthService authService;
+    private final Wis2UserDetailsService wis2UserDetailsService;
 
     /**
      * Entry point for unauthorized requests.
@@ -56,8 +58,8 @@ public class AuthConfig {
      * @param authService The authentication service.
      */
     @Autowired
-    public AuthConfig(AuthService authService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository, JWTUtils jwtUtils) {
-        this.authService = authService;
+    public AuthConfig(Wis2UserDetailsService wis2UserDetailsService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository, JWTUtils jwtUtils) {
+        this.wis2UserDetailsService = wis2UserDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.jwtUtils = jwtUtils;
     }
@@ -88,8 +90,8 @@ public class AuthConfig {
                 .anyRequest()
                     .authenticated()
             )
+            .userDetailsService(wis2UserDetailsService)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
             .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
             .addFilterBefore(
                 authenticationJwtTokenFilter(),
@@ -100,25 +102,13 @@ public class AuthConfig {
     }
 
     /**
-     * Authentication provider bean.
-     * 
-     * @return Custom authentication provider.
-     */
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(authService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
-    }
-
-    /**
      * JWT filter bean.
      * 
      * @return JWTFilter instance.
      */
     @Bean
     public OncePerRequestFilter authenticationJwtTokenFilter() {
-        return new JWTFilter(jwtUtils, authService);
+        return new JWTFilter(jwtUtils, wis2UserDetailsService);
     }
 
     /**
