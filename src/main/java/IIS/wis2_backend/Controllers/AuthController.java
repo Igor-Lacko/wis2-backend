@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.User.RegisterDTO;
+import IIS.wis2_backend.DTO.Auth.JWTDTO;
+import IIS.wis2_backend.DTO.Auth.LoginDTO;
+import IIS.wis2_backend.DTO.Auth.RegisterDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
 import IIS.wis2_backend.Services.AuthService;
 import jakarta.validation.Valid;
@@ -42,5 +44,16 @@ public class AuthController {
     public ResponseEntity<UserDTO> Register(@Valid RegisterDTO registerDTO) {
         UserDTO userDTO = new UserDTO(authService.RegisterUser(registerDTO));
         return ResponseEntity.ok(userDTO);
+    }
+
+    /**
+     * Endpoint to login a user.
+     * 
+     * @param loginDTO DTO containing the login details.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<JWTDTO> Login(@Valid LoginDTO loginDTO) {
+        String token = authService.LoginUser(loginDTO);
+        return ResponseEntity.ok(new JWTDTO(token));
     }
 }

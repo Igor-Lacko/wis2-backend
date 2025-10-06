@@ -5,8 +5,6 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -54,13 +52,12 @@ public class JWTUtils {
      * @param authentication the authentication details
      * @return the generated JWT token
      */
-    public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    public String generateToken(String username) {
         Date currentDate = new Date(System.currentTimeMillis());
 
         // TODO: more claims?
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(username)
                 .issuedAt(currentDate)
                 .issuer(jwtIssuer)
                 .signWith(GetSecretKey(), Jwts.SIG.HS256)
