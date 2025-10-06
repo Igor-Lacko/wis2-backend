@@ -44,9 +44,9 @@ public class AuthConfig {
     private final AuthenticationEntryPoint unauthorizedHandler;
 
     /**
-     * User repository for subject check.
+     * JWT Utils for the filter.
      */
-    private final UserRepository userRepository;
+    private final JWTUtils jwtUtils;
 
     /**
      * Constructor for AuthConfig.
@@ -54,10 +54,10 @@ public class AuthConfig {
      * @param authService The authentication service.
      */
     @Autowired
-    public AuthConfig(AuthService authService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository) {
+    public AuthConfig(AuthService authService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository, JWTUtils jwtUtils) {
         this.authService = authService;
         this.unauthorizedHandler = unauthorizedHandler;
-        this.userRepository = userRepository;
+        this.jwtUtils = jwtUtils;
     }
 
     /**
@@ -116,6 +116,6 @@ public class AuthConfig {
      */
     @Bean
     public OncePerRequestFilter authenticationJwtTokenFilter() {
-        return new JWTFilter(new JWTUtils(userRepository), authService);
+        return new JWTFilter(jwtUtils, authService);
     }
 }

@@ -4,13 +4,11 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import IIS.wis2_backend.Repositories.User.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -39,21 +37,6 @@ public class JWTUtils {
      */
     @Value("${jwt.issuer}")
     private String jwtIssuer;
-
-    /**
-     * User repository for subject check.
-     */
-    private final UserRepository userRepository;
-
-    /**
-     * Constructor for JWTUtils.
-     *
-     * @param userRepository the UserRepository instance
-     */
-    @Autowired
-    public JWTUtils(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     /**
      * Retrieves the encrypted secret key used for signing JWTs.
@@ -98,11 +81,6 @@ public class JWTUtils {
 
             // Verify expiration
             if (claims.getExpiration().before(new Date())) {
-                return false;
-            }
-
-            // Check if the user actually exists
-            if (!userRepository.existsByUsername(claims.getSubject())) {
                 return false;
             }
 
