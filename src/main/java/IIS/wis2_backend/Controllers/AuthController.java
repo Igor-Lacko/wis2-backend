@@ -3,13 +3,14 @@ package IIS.wis2_backend.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import IIS.wis2_backend.DTO.Auth.JWTDTO;
 import IIS.wis2_backend.DTO.Auth.LoginDTO;
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
-import IIS.wis2_backend.DTO.User.UserDTO;
+import IIS.wis2_backend.DTO.User.RegisterResponseDTO;
 import IIS.wis2_backend.Services.AuthService;
 import jakarta.validation.Valid;
 
@@ -41,9 +42,9 @@ public class AuthController {
      * @return ResponseEntity with UserDTO of the newly registered user.
      */
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> Register(@Valid RegisterDTO registerDTO) {
-        UserDTO userDTO = authService.RegisterUser(registerDTO);
-        return ResponseEntity.ok(userDTO);
+    public ResponseEntity<RegisterResponseDTO> Register(@Valid @RequestBody RegisterDTO registerDTO) {
+        RegisterResponseDTO response = authService.RegisterUser(registerDTO);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -52,7 +53,7 @@ public class AuthController {
      * @param loginDTO DTO containing the login details.
      */
     @PostMapping("/login")
-    public ResponseEntity<JWTDTO> Login(@Valid LoginDTO loginDTO) {
+    public ResponseEntity<JWTDTO> Login(@Valid @RequestBody LoginDTO loginDTO) {
         String token = authService.LoginUser(loginDTO);
         return ResponseEntity.ok(new JWTDTO(token));
     }

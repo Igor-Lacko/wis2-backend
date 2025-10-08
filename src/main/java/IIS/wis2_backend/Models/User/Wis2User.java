@@ -73,4 +73,10 @@ public class Wis2User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Roles role;
+
+    /**
+     * If the user account is activated.
+     */
+    @Column(nullable = false)
+    private boolean activated;
 }

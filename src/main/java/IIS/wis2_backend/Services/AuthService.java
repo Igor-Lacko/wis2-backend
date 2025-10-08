@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Auth.LoginDTO;
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.User.RegisterResponseDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -70,7 +71,7 @@ public class AuthService {
      * @param registerDTO DTO containing the registration details.
      * @return UserDTO of the newly registered user.
      */
-    public UserDTO RegisterUser(RegisterDTO registerDTO) {
+    public RegisterResponseDTO RegisterUser(RegisterDTO registerDTO) {
         // Check for same email
         String email = registerDTO.getEmail();
         if (userRepository.existsByEmail(email)) {
@@ -78,7 +79,12 @@ public class AuthService {
         }
 
         registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-        return userService.CreateUser(registerDTO);
+        UserDTO newUser = userService.CreateUser(registerDTO);
+    
+        return RegisterResponseDTO.builder()
+                .id(newUser.getId())
+                .username(newUser.getUsername())
+                .build();
     }
 
     /**
