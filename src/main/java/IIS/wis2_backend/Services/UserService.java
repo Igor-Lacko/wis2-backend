@@ -198,6 +198,7 @@ public class UserService {
                 .birthday(registerDTO.getBirthday())
                 .password(registerDTO.getPassword())
                 .role(Roles.USER)
+                .activated(false)
                 .build();
 
         return UserToDTO(userRepository.save(user));
@@ -212,6 +213,7 @@ public class UserService {
     private UserDTO UserToDTO(Wis2User user) {
         return UserDTO.builder()
                 .id(user.getId())
+                .username(user.getUsername())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
