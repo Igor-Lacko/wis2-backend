@@ -174,9 +174,12 @@ public class UserService {
      * @return Created UserDTO.
      */
     public UserDTO CreateUser(RegisterDTO registerDTO) {
+        String firstName = registerDTO.getFirstName();
+        String lastName = registerDTO.getLastName();
+
         // Generate a username based on first and last name
-        String baseUsername = (registerDTO.getFirstName().substring(0, 4).toLowerCase() +
-                registerDTO.getLastName().substring(0, 4).toLowerCase());
+        String baseUsername = (firstName.substring(0, Math.min(firstName.length(), 4)).toLowerCase() +
+                lastName.substring(0, Math.min(lastName.length(), 4)).toLowerCase());
         String username = baseUsername;
         int suffix = 2;
 

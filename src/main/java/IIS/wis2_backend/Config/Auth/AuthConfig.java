@@ -1,5 +1,7 @@
 package IIS.wis2_backend.Config.Auth;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -29,12 +32,10 @@ public class AuthConfig {
     public static final String[] PUBLIC_ENDPOINTS = {
         "/auth/login",
         "/auth/register",
-        "/home",
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v8/api-docs/**",
-        "/v8/**",
-        "/"
+        "/v8/**"
     };
 
     /**
@@ -82,7 +83,14 @@ public class AuthConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.disable())
+            .cors(cors -> cors.configurationSource(request -> {
+                var corsConfig = new CorsConfiguration();
+                corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "//TODO"));
+                corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                corsConfig.setAllowedHeaders(List.of("*"));
+                corsConfig.setAllowCredentials(true);
+                return corsConfig;
+            }))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(AuthConfig.PUBLIC_ENDPOINTS)
