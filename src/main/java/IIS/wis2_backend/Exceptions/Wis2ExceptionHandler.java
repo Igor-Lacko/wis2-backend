@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Exceptions;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -45,5 +46,11 @@ public class Wis2ExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody ExceptionResponseType handleInvalidMethodArgument(MethodArgumentNotValidException e) {
         return new ExceptionResponseType(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = MailException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public @ResponseBody ExceptionResponseType handleMailException(MailException e) {
+        return new ExceptionResponseType("Mail sending failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

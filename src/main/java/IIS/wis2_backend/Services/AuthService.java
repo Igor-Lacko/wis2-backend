@@ -47,6 +47,11 @@ public class AuthService {
     private final UserService userService;
 
     /**
+     * Mail service to send emails after registration.
+     */
+    private final MailService mailService;
+
+    /**
      * Constructor for AuthService.
      * 
      * @param userService           User service to create users, get user details,
@@ -57,12 +62,14 @@ public class AuthService {
      */
     @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService) {
+            AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService,
+            MailService mailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
+        this.mailService = mailService;
     }
 
     /**
@@ -78,9 +85,12 @@ public class AuthService {
             throw new UserAlreadyExistsException(email, true);
         }
 
+        // Do this before creating the user so that if a exception is thrown, the user is not created
+        mailService.SendVerificationEmail(email);
+
         registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         UserDTO newUser = userService.CreateUser(registerDTO);
-    
+
         return RegisterResponseDTO.builder()
                 .id(newUser.getId())
                 .username(newUser.getUsername())
@@ -94,7 +104,8 @@ public class AuthService {
      * @return JWT token if login is successful.
      */
     public String LoginUser(LoginDTO loginDTO) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
         return jwtUtils.generateToken(loginDTO.getUsername());
     }
 }
