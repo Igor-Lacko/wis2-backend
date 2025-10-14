@@ -47,6 +47,7 @@ public class Wis2UserDetailsService implements UserDetailsService {
         return User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
+                .disabled(!user.isActivated())
                 .authorities(authorities)
                 .build();
     }

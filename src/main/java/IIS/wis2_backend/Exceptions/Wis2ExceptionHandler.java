@@ -2,6 +2,7 @@ package IIS.wis2_backend.Exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -48,9 +49,25 @@ public class Wis2ExceptionHandler {
         return new ExceptionResponseType(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Handler for MailException.
+     * 
+     * @param e the MailException. Thrown when sending an email fails.
+     */
     @ExceptionHandler(value = MailException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public @ResponseBody ExceptionResponseType handleMailException(MailException e) {
         return new ExceptionResponseType("Mail sending failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handler for DisabledException. Occurs when a unactivated user tries to log in.
+     * 
+     * @param e the DisabledException.
+     */
+    @ExceptionHandler(value = DisabledException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public @ResponseBody ExceptionResponseType handleDisabledException(DisabledException e) {
+        return new ExceptionResponseType("User is not activated: " + e.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

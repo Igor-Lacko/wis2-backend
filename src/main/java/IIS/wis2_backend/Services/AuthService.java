@@ -104,6 +104,7 @@ public class AuthService {
         return RegisterResponseDTO.builder()
                 .id(newUser.getId())
                 .username(newUser.getUsername())
+                .email(newUser.getEmail())
                 .build();
     }
 
