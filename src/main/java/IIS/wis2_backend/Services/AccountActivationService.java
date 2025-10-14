@@ -3,10 +3,11 @@ package IIS.wis2_backend.Services;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import IIS.wis2_backend.Enum.LinkTokenType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.ActivationException;
-import IIS.wis2_backend.Models.ActivationToken;
+import IIS.wis2_backend.Models.LinkToken;
 import IIS.wis2_backend.Models.User.Wis2User;
-import IIS.wis2_backend.Repositories.ActivationTokenRepository;
+import IIS.wis2_backend.Repositories.LinkTokenRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 import java.security.SecureRandom;
@@ -36,7 +37,7 @@ public class AccountActivationService {
     /**
      * Repository for activation tokens.
      */
-    private final ActivationTokenRepository activationTokenRepository;
+    private final LinkTokenRepository activationTokenRepository;
 
     /**
      * User repository to set isActive to true.
@@ -64,7 +65,7 @@ public class AccountActivationService {
      * @param activationTokenRepository Repository for activation tokens.
      */
     @Autowired
-    public AccountActivationService(ActivationTokenRepository activationTokenRepository,
+    public AccountActivationService(LinkTokenRepository activationTokenRepository,
             UserRepository userRepository, MailService mailService) {
         this.activationTokenRepository = activationTokenRepository;
         this.userRepository = userRepository;
@@ -80,10 +81,8 @@ public class AccountActivationService {
      */
     public void ActivateAccount(String token) {
         // Try to find the token in the database
-        var activationToken = activationTokenRepository.findByToken(token);
-        if (activationToken == null) {
-            throw new ActivationException("Invalid activation token.");
-        }
+        var activationToken = activationTokenRepository.findByTokenAndType(token, LinkTokenType.ACTIVATION)
+                .orElseThrow(() -> new ActivationException("Invalid activation token."));
 
         // Check if the token is expired
         var issuedAt = activationToken.getIssuedAt();
@@ -122,10 +121,11 @@ public class AccountActivationService {
 
         // Associate the token with the user
         var user = userRepository.findById(userId).orElseThrow();
-        ActivationToken activationToken = ActivationToken.builder()
+        LinkToken activationToken = LinkToken.builder()
                 .token(token)
                 .user(user)
                 .issuedAt(new Date(System.currentTimeMillis()))
+                .type(LinkTokenType.ACTIVATION)
                 .build();
 
         activationTokenRepository.save(activationToken);
