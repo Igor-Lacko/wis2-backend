@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import IIS.wis2_backend.Exceptions.ExceptionTypes.ActivationException;
 import IIS.wis2_backend.Models.ActivationToken;
@@ -23,8 +24,14 @@ public class AccountActivationService {
     /**
      * The expiration time for activation links in hours.
      */
-    @Value("${ACTIVATION_LINK_EXPIRATION_HOURS}")
+    @Value("${activation.link.expiration.hours}")
     private int activationLinkExpirationHours;
+
+    /**
+     * Base URL for activation links prepended to /activate?token=....
+     */
+    @Value("${server.url}")
+    private String serverUrl;
 
     /**
      * Repository for activation tokens.
@@ -45,11 +52,6 @@ public class AccountActivationService {
      * Secure random instance.
      */
     private static final SecureRandom secureRandom = new SecureRandom();
-
-    /**
-     * Base URL for activation links.
-     */
-    private static final String baseUrl = "/activate";
 
     /**
      * Mail service to send activation emails.
@@ -152,7 +154,11 @@ public class AccountActivationService {
      * @return The activation link.
      */
     public String GenerateActivationLink(String token) {
-        return baseUrl + "?token=" + token;
+        return UriComponentsBuilder.fromUriString(serverUrl)
+            .path("/activate")
+            .queryParam("token", token)
+            .build()
+            .toUriString();
     }
 
     /**
