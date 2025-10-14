@@ -32,6 +32,7 @@ public class AuthConfig {
     public static final String[] PUBLIC_ENDPOINTS = {
         "/auth/login",
         "/auth/register",
+        "/activate",
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v8/api-docs/**",

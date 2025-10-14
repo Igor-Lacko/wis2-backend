@@ -55,7 +55,6 @@ public class JWTUtils {
     public String generateToken(String username) {
         Date currentDate = new Date(System.currentTimeMillis());
 
-        // TODO: more claims?
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(currentDate)

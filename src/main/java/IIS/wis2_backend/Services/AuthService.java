@@ -52,6 +52,11 @@ public class AuthService {
     private final MailService mailService;
 
     /**
+     * Service to handle account activations.
+     */
+    private final AccountActivationService accountActivationService;
+
+    /**
      * Constructor for AuthService.
      * 
      * @param userService           User service to create users, get user details,
@@ -63,13 +68,14 @@ public class AuthService {
     @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService,
-            MailService mailService) {
+            MailService mailService, AccountActivationService accountActivationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
         this.mailService = mailService;
+        this.accountActivationService = accountActivationService;
     }
 
     /**
@@ -85,11 +91,15 @@ public class AuthService {
             throw new UserAlreadyExistsException(email, true);
         }
 
-        // Do this before creating the user so that if a exception is thrown, the user is not created
-        mailService.SendVerificationEmail(email);
-
         registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         UserDTO newUser = userService.CreateUser(registerDTO);
+
+        // Generate activation token and link
+        String activationToken = accountActivationService.OnRegister(newUser.getId());
+        String activationLink = accountActivationService.GenerateActivationLink(activationToken);
+
+        // Send it!
+        mailService.SendActivationEmail(email, activationLink);
 
         return RegisterResponseDTO.builder()
                 .id(newUser.getId())

@@ -2,15 +2,13 @@ package IIS.wis2_backend.Services;
 
 import org.springframework.stereotype.Service;
 
-import IIS.wis2_backend.Utils.MailObject;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 /**
- * Service for sending account verification and password reset emails.
+ * Service for sending account activation and password reset emails.
  */
 @Service
 public class MailService {
@@ -26,6 +24,11 @@ public class MailService {
     private final JavaMailSender mailSender;
 
     /**
+     * Activation subject.
+     */
+    private static final String activationSubject = "WIS2: Account activation";
+
+    /**
      * Constructor for MailService.
      *
      * @param mailSender the JavaMailSender instance
@@ -36,20 +39,20 @@ public class MailService {
     }
 
     /**
-     * Sends an account verification email.
+     * Sends an account activation email.
      *
-     * @param recipient the email address to send the verification link to
+     * @param recipient the email address to send the activation link to.
+     * @param activationLink the activation link to include in the email.
      */
-    public void SendVerificationEmail(String recipient) {
+    public void SendActivationEmail(String recipient, String activationLink) {
         // Create the message
         SimpleMailMessage message = new SimpleMailMessage();
 
         // Fill it out
         message.setTo(recipient);
         message.setFrom(senderAddress);
-        message.setSubject("WIS2: Account Verification");
-        // TODO: verification link
-        message.setText("Please verify your account by clicking the following link: [verification link]");
+        message.setSubject(activationSubject);
+        message.setText("Please verify your account by clicking the following link: " + activationLink);
 
         // And send it!
         mailSender.send(message);
