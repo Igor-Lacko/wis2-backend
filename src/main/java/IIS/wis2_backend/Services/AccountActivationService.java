@@ -52,15 +52,21 @@ public class AccountActivationService {
     private static final String baseUrl = "/activate";
 
     /**
+     * Mail service to send activation emails.
+     */
+    private final MailService mailService;
+
+    /**
      * Constructor for AccountActivationService.
      * 
      * @param activationTokenRepository Repository for activation tokens.
      */
     @Autowired
     public AccountActivationService(ActivationTokenRepository activationTokenRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, MailService mailService) {
         this.activationTokenRepository = activationTokenRepository;
         this.userRepository = userRepository;
+        this.mailService = mailService;
     }
 
     /**
@@ -83,27 +89,33 @@ public class AccountActivationService {
         var diffInMillies = now.getTime() - issuedAt.getTime();
         var diffInHours = diffInMillies / (1000 * 60 * 60);
         if (diffInHours > activationLinkExpirationHours) {
+            // Delete the token
+            activationTokenRepository.delete(activationToken);
             throw new ActivationException("Activation token has expired.");
         }
 
         // Activate the user
         Wis2User user = activationToken.getUser();
         if (user.isActivated()) {
+            // This shouldn't happen since the token should be deleted after use
             throw new ActivationException("Account is already activated.");
         }
 
         user.setActivated(true);
         userRepository.save(user);
+
+        // Delete the token
+        activationTokenRepository.delete(activationToken);
     }
 
     /**
-     * Creates a new activation token for the given user and associates them. Called
-     * after registering.
+     * Creates a new activation token for the given user and associates them. 
+     * Called after registering or after the previous token expires. 
+     * Sends an activation email to the user.
      * 
      * @param userId the ID of the registered user.
-     * @return The generated token.
      */
-    public String OnRegister(Long userId) {
+    public void CreateActivationForUser(Long userId) {
         String token = GenerateActivationToken();
 
         // Associate the token with the user
@@ -115,7 +127,10 @@ public class AccountActivationService {
                 .build();
 
         activationTokenRepository.save(activationToken);
-        return token;
+
+        // Send activation email
+        String activationLink = GenerateActivationLink(token);
+        mailService.SendActivationEmail(user.getEmail(), activationLink);
     }
 
     /**
@@ -139,4 +154,23 @@ public class AccountActivationService {
     public String GenerateActivationLink(String token) {
         return baseUrl + "?token=" + token;
     }
+
+    /**
+     * Called when a user requests to resend the activation email.
+     * 
+     * @param email The email to resend the activation email to.
+     */
+    public void ResendActivationEmail(String email) {
+        Wis2User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ActivationException("No user found with the given email.");
+        }
+
+        // Again, this shouldn't happen.
+        else if (user.isActivated()) {
+            throw new ActivationException("Account is already activated.");
+        }
+
+        CreateActivationForUser(user.getId());
+    } 
 }

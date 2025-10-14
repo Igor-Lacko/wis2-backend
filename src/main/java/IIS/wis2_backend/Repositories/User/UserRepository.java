@@ -51,4 +51,12 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * @return Wis2User with the given username, or null if not found.
      */
     Wis2User findByUsername(String username);
+
+    /**
+     * Finds a user by email.
+     * 
+     * @param email Email to search for.
+     * @return Wis2User with the given email, or null if not found.
+     */
+    Wis2User findByEmail(String email);
 }

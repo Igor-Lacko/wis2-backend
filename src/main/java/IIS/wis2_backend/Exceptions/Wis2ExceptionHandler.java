@@ -7,6 +7,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 
 /**
@@ -23,7 +24,7 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = UserAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public @ResponseBody ExceptionResponseType handleUserAlreadyExists(UserAlreadyExistsException e) {
-        return new ExceptionResponseType(e.getMessage(), HttpStatus.CONFLICT);
+        return new ExceptionResponseType(e.getMessage());
     }
 
     /**
@@ -34,7 +35,7 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public @ResponseBody ExceptionResponseType handleAuthenticationException(AuthenticationException e) {
-        return new ExceptionResponseType("Login failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        return new ExceptionResponseType("Login failed: " + e.getMessage());
     }
 
     /**
@@ -46,7 +47,7 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody ExceptionResponseType handleInvalidMethodArgument(MethodArgumentNotValidException e) {
-        return new ExceptionResponseType(e.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ExceptionResponseType(e.getMessage());
     }
 
     /**
@@ -57,7 +58,7 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = MailException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public @ResponseBody ExceptionResponseType handleMailException(MailException e) {
-        return new ExceptionResponseType("Mail sending failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ExceptionResponseType("Mail sending failed: " + e.getMessage());
     }
 
     /**
@@ -68,6 +69,17 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = DisabledException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public @ResponseBody ExceptionResponseType handleDisabledException(DisabledException e) {
-        return new ExceptionResponseType("User is not activated: " + e.getMessage(), HttpStatus.FORBIDDEN);
+        return new ExceptionResponseType("User is not activated: " + e.getMessage());
+    }
+
+    /**
+     * Handler for LinkExpiredException, which occurs when an account activation link or password reset link has expired.
+     * 
+     * @param e the LinkExpiredException.
+     */
+    @ExceptionHandler(value = LinkExpiredException.class)
+    @ResponseStatus(HttpStatus.GONE)
+    public @ResponseBody ExceptionResponseType handleLinkExpiredException(LinkExpiredException e) {
+        return new ExceptionResponseType(e.getMessage());
     }
 }

@@ -47,12 +47,7 @@ public class AuthService {
     private final UserService userService;
 
     /**
-     * Mail service to send emails after registration.
-     */
-    private final MailService mailService;
-
-    /**
-     * Service to handle account activations.
+     * Service to handle account activations on registration.
      */
     private final AccountActivationService accountActivationService;
 
@@ -68,13 +63,12 @@ public class AuthService {
     @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService,
-            MailService mailService, AccountActivationService accountActivationService) {
+            AccountActivationService accountActivationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
-        this.mailService = mailService;
         this.accountActivationService = accountActivationService;
     }
 
@@ -94,12 +88,8 @@ public class AuthService {
         registerDTO.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         UserDTO newUser = userService.CreateUser(registerDTO);
 
-        // Generate activation token and link
-        String activationToken = accountActivationService.OnRegister(newUser.getId());
-        String activationLink = accountActivationService.GenerateActivationLink(activationToken);
-
-        // Send it!
-        mailService.SendActivationEmail(email, activationLink);
+        // Send activation email
+        accountActivationService.CreateActivationForUser(newUser.getId());
 
         return RegisterResponseDTO.builder()
                 .id(newUser.getId())
