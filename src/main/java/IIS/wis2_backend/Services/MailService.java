@@ -57,4 +57,21 @@ public class MailService {
         // And send it!
         mailSender.send(message);
     }
+
+    /**
+     * Sends a password reset email.
+     *
+     * @param recipient the email address to send the password reset link to.
+     * @param passwordResetLink the password reset link to include in the email.
+     */
+    public void SendPasswordResetMail(String recipient, String passwordResetLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+
+        message.setTo(recipient);
+        message.setFrom(senderAddress);
+        message.setSubject("WIS2: Password reset");
+        message.setText("You can reset your password by clicking the following link: " + passwordResetLink);
+
+        mailSender.send(message);
+    }
 }

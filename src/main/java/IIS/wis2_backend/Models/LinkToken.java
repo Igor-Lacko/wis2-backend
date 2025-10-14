@@ -46,9 +46,9 @@ public class LinkToken {
     private Wis2User user;
 
     /**
-     * The time the token was issued at.
+     * The time the token expires at.
      */
-    private Date issuedAt;
+    private Date expirationDate;
 
     /**
      * Type of the token (activation or password reset).

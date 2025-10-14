@@ -1,12 +1,19 @@
 package IIS.wis2_backend.Services;
 
+import java.sql.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import IIS.wis2_backend.Enum.LinkTokenType;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Models.LinkToken;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.LinkTokenRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
+import IIS.wis2_backend.Utils.LinkTokenUtils;
 
 /**
  * Service for handling password reset functionality.
@@ -61,6 +68,35 @@ public class PasswordResetService {
      */
     public void ResetPassword(String email) {
         Wis2User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User with the given email does not exist."));
+                .orElseThrow(() -> new NotFoundException("User with the given mail doesn't exist."));
+
+        String linkToken = LinkTokenUtils.GenerateLinkToken();
+
+        LinkToken passwordResetToken = LinkToken.builder()
+                .token(linkToken)
+                .user(user)
+                .expirationDate(new Date(System.currentTimeMillis() + expirationTimeInMinutes * 60 * 1000))
+                .type(LinkTokenType.PASSWORD_RESET)
+                .build();
+
+        passwordResetTokenRepository.save(passwordResetToken);
+
+        // Send the email
+        String passwordResetLink = GeneratePasswordResetLink(linkToken);
+        mailService.SendPasswordResetMail(user.getEmail(), passwordResetLink);
+    }
+
+    /**
+     * Generates a password reset link with the given token.
+     * 
+     * @param token The token to be included in the link.
+     * @return The complete password reset link.
+     */
+    private String GeneratePasswordResetLink(String token) {
+        return UriComponentsBuilder.fromUriString(serverUrl)
+                .path("/reset-password")
+                .queryParam("token", token)
+                .build()
+                .toUriString();
     }
 }

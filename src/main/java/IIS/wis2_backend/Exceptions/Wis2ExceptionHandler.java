@@ -7,8 +7,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UserNotFoundException;
 
 /**
  * Global exception handler class for mapping exceptions to HTTP responses.
@@ -80,6 +82,28 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = LinkExpiredException.class)
     @ResponseStatus(HttpStatus.GONE)
     public @ResponseBody ExceptionResponseType handleLinkExpiredException(LinkExpiredException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for UserNotFoundException.
+     * 
+     * @param e the UserNotFoundException.
+     */
+    @ExceptionHandler(value = UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public @ResponseBody ExceptionResponseType handleUserNotFoundException(UserNotFoundException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for AlreadySetException.
+     * 
+     * @param e the AlreadySetException.
+     */
+    @ExceptionHandler(value = AlreadySetException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public @ResponseBody ExceptionResponseType handleAlreadySetException(AlreadySetException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 }
