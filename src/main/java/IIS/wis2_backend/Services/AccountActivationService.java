@@ -4,7 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import IIS.wis2_backend.Enum.LinkTokenType;
-import IIS.wis2_backend.Exceptions.ExceptionTypes.ActivationException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkTokenException;
 import IIS.wis2_backend.Models.LinkToken;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.LinkTokenRepository;
@@ -16,6 +17,7 @@ import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 
 /**
  * Service for account activation.
@@ -77,29 +79,30 @@ public class AccountActivationService {
      * 
      * @param token The token passed in by the user.
      * 
-     * @throws ActivationException if the token is invalid or expired.
+     * @throws LinkTokenException if the token is invalid or expired.
      */
     public void ActivateAccount(String token) {
         // Try to find the token in the database
-        var activationToken = activationTokenRepository.findByTokenAndType(token, LinkTokenType.ACTIVATION)
-                .orElseThrow(() -> new ActivationException("Invalid activation token."));
+        LinkToken activationToken = activationTokenRepository.findByTokenAndType(token, LinkTokenType.ACTIVATION)
+                .orElseThrow(() -> new LinkTokenException("Invalid activation token.", true, HttpStatus.BAD_REQUEST));
 
         // Check if the token is expired
-        var issuedAt = activationToken.getIssuedAt();
-        var now = new java.util.Date();
-        var diffInMillies = now.getTime() - issuedAt.getTime();
-        var diffInHours = diffInMillies / (1000 * 60 * 60);
+        Date issuedAt = activationToken.getIssuedAt();
+        Date now = new Date(System.currentTimeMillis());
+
+        long diffInMillies = now.getTime() - issuedAt.getTime();
+        long diffInHours = diffInMillies / (1000 * 60 * 60);
         if (diffInHours > activationLinkExpirationHours) {
             // Delete the token
             activationTokenRepository.delete(activationToken);
-            throw new ActivationException("Activation token has expired.");
+            throw new LinkExpiredException("Link has expired.", true);
         }
 
         // Activate the user
         Wis2User user = activationToken.getUser();
         if (user.isActivated()) {
             // This shouldn't happen since the token should be deleted after use
-            throw new ActivationException("Account is already activated.");
+            throw new LinkTokenException("Account is already activated.", true, HttpStatus.CONFLICT);
         }
 
         user.setActivated(true);
@@ -110,8 +113,8 @@ public class AccountActivationService {
     }
 
     /**
-     * Creates a new activation token for the given user and associates them. 
-     * Called after registering or after the previous token expires. 
+     * Creates a new activation token for the given user and associates them.
+     * Called after registering or after the previous token expires.
      * Sends an activation email to the user.
      * 
      * @param userId the ID of the registered user.
@@ -155,10 +158,10 @@ public class AccountActivationService {
      */
     public String GenerateActivationLink(String token) {
         return UriComponentsBuilder.fromUriString(serverUrl)
-            .path("/activate")
-            .queryParam("token", token)
-            .build()
-            .toUriString();
+                .path("/activate")
+                .queryParam("token", token)
+                .build()
+                .toUriString();
     }
 
     /**
@@ -167,16 +170,14 @@ public class AccountActivationService {
      * @param email The email to resend the activation email to.
      */
     public void ResendActivationEmail(String email) {
-        Wis2User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new ActivationException("No user found with the given email.");
-        }
+        Wis2User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new LinkTokenException("User with the given email does not exist.", true, HttpStatus.NOT_FOUND));
 
         // Again, this shouldn't happen.
-        else if (user.isActivated()) {
-            throw new ActivationException("Account is already activated.");
+        if (user.isActivated()) {
+            throw new LinkTokenException("Account is already activated.", true, HttpStatus.CONFLICT);
         }
 
         CreateActivationForUser(user.getId());
-    } 
+    }
 }

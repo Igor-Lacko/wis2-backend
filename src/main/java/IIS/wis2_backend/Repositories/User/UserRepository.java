@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Repositories.User;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -48,15 +49,15 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * Finds a user by username.
      * 
      * @param username Username to search for.
-     * @return Wis2User with the given username, or null if not found.
+     * @return Optional containing the Wis2User with the given username, or empty if not found.
      */
-    Wis2User findByUsername(String username);
+    Optional<Wis2User> findByUsername(String username);
 
     /**
      * Finds a user by email.
      * 
      * @param email Email to search for.
-     * @return Wis2User with the given email, or null if not found.
+     * @return Optional containing the Wis2User with the given email, or empty if not found.
      */
-    Wis2User findByEmail(String email);
+    Optional<Wis2User> findByEmail(String email);
 }

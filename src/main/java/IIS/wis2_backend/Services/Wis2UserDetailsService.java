@@ -36,10 +36,8 @@ public class Wis2UserDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Wis2User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
+        Wis2User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         String[] authorities = user.getRole() == Roles.ADMIN ? new String[] { "ROLE_ADMIN", "ROLE_USER" }
                 : new String[] { "ROLE_USER" };
