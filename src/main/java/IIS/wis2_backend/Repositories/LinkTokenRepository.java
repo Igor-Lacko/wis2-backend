@@ -16,9 +16,9 @@ public interface LinkTokenRepository extends JpaRepository<LinkToken, String> {
     /**
      * Finds a link token by its token (the actual string) and type.
      * 
-     * @param token The token itself.
+     * @param token The hashed token itself.
      * @param type  The type of the token (activation or password reset).
      * @return The LinkToken with the given token, or null if not found.
      */
-    Optional<LinkToken> findByTokenAndType(String token, LinkTokenType type);
+    Optional<LinkToken> findByTokenHashAndType(String tokenHash, LinkTokenType type);
 }

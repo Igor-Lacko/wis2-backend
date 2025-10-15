@@ -33,10 +33,11 @@ public class LinkToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     /**
-     * The token itself.
+     * The hash of the token sent to the user.
      */
-    private String token;
+    private String tokenHash;
 
     /**
      * The user associated with the token.

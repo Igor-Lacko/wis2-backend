@@ -70,8 +70,10 @@ public class AccountActivationService {
      * @throws LinkTokenException if the token is invalid or expired.
      */
     public void ActivateAccount(String token) {
+        String tokenHash = LinkTokenUtils.HashToken(token);
+
         // Try to find the token in the database
-        LinkToken activationToken = activationTokenRepository.findByTokenAndType(token, LinkTokenType.ACTIVATION)
+        LinkToken activationToken = activationTokenRepository.findByTokenHashAndType(tokenHash, LinkTokenType.ACTIVATION)
                 .orElseThrow(() -> new NotFoundException("Token has not been found."));
         // Check if the token is expired
         Date expirationDate = activationToken.getExpirationDate();
@@ -110,7 +112,7 @@ public class AccountActivationService {
         // Associate the token with the user
         Wis2User user = userRepository.findById(userId).orElseThrow();
         LinkToken activationToken = LinkToken.builder()
-                .token(token)
+                .tokenHash(LinkTokenUtils.HashToken(token))
                 .user(user)
                 .expirationDate(new Date(System.currentTimeMillis() + activationLinkExpirationHours * 60 * 60 * 1000))
                 .type(LinkTokenType.ACTIVATION)

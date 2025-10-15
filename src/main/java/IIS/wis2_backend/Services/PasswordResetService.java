@@ -83,7 +83,7 @@ public class PasswordResetService {
         String linkToken = LinkTokenUtils.GenerateLinkToken();
 
         LinkToken passwordResetToken = LinkToken.builder()
-                .token(linkToken)
+                .tokenHash(LinkTokenUtils.HashToken(linkToken))
                 .user(user)
                 .expirationDate(new Date(System.currentTimeMillis() + expirationTimeInMinutes * 60 * 1000))
                 .type(LinkTokenType.PASSWORD_RESET)
@@ -115,8 +115,10 @@ public class PasswordResetService {
      * @param passwordResetDTO Contains the token, password and reset password.
      */
     public void ResetPassword(PasswordResetDTO passwordResetDTO) {
+        String tokenHash = LinkTokenUtils.HashToken(passwordResetDTO.token());
+
         // Find the token
-        LinkToken passwordResetToken = passwordResetTokenRepository.findByTokenAndType(passwordResetDTO.token(), LinkTokenType.PASSWORD_RESET)
+        LinkToken passwordResetToken = passwordResetTokenRepository.findByTokenHashAndType(tokenHash, LinkTokenType.PASSWORD_RESET)
                 .orElseThrow(() -> new NotFoundException("The given token doesn't exist."));
 
         // Check if the token is expired
