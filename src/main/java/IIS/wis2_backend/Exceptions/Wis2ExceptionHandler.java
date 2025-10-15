@@ -8,9 +8,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.DoesntMatchException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
-import IIS.wis2_backend.Exceptions.ExceptionTypes.UserNotFoundException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 
 /**
  * Global exception handler class for mapping exceptions to HTTP responses.
@@ -90,9 +91,9 @@ public class Wis2ExceptionHandler {
      * 
      * @param e the UserNotFoundException.
      */
-    @ExceptionHandler(value = UserNotFoundException.class)
+    @ExceptionHandler(value = NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public @ResponseBody ExceptionResponseType handleUserNotFoundException(UserNotFoundException e) {
+    public @ResponseBody ExceptionResponseType handleUserNotFoundException(NotFoundException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 
@@ -104,6 +105,17 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = AlreadySetException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public @ResponseBody ExceptionResponseType handleAlreadySetException(AlreadySetException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for DoesntMatchException
+     * 
+     * @param e the DoesntMatchException
+     */
+    @ExceptionHandler(value = DoesntMatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ExceptionResponseType handleDoesntMatchException(DoesntMatchException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 }

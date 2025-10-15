@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.ResendDTO;
+import IIS.wis2_backend.DTO.EmailDTO;
 import IIS.wis2_backend.Services.AccountActivationService;
 
 /**
@@ -48,12 +48,12 @@ public class ActivationController {
     /**
      * Endpoint to resend an activation email to the route parameter email.
      * 
-     * @param email The email to resend the activation email to.
+     * @param emailDTO The email to resend the activation email to.
      * @return ResponseEntity with status 200 if the email was sent successfully, + the service sends a new mail.
      */
     @PostMapping("/resend")
-    public ResponseEntity<Void> ResendActivationEmail(@RequestBody ResendDTO resendDTO) {
-        accountActivationService.ResendActivationEmail(resendDTO.email());
+    public ResponseEntity<Void> ResendActivationEmail(@RequestBody EmailDTO emailDTO) {
+        accountActivationService.ResendActivationEmail(emailDTO.email());
         return ResponseEntity.ok().build();
     }
 }

@@ -1,15 +1,15 @@
 package IIS.wis2_backend.Exceptions.ExceptionTypes;
 
 /**
- * Exception thrown when a user is not found in the database.
+ * Exception thrown when a arbitrary thing (mainly user) is not found.
  */
 public class NotFoundException extends RuntimeException {
     /**
-     * Constructor for UserNotFoundException.
+     * Constructor for NotFoundException.
      * 
      * @param message the exception message.
      */
     public NotFoundException(String message) {
-        super("User not found: " + message);
+        super(message);
     }
 }

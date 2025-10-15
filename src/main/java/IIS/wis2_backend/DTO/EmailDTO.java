@@ -4,8 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * DTO for resending activation emails.
+ * DTO for sending activation and password reset emails.
  */
-public record ResendDTO(
+public record EmailDTO(
     @Email @NotBlank String email
 ) {}
