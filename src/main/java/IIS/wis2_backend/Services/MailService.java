@@ -15,7 +15,7 @@ public class MailService {
     /**
      * Env indicating the "from" field in emails.
      */
-    @Value("${SMTP_SENDER}")
+    @Value("${spring.mail.sender}")
     private String senderAddress;
 
     /**
