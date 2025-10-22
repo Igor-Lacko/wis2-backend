@@ -31,8 +31,8 @@ public class AccountActivationService {
     /**
      * Base URL for activation links prepended to /activate?token=....
      */
-    @Value("${server.url}")
-    private String serverUrl;
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     /**
      * Repository for activation tokens.
@@ -75,6 +75,7 @@ public class AccountActivationService {
         // Try to find the token in the database
         LinkToken activationToken = activationTokenRepository.findByTokenHashAndType(tokenHash, LinkTokenType.ACTIVATION)
                 .orElseThrow(() -> new NotFoundException("Token has not been found."));
+
         // Check if the token is expired
         Date expirationDate = activationToken.getExpirationDate();
         Date now = new Date(System.currentTimeMillis());
@@ -150,9 +151,8 @@ public class AccountActivationService {
      * @return The activation link.
      */
     private String GenerateActivationLink(String token) {
-        return UriComponentsBuilder.fromUriString(serverUrl)
-                .path("/activate")
-                .queryParam("token", token)
+        return UriComponentsBuilder.fromUriString(frontendUrl)
+                .pathSegment("activate", token)
                 .build()
                 .toUriString();
     }
