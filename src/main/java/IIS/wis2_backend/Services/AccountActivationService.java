@@ -121,7 +121,7 @@ public class AccountActivationService {
 
         // Send activation email
         String activationLink = GenerateActivationLink(token);
-        mailService.SendActivationEmail(user.getEmail(), activationLink);
+        mailService.SendActivationEmail(user.getEmail(), user.getUsername(), activationLink);
     }
 
     /**

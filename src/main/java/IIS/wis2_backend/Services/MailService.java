@@ -42,9 +42,10 @@ public class MailService {
      * Sends an account activation email.
      *
      * @param recipient the email address to send the activation link to.
+     * @param username  the username of the recipient.
      * @param activationLink the activation link to include in the email.
      */
-    public void SendActivationEmail(String recipient, String activationLink) {
+    public void SendActivationEmail(String recipient, String username, String activationLink) {
         // Create the message
         SimpleMailMessage message = new SimpleMailMessage();
 
@@ -52,7 +53,8 @@ public class MailService {
         message.setTo(recipient);
         message.setFrom(senderAddress);
         message.setSubject(activationSubject);
-        message.setText("Please verify your account by clicking the following link: " + activationLink);
+        message.setText("Your WIS2 username is: " + username + "\n\n"
+                + "You can activate your account by clicking the following link: " + activationLink);
 
         // And send it!
         mailSender.send(message);
