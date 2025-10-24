@@ -13,7 +13,8 @@ import IIS.wis2_backend.Repositories.LinkTokenRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Utils.LinkTokenUtils;
 
-import java.sql.Date;
+import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -77,10 +78,7 @@ public class AccountActivationService {
                 .orElseThrow(() -> new NotFoundException("Token has not been found."));
 
         // Check if the token is expired
-        Date expirationDate = activationToken.getExpirationDate();
-        Date now = new Date(System.currentTimeMillis());
-
-        if (now.after(expirationDate)) {
+        if (Instant.now().isAfter(activationToken.getExpirationDate())) {
             // Delete the token
             activationTokenRepository.delete(activationToken);
             throw new LinkExpiredException("Link has expired.", true);
@@ -115,7 +113,7 @@ public class AccountActivationService {
         LinkToken activationToken = LinkToken.builder()
                 .tokenHash(LinkTokenUtils.HashToken(token))
                 .user(user)
-                .expirationDate(new Date(System.currentTimeMillis() + activationLinkExpirationHours * 60 * 60 * 1000))
+                .expirationDate(Instant.now().plusSeconds(activationLinkExpirationHours * 60 * 60))
                 .type(LinkTokenType.ACTIVATION)
                 .build();
 

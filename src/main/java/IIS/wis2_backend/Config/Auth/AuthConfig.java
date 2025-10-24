@@ -33,6 +33,8 @@ public class AuthConfig {
         "/auth/login",
         "/auth/register",
         "/activate",
+        "/password-reset",
+        "/password-reset/generate",
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v8/api-docs/**",

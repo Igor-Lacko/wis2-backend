@@ -1,6 +1,6 @@
 package IIS.wis2_backend.Models;
 
-import java.sql.Date;
+import java.time.Instant;
 
 import IIS.wis2_backend.Enum.LinkTokenType;
 import IIS.wis2_backend.Models.User.Wis2User;
@@ -49,7 +49,7 @@ public class LinkToken {
     /**
      * The time the token expires at.
      */
-    private Date expirationDate;
+    private Instant expirationDate;
 
     /**
      * Type of the token (activation or password reset).

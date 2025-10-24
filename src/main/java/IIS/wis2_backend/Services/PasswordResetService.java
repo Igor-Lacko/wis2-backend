@@ -1,6 +1,6 @@
 package IIS.wis2_backend.Services;
 
-import java.sql.Date;
+import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,8 +27,8 @@ public class PasswordResetService {
     /**
      * Base URL for password reset links prepended to /reset-password?token=....
      */
-    @Value("${server.url}")
-    private String serverUrl;
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     /**
      * The expiration time for password reset links in minutes.
@@ -85,9 +85,11 @@ public class PasswordResetService {
         LinkToken passwordResetToken = LinkToken.builder()
                 .tokenHash(LinkTokenUtils.HashToken(linkToken))
                 .user(user)
-                .expirationDate(new Date(System.currentTimeMillis() + expirationTimeInMinutes * 60 * 1000))
+                .expirationDate(Instant.now().plusSeconds((long) expirationTimeInMinutes * 60))
                 .type(LinkTokenType.PASSWORD_RESET)
                 .build();
+
+        System.out.println(passwordResetToken.getExpirationDate());
 
         passwordResetTokenRepository.save(passwordResetToken);
 
@@ -103,9 +105,8 @@ public class PasswordResetService {
      * @return The complete password reset link.
      */
     private String GeneratePasswordResetLink(String token) {
-        return UriComponentsBuilder.fromUriString(serverUrl)
-                .path("/reset-password")
-                .queryParam("token", token)
+        return UriComponentsBuilder.fromUriString(frontendUrl)
+                .pathSegment("reset-password", token)
                 .build()
                 .toUriString();
     }
@@ -122,8 +123,7 @@ public class PasswordResetService {
                 .orElseThrow(() -> new NotFoundException("The given token doesn't exist."));
 
         // Check if the token is expired
-        Date now = new Date(System.currentTimeMillis());
-        if (passwordResetToken.getExpirationDate().before(now)) {
+        if (passwordResetToken.getExpirationDate().isBefore(Instant.now())) {
             throw new LinkExpiredException("This link has expired", false);
         }
 
