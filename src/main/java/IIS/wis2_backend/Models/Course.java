@@ -4,7 +4,6 @@ import java.sql.Date;
 import java.util.Set;
 
 import IIS.wis2_backend.Enum.CourseEndType;
-import IIS.wis2_backend.Enum.CourseType;
 import IIS.wis2_backend.Models.User.Teacher;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,6 +42,7 @@ public class Course {
     /**
      * Course shortcut/abbreviation.
      */
+    @Column(unique = true, nullable = false)
     private String shortcut;
 
     /**
@@ -54,12 +54,6 @@ public class Course {
      * Date the course was last updated.
      */
     private Date updatedAt;
-
-    /**
-     * Course category.
-     */
-    @Enumerated(EnumType.STRING)
-    private CourseType type;
 
     /**
      * Course end type.

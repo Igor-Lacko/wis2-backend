@@ -12,7 +12,12 @@ import IIS.wis2_backend.Models.User.Teacher;
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
     /**
-     * Find teachers by first or last name containing the given string..
+     * Find teachers by first or last name containing the given string.
+     * 
+     * @param firstName First name substring to search for.
+     * @param lastName  Last name substring to search for.
+     * 
+     * @return List of teachers matching the criteria.
      */
     List<Teacher> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 }

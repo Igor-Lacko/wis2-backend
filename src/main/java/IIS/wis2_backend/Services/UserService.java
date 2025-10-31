@@ -77,7 +77,8 @@ public class UserService {
     }
 
     /**
-     * Update an existing user with fields that don't necessarily have to be validated.
+     * Update an existing user with fields that don't necessarily have to be
+     * validated.
      * 
      * @param id      ID of the user to update.
      * @param userDTO DTO with updated user data.
@@ -121,7 +122,7 @@ public class UserService {
                 .toList();
     }
 
-    public List<TeacherDTO> GetTeachersByName (String name) {
+    public List<TeacherDTO> GetTeachersByName(String name) {
         return teacherRepository
                 .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
                 .stream()
@@ -157,6 +158,7 @@ public class UserService {
 
     /**
      * Gets a student by ID.
+     * 
      * @param id Student ID.
      * @return UserDTO (so far) or null if not found.
      */
