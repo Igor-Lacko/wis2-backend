@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Student;
@@ -115,12 +116,13 @@ public class MockDBService {
 	 * @param price    Price of the course.
 	 * @param shortcut Shortcut of the course.
 	 */
-	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut) {
+	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut, CourseEndType endType) {
 		if (!courseRepository.existsByShortcut(shortcut)) {
 			Course course = Course.builder()
 					.name(name)
 					.price(price)
 					.shortcut(shortcut)
+					.completedBy(endType)
 					.build();
 
 			courseRepository.save(course);
@@ -171,14 +173,14 @@ public class MockDBService {
 	 * Initialize the mock database with test courses.
 	 */
 	public void InsertMockCourses() {
-		InsertMockCourseIfNotExists("Information Systems", 1500.0, "IIS");
-		InsertMockCourseIfNotExists("Database Systems", 1200.0, "IDS");
-		InsertMockCourseIfNotExists("Introduction to Software Engineering", 1300.0, "IUS");
-		InsertMockCourseIfNotExists("Computer Communications and Networks", 1400.0, "IPK");
-		InsertMockCourseIfNotExists("Network Applications and Network Administration", 1600.0, "ISA");
-		InsertMockCourseIfNotExists("Operating Systems", 10000.0, "IOS");
-		InsertMockCourseIfNotExists("Formal Languages and Compilers", 1100.0, "IFJ");
-		InsertMockCourseIfNotExists("Introduction to Artificial Intelligence", 1700.0, "IZU");
+		InsertMockCourseIfNotExists("Information Systems", 1500.0, "IIS", CourseEndType.EXAM);
+		InsertMockCourseIfNotExists("Database Systems", 1200.0, "IDS", CourseEndType.UNIT_CREDIT);
+		InsertMockCourseIfNotExists("Introduction to Software Engineering", 1300.0, "IUS", CourseEndType.GRADED_UNIT_CREDIT);
+		InsertMockCourseIfNotExists("Computer Communications and Networks", 1400.0, "IPK", CourseEndType.EXAM);
+		InsertMockCourseIfNotExists("Network Applications and Network Administration", 1600.0, "ISA", CourseEndType.UNIT_CREDIT_EXAM);
+		InsertMockCourseIfNotExists("Operating Systems", 10000.0, "IOS", CourseEndType.GRADED_UNIT_CREDIT);
+		InsertMockCourseIfNotExists("Formal Languages and Compilers", 1100.0, "IFJ", CourseEndType.EXAM);
+		InsertMockCourseIfNotExists("Introduction to Artificial Intelligence", 1700.0, "IZU", CourseEndType.UNIT_CREDIT);
 	}
 
 	/**

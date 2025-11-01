@@ -4,13 +4,14 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.Services.CourseService;
 
 /**
@@ -37,24 +38,12 @@ public class CourseController {
     /**
      * Getter for all courses.
      * 
-     * @param reverse  Whether to reverse the order.
-     * @param query    Search query.
-     * @param sortBy   Field to sort by.
-     * @param endedBy  Filter by end type.
-     * @param minPrice Minimum price filter.
-     * @param maxPrice Maximum price filter.
+     * @param filter Course filter attributes.
      * @return list of all courses matching the criteria.
      */
     @GetMapping
-    public List<LightweightCourseDTO> GetAllCourses(
-        @RequestParam(defaultValue = "false") boolean reverse,
-        @RequestParam(required = false) String query,
-        @RequestParam(required = false) String sortBy,
-        @RequestParam(required = false) String endedBy,
-        @RequestParam(required = false) Double minPrice,
-        @RequestParam(required = false) Double maxPrice
-    ) {
-        return courseService.GetAllCourses(reverse, query, sortBy, endedBy, minPrice, maxPrice);
+    public List<LightweightCourseDTO> GetAllCourses(@ModelAttribute CourseFilter filter) {
+        return courseService.GetAllCourses(filter);
     }
 
     /**

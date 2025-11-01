@@ -5,11 +5,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
+import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Teacher;
@@ -39,40 +42,51 @@ public class CourseService {
     /**
      * Getter for all courses. Returns lightweight DTOs.
      * 
-     * @param reverse whether to reverse the order
-     * @param query   search query to filter courses
-     * @param sortBy  field to sort by
-     * @param filterBy field to filter by
-     * @param filterValue value to filter by
+     * @param filter Course filter attributes.
      * @return a list of all courses
      */
-    public List<LightweightCourseDTO> GetAllCourses(
-        boolean reverse,
-        String query,
-        String sortBy,
-        String endedBy,
-        Double minPrice,
-        Double maxPrice
-    ) {
-        if (sortBy != "name" && sortBy != "price" && !sortBy.isEmpty()) {
+    public List<LightweightCourseDTO> GetAllCourses(CourseFilter filter) {
+        if (!IsValidSortByField(filter.getSortBy())) {
             throw new IllegalArgumentException("Invalid sortBy parameter!");
         }
 
-        Specification<Course> spec = query != null
-            ? CourseSpecification.TitleOrShortcutContains(query)
+        Specification<Course> spec = filter.getQuery() != null
+            ? CourseSpecification.TitleOrShortcutContains(filter.getQuery())
             : null;
 
-        // Filter by end type
-        if (endedBy != null) {
-            spec = spec == null
-                ? CourseSpecification.EndedBy(endedBy)
-                : spec.and(CourseSpecification.EndedBy(endedBy));
+        // The individual course end types shown
+        System.out.println("Filter ended by - both: " + filter.isEndedByBoth()
+            + ", exam: " + filter.isEndedByExam()
+            + ", unit credit: " + filter.isEndedByUnitCredit()
+            + ", graded unit credit: " + filter.isEndedByGradedUnitCredit());
+        Specification<Course> endedBySpec = null;
+        if (filter.isEndedByBoth()) {
+            endedBySpec = CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT_EXAM.name());
+        }
+        if (filter.isEndedByExam()) {
+            endedBySpec = endedBySpec == null
+                ? CourseSpecification.EndedBy(CourseEndType.EXAM.name())
+                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.EXAM.name()));
+        }
+        if (filter.isEndedByUnitCredit()) {
+            endedBySpec = endedBySpec == null
+                ? CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name())
+                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name()));
+        }
+        if (filter.isEndedByGradedUnitCredit()) {
+            endedBySpec = endedBySpec == null
+                ? CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name())
+                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name()));
+        }
+
+        if (endedBySpec != null) {
+            spec = spec == null ? endedBySpec : spec.and(endedBySpec);
         }
 
         // Filter by price range
-        if (minPrice != null || maxPrice != null) {
-            Double min = minPrice != null ? minPrice : 0.0;
-            Double max = maxPrice != null ? maxPrice : Double.MAX_VALUE;
+        if (filter.getMinPrice() != null || filter.getMaxPrice() != null) {
+            Double min = filter.getMinPrice() != null ? filter.getMinPrice() : 0.0;
+            Double max = filter.getMaxPrice() != null ? filter.getMaxPrice() : Double.MAX_VALUE;
 
             // Check for invalid args
             if (min < 0 || max < 0 || min > max) {
@@ -84,9 +98,11 @@ public class CourseService {
                 : spec.and(CourseSpecification.PriceIsInRange(min, max));
         }
 
+        Sort sort = CourseSpecification.BuildSort(filter.getSortBy(), filter.isReverse());
         List<Course> courses = courseRepository.findAll(
             spec,
-            CourseSpecification.BuildSort(sortBy, reverse)
+            // Should never be null, but compiler warnings...
+            sort == null ? Sort.by("name") : sort
         );
 
         return courses.stream()
@@ -102,6 +118,9 @@ public class CourseService {
      * @throws IllegalArgumentException if the course with the given id does not exist
      */
     public FullCourseDTO GetCourseById(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid course id!");
+        }
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("The course with this id doesn't exist!"));
         return CourseToFullDTO(course);
@@ -115,6 +134,16 @@ public class CourseService {
      */
     private LightweightCourseDTO CourseToLightweightDTO(Course course) {
         return new LightweightCourseDTO(course.getId(), course.getName(), course.getPrice(), course.getShortcut());
+    }
+
+    /**
+     * Utility method to validate sortBy field.
+     * 
+     * @param sortBy The field to sort by
+     * @return true if valid, false otherwise
+     */
+    private boolean IsValidSortByField(String sortBy) {
+        return sortBy == null || sortBy.equals("name") || sortBy.equals("price");
     }
 
     /**

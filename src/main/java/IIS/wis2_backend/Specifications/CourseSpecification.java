@@ -64,6 +64,7 @@ public final class CourseSpecification {
      * @return a Sort object
      */
     public static Sort BuildSort(String sortBy, boolean reverse) {
+        sortBy = (sortBy == null || sortBy.isEmpty()) ? "name" : sortBy;
         Sort.Direction direction = reverse ? Sort.Direction.DESC : Sort.Direction.ASC;
         return Sort.by(direction, sortBy);
     }

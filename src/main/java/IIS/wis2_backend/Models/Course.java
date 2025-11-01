@@ -59,6 +59,7 @@ public class Course {
      * Course end type.
      */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CourseEndType completedBy;
 
     /**

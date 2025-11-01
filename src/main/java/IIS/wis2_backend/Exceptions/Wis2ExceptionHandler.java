@@ -31,6 +31,18 @@ public class Wis2ExceptionHandler {
     }
 
     /**
+     * Handler for IllegalArgumentException.
+     * 
+     * @param e the IllegalArgumentException. Thrown when a method receives an
+     *          illegal or inappropriate argument.
+     */
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ExceptionResponseType handleIllegalArgumentException(IllegalArgumentException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
      * Handler for AuthenticationException.
      * 
      * @param e the AuthenticationException. Thrown during login.
