@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
@@ -13,6 +14,7 @@ import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
+import IIS.wis2_backend.Specifications.CourseSpecification;
 
 /**
  * Service for managing courses.
@@ -37,10 +39,57 @@ public class CourseService {
     /**
      * Getter for all courses. Returns lightweight DTOs.
      * 
+     * @param reverse whether to reverse the order
+     * @param query   search query to filter courses
+     * @param sortBy  field to sort by
+     * @param filterBy field to filter by
+     * @param filterValue value to filter by
      * @return a list of all courses
      */
-    public List<LightweightCourseDTO> GetAllCourses() {
-        return courseRepository.findAll().stream()
+    public List<LightweightCourseDTO> GetAllCourses(
+        boolean reverse,
+        String query,
+        String sortBy,
+        String endedBy,
+        Double minPrice,
+        Double maxPrice
+    ) {
+        if (sortBy != "name" && sortBy != "price" && !sortBy.isEmpty()) {
+            throw new IllegalArgumentException("Invalid sortBy parameter!");
+        }
+
+        Specification<Course> spec = query != null
+            ? CourseSpecification.TitleOrShortcutContains(query)
+            : null;
+
+        // Filter by end type
+        if (endedBy != null) {
+            spec = spec == null
+                ? CourseSpecification.EndedBy(endedBy)
+                : spec.and(CourseSpecification.EndedBy(endedBy));
+        }
+
+        // Filter by price range
+        if (minPrice != null || maxPrice != null) {
+            Double min = minPrice != null ? minPrice : 0.0;
+            Double max = maxPrice != null ? maxPrice : Double.MAX_VALUE;
+
+            // Check for invalid args
+            if (min < 0 || max < 0 || min > max) {
+                throw new IllegalArgumentException("Invalid price range!");
+            }
+
+            spec = spec == null
+                ? CourseSpecification.PriceIsInRange(min, max)
+                : spec.and(CourseSpecification.PriceIsInRange(min, max));
+        }
+
+        List<Course> courses = courseRepository.findAll(
+            spec,
+            CourseSpecification.BuildSort(sortBy, reverse)
+        );
+
+        return courses.stream()
                 .map(this::CourseToLightweightDTO)
                 .collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.Models.Course;
@@ -9,7 +10,7 @@ import IIS.wis2_backend.Models.Course;
  * Repository for course CRUD operations.
  */
 @Repository
-public interface CourseRepository extends JpaRepository<Course, Long> {
+public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecificationExecutor<Course> {
     /**
      * Checks if a course exists by its shortcut.
      * 

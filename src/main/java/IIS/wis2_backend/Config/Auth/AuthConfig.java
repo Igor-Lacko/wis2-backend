@@ -30,15 +30,16 @@ public class AuthConfig {
      * List of public endpoints. They will be added here as the development goes on.
      */
     public static final String[] PUBLIC_ENDPOINTS = {
-        "/auth/login",
-        "/auth/register",
-        "/activate",
-        "/password-reset",
-        "/password-reset/generate",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/v8/api-docs/**",
-        "/v8/**"
+            "/auth/login",
+            "/auth/register",
+            "/activate",
+            "/courses",
+            "/password-reset",
+            "/password-reset/generate",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v8/api-docs/**",
+            "/v8/**"
     };
 
     /**
@@ -62,7 +63,8 @@ public class AuthConfig {
      * @param authService The authentication service.
      */
     @Autowired
-    public AuthConfig(Wis2UserDetailsService wis2UserDetailsService, AuthenticationEntryPoint unauthorizedHandler, UserRepository userRepository, JWTUtils jwtUtils) {
+    public AuthConfig(Wis2UserDetailsService wis2UserDetailsService, AuthenticationEntryPoint unauthorizedHandler,
+            UserRepository userRepository, JWTUtils jwtUtils) {
         this.wis2UserDetailsService = wis2UserDetailsService;
         this.unauthorizedHandler = unauthorizedHandler;
         this.jwtUtils = jwtUtils;
@@ -86,28 +88,26 @@ public class AuthConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(request -> {
-                var corsConfig = new CorsConfiguration();
-                corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "//TODO"));
-                corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-                corsConfig.setAllowedHeaders(List.of("*"));
-                corsConfig.setAllowCredentials(true);
-                return corsConfig;
-            }))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(AuthConfig.PUBLIC_ENDPOINTS)
-                    .permitAll()
-                .anyRequest()
-                    .authenticated()
-            )
-            .userDetailsService(wis2UserDetailsService)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
-            .addFilterBefore(
-                authenticationJwtTokenFilter(),
-                UsernamePasswordAuthenticationFilter.class
-            );
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfig = new CorsConfiguration();
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "//TODO"));
+                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                    corsConfig.setAllowedHeaders(List.of("*"));
+                    corsConfig.setAllowCredentials(true);
+                    return corsConfig;
+                }))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(AuthConfig.PUBLIC_ENDPOINTS)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .userDetailsService(wis2UserDetailsService)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+                .addFilterBefore(
+                        authenticationJwtTokenFilter(),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
