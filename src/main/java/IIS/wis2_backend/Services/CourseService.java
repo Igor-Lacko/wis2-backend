@@ -11,12 +11,15 @@ import IIS.wis2_backend.DTO.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
+import IIS.wis2_backend.DTO.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
+import IIS.wis2_backend.DTO.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
+import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import jakarta.transaction.Transactional;
 
 /**
@@ -30,13 +33,20 @@ public class CourseService {
     private final CourseRepository courseRepository;
 
     /**
+     * Teacher repository to fetch supervisors/teachers.
+     */
+    private final TeacherRepository teacherRepository;
+
+    /**
      * Constructor for CourseService.
      * 
-     * @param courseRepository the course repository
+     * @param courseRepository  the course repository
+     * @param teacherRepository the teacher repository
      */
     @Autowired
-    public CourseService(CourseRepository courseRepository) {
+    public CourseService(CourseRepository courseRepository, TeacherRepository teacherRepository) {
         this.courseRepository = courseRepository;
+        this.teacherRepository = teacherRepository;
     }
 
     /**
@@ -153,11 +163,18 @@ public class CourseService {
      * @return The corresponding FullCourseDTO
      */
     private FullCourseDTO CourseToFullDTO(Course course) {
-        // Fetch supervisor and teacher ids
-        Long supervisorId = course.getSupervisor().getId();
-        Set<Long> teacherIds = course.getTeachers()
-                .stream()
-                .map(Teacher::getId)
+        // Fetch supervisor and teacher projections
+        TeacherForCourseProjection supervisorProjection = teacherRepository.findFirstBySupervisedCourses_Id(course.getId());
+        List<TeacherForCourseProjection> teacherProjections = teacherRepository.findByTaughtCourses_Id(course.getId());
+
+        // Map to DTOs
+        TeacherDTOForCourse supervisor = new TeacherDTOForCourse(
+                supervisorProjection.getId(),
+                supervisorProjection.getFirstName(),
+                supervisorProjection.getLastName());
+
+        Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
+                .map(t -> new TeacherDTOForCourse(t.getId(), t.getFirstName(), t.getLastName()))
                 .collect(Collectors.toSet());
 
         return new FullCourseDTO(
@@ -166,34 +183,9 @@ public class CourseService {
                 course.getPrice(),
                 course.getDescription(),
                 course.getShortcut(),
-                GetSupervisorName(course),
-                supervisorId,
-                teacherIds,
-                GetTeacherNames(course),
-                course.getCompletedBy().name());
-    }
-
-    /**
-     * Utility method to get the supervisor's name of a course.
-     * 
-     * @param course The course
-     * @return The supervisor's full name
-     */
-    private String GetSupervisorName(Course course) {
-        Teacher supervisor = course.getSupervisor();
-        return supervisor.getFirstName() + " " + supervisor.getLastName();
-    }
-
-    /**
-     * Utility method to get the names of teachers of a course.
-     * 
-     * @param course The course
-     * @return A set of teacher full names
-     */
-    private Set<String> GetTeacherNames(Course course) {
-        return course.getTeachers()
-                .stream()
-                .map(teacher -> teacher.getFirstName() + " " + teacher.getLastName())
-                .collect(Collectors.toSet());
+                supervisor,
+                teachers,
+                course.getCompletedBy().name()
+        );
     }
 }

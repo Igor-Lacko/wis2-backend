@@ -2,6 +2,7 @@ package IIS.wis2_backend.DTO.Course;
 
 import java.util.Set;
 
+import IIS.wis2_backend.DTO.NestedDTOs.TeacherDTOForCourse;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,16 +33,10 @@ public class FullCourseDTO {
     private String shortcut;
 
     @NotNull
-    private String supervisor;
+    private TeacherDTOForCourse supervisor;
 
     @NotNull
-    private Long supervisorId;
-
-    @NotNull
-    private Set<Long> teacherIds;
-
-    @NotNull
-    private Set<String> teachers;
+    private Set<TeacherDTOForCourse> teachers;
 
     @NotNull
     @NotEmpty

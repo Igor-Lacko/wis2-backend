@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import IIS.wis2_backend.DTO.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Models.User.Teacher;
 
 /**
@@ -21,4 +22,21 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @return List of teachers matching the criteria.
      */
     List<Teacher> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+
+    /**
+     * Find the course's supervising teacher.
+     * 
+     * @param courseId ID of the course.
+     * @return The supervising teacher of the course.
+     */
+    TeacherForCourseProjection findFirstBySupervisedCourses_Id(Long courseId);
+
+    /**
+     * Find teachers teaching a specific course.
+     * 
+     * @param courseId ID of the course.
+     * 
+     * @return List of teachers teaching the course.
+     */
+    List<TeacherForCourseProjection> findByTaughtCourses_Id(Long courseId);
 }

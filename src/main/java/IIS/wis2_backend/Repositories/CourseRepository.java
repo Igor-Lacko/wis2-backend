@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import IIS.wis2_backend.DTO.Projections.CourseTeacherProjection;
+import IIS.wis2_backend.DTO.Projections.CourseForTeacherProjection;
 import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.Models.Course;
 
@@ -53,7 +53,7 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @param teacherId ID of the teacher.
      * @return List of courses supervised by the teacher.
      */
-    List<CourseTeacherProjection> findBySupervisor_Id(Long teacherId);
+    List<CourseForTeacherProjection> findBySupervisor_Id(Long teacherId);
 
     /**
      * Returns all courses taught by a teacher with the given id.
@@ -61,5 +61,5 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @param teacherId ID of the teacher.
      * @return List of courses taught by the teacher.
      */
-    List<CourseTeacherProjection> findByTeachers_Id(Long teacherId);
+    List<CourseForTeacherProjection> findByTeachers_Id(Long teacherId);
 }
