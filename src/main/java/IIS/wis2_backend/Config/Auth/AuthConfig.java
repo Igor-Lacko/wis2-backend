@@ -34,6 +34,7 @@ public class AuthConfig {
             "/auth/register",
             "/activate",
             "/courses",
+            "/courses/statistics",
             "/password-reset",
             "/password-reset/generate",
             "/swagger-ui/**",

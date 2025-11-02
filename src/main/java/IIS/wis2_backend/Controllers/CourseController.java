@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import IIS.wis2_backend.DTO.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
@@ -44,6 +45,16 @@ public class CourseController {
     @GetMapping
     public List<LightweightCourseDTO> GetAllCourses(@ModelAttribute CourseFilter filter) {
         return courseService.GetAllCourses(filter);
+    }
+
+    /**
+     * Returns the min and max price of the currently present courses.
+     * 
+     * @return a DTO containing the min and max price
+     */
+    @GetMapping("/statistics")
+    public CourseStatistics GetCoursePriceStatistics() {
+        return courseService.GetCoursePriceStatistics();
     }
 
     /**

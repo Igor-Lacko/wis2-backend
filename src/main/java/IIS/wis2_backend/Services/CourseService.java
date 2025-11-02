@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import IIS.wis2_backend.DTO.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
@@ -51,32 +52,28 @@ public class CourseService {
         }
 
         Specification<Course> spec = filter.getQuery() != null
-            ? CourseSpecification.TitleOrShortcutContains(filter.getQuery())
-            : null;
+                ? CourseSpecification.TitleOrShortcutContains(filter.getQuery())
+                : null;
 
         // The individual course end types shown
-        System.out.println("Filter ended by - both: " + filter.isEndedByBoth()
-            + ", exam: " + filter.isEndedByExam()
-            + ", unit credit: " + filter.isEndedByUnitCredit()
-            + ", graded unit credit: " + filter.isEndedByGradedUnitCredit());
         Specification<Course> endedBySpec = null;
         if (filter.isEndedByBoth()) {
             endedBySpec = CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT_EXAM.name());
         }
         if (filter.isEndedByExam()) {
             endedBySpec = endedBySpec == null
-                ? CourseSpecification.EndedBy(CourseEndType.EXAM.name())
-                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.EXAM.name()));
+                    ? CourseSpecification.EndedBy(CourseEndType.EXAM.name())
+                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.EXAM.name()));
         }
         if (filter.isEndedByUnitCredit()) {
             endedBySpec = endedBySpec == null
-                ? CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name())
-                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name()));
+                    ? CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name())
+                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name()));
         }
         if (filter.isEndedByGradedUnitCredit()) {
             endedBySpec = endedBySpec == null
-                ? CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name())
-                : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name()));
+                    ? CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name())
+                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name()));
         }
 
         if (endedBySpec != null) {
@@ -94,16 +91,15 @@ public class CourseService {
             }
 
             spec = spec == null
-                ? CourseSpecification.PriceIsInRange(min, max)
-                : spec.and(CourseSpecification.PriceIsInRange(min, max));
+                    ? CourseSpecification.PriceIsInRange(min, max)
+                    : spec.and(CourseSpecification.PriceIsInRange(min, max));
         }
 
         Sort sort = CourseSpecification.BuildSort(filter.getSortBy(), filter.isReverse());
         List<Course> courses = courseRepository.findAll(
-            spec,
-            // Should never be null, but compiler warnings...
-            sort == null ? Sort.by("name") : sort
-        );
+                spec,
+                // Should never be null, but compiler warnings...
+                sort == null ? Sort.by("name") : sort);
 
         return courses.stream()
                 .map(this::CourseToLightweightDTO)
@@ -111,11 +107,24 @@ public class CourseService {
     }
 
     /**
+     * Getter for course price statistics (min and max price).
+     * 
+     * @return a DTO containing the min and max price
+     */
+    public CourseStatistics GetCoursePriceStatistics() {
+        return new CourseStatistics(
+            courseRepository.findMinPrice(),
+            courseRepository.findMaxPrice()
+        );
+    }
+
+    /**
      * Getter for a course by id. Returns full DTO.
      * 
      * @param id the course id
      * @return the course with the given id
-     * @throws IllegalArgumentException if the course with the given id does not exist
+     * @throws IllegalArgumentException if the course with the given id does not
+     *                                  exist
      */
     public FullCourseDTO GetCourseById(Long id) {
         if (id == null || id <= 0) {
@@ -133,7 +142,12 @@ public class CourseService {
      * @return The corresponding LightweightCourseDTO
      */
     private LightweightCourseDTO CourseToLightweightDTO(Course course) {
-        return new LightweightCourseDTO(course.getId(), course.getName(), course.getPrice(), course.getShortcut());
+        return new LightweightCourseDTO(
+                course.getId(),
+                course.getName(),
+                course.getPrice(),
+                course.getShortcut(),
+                course.getCompletedBy().name());
     }
 
     /**
@@ -160,8 +174,8 @@ public class CourseService {
                 course.getDescription(),
                 course.getShortcut(),
                 GetSupervisorName(course),
-                GetTeacherNames(course)
-        );
+                GetTeacherNames(course),
+                course.getCompletedBy().name());
     }
 
     /**

@@ -36,4 +36,8 @@ public class FullCourseDTO {
 
     @NotNull
     private Set<String> teachers;
+
+    @NotNull
+    @NotEmpty
+    private String completedBy;
 }

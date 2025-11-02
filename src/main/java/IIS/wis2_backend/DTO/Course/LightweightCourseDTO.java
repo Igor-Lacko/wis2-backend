@@ -24,4 +24,8 @@ public class LightweightCourseDTO {
     @NotNull
     @NotEmpty
     private String shortcut;
+
+    @NotNull
+    @NotEmpty
+    private String completedBy;
 }
