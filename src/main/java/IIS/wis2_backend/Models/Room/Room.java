@@ -2,6 +2,7 @@ package IIS.wis2_backend.Models.Room;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Abstract model representing one room on the campus.
@@ -11,6 +12,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 public abstract class Room {
     /**
      * Room identifier.
@@ -20,7 +22,7 @@ public abstract class Room {
     private Long id;
 
     /**
-     * Room "tag/shortcut" (todo: maybe make this the Id? idk tbh)
+     * Room "tag/shortcut"
      */
     private String shortcut;
 

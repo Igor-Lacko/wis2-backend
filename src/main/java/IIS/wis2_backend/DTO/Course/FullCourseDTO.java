@@ -35,6 +35,12 @@ public class FullCourseDTO {
     private String supervisor;
 
     @NotNull
+    private Long supervisorId;
+
+    @NotNull
+    private Set<Long> teacherIds;
+
+    @NotNull
     private Set<String> teachers;
 
     @NotNull

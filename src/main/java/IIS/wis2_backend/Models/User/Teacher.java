@@ -1,5 +1,10 @@
 package IIS.wis2_backend.Models.User;
 
+import java.util.Set;
+
+import org.apache.commons.lang3.builder.ToStringExclude;
+
+import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Room.Office;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,4 +25,20 @@ public class Teacher extends Wis2User {
      */
     @ManyToOne
     private Office office;
+
+    /**
+     * Supervised courses.
+     */
+    @OneToMany(mappedBy = "supervisor", fetch = FetchType.LAZY)
+    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    private Set<Course> supervisedCourses;
+
+    /**
+     * Taught courses.
+     */
+    @ManyToMany(mappedBy = "teachers", fetch = FetchType.LAZY)
+    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    private Set<Course> taughtCourses;
 }

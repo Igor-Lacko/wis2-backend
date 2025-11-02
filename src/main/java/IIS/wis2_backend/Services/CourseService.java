@@ -5,20 +5,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
+import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
-import IIS.wis2_backend.Specifications.CourseSpecification;
+import jakarta.transaction.Transactional;
 
 /**
  * Service for managing courses.
@@ -46,63 +45,68 @@ public class CourseService {
      * @param filter Course filter attributes.
      * @return a list of all courses
      */
+    @Transactional
     public List<LightweightCourseDTO> GetAllCourses(CourseFilter filter) {
         if (!IsValidSortByField(filter.getSortBy())) {
             throw new IllegalArgumentException("Invalid sortBy parameter!");
         }
 
-        Specification<Course> spec = filter.getQuery() != null
-                ? CourseSpecification.TitleOrShortcutContains(filter.getQuery())
-                : null;
+        double minPrice = filter.getMinPrice() != null ? filter.getMinPrice() : 0.0;
+        double maxPrice = filter.getMaxPrice() != null ? filter.getMaxPrice() : Double.MAX_VALUE;
 
-        // The individual course end types shown
-        Specification<Course> endedBySpec = null;
-        if (filter.isEndedByBoth()) {
-            endedBySpec = CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT_EXAM.name());
-        }
-        if (filter.isEndedByExam()) {
-            endedBySpec = endedBySpec == null
-                    ? CourseSpecification.EndedBy(CourseEndType.EXAM.name())
-                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.EXAM.name()));
-        }
-        if (filter.isEndedByUnitCredit()) {
-            endedBySpec = endedBySpec == null
-                    ? CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name())
-                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.UNIT_CREDIT.name()));
-        }
-        if (filter.isEndedByGradedUnitCredit()) {
-            endedBySpec = endedBySpec == null
-                    ? CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name())
-                    : endedBySpec.or(CourseSpecification.EndedBy(CourseEndType.GRADED_UNIT_CREDIT.name()));
+        if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) {
+            throw new IllegalArgumentException("Invalid price range!");
         }
 
-        if (endedBySpec != null) {
-            spec = spec == null ? endedBySpec : spec.and(endedBySpec);
-        }
+        List<LightweightCourseProjection> courses = courseRepository.findAllBy();
 
-        // Filter by price range
-        if (filter.getMinPrice() != null || filter.getMaxPrice() != null) {
-            Double min = filter.getMinPrice() != null ? filter.getMinPrice() : 0.0;
-            Double max = filter.getMaxPrice() != null ? filter.getMaxPrice() : Double.MAX_VALUE;
+        // TODO move filtering to database level?
+        // Filter
+        Set<LightweightCourseProjection> filteredCourses = courses.stream()
+                .filter(c -> (filter.getQuery() == null
+                        || c.getName().toLowerCase().contains(filter.getQuery().toLowerCase())
+                        || c.getShortcut().toLowerCase().contains(filter.getQuery().toLowerCase())))
+                .filter(c -> (c.getPrice() >= minPrice && c.getPrice() <= maxPrice))
+                .filter(c -> {
+                    if (filter.isEndedByBoth()) {
+                        return true;
+                    } else if (filter.isEndedByExam()) {
+                        return c.getCompletedBy().equals(CourseEndType.EXAM.name());
+                    } else if (filter.isEndedByGradedUnitCredit()) {
+                        return c.getCompletedBy().equals(CourseEndType.GRADED_UNIT_CREDIT.name());
+                    } else if (filter.isEndedByUnitCredit()) {
+                        return c.getCompletedBy().equals(CourseEndType.UNIT_CREDIT.name());
+                    } else {
+                        return true;
+                    }
+                })
+                .collect(Collectors.toSet());
 
-            // Check for invalid args
-            if (min < 0 || max < 0 || min > max) {
-                throw new IllegalArgumentException("Invalid price range!");
-            }
+        // Sort
+        return filteredCourses.stream()
+                // Convert to DTO
+                .map(c -> new LightweightCourseDTO(
+                        c.getId(),
+                        c.getName(),
+                        c.getPrice(),
+                        c.getShortcut(),
+                        c.getCompletedBy()))
+                // Sort
+                .sorted((c1, c2) -> {
+                    // By price
+                    if (filter.getSortBy().equals("price")) {
+                        return filter.isReverse()
+                                ? c2.getPrice().compareTo(c1.getPrice())
+                                : c1.getPrice().compareTo(c2.getPrice());
+                    }
 
-            spec = spec == null
-                    ? CourseSpecification.PriceIsInRange(min, max)
-                    : spec.and(CourseSpecification.PriceIsInRange(min, max));
-        }
-
-        Sort sort = CourseSpecification.BuildSort(filter.getSortBy(), filter.isReverse());
-        List<Course> courses = courseRepository.findAll(
-                spec,
-                // Should never be null, but compiler warnings...
-                sort == null ? Sort.by("name") : sort);
-
-        return courses.stream()
-                .map(this::CourseToLightweightDTO)
+                    // By name
+                    else {
+                        return filter.isReverse()
+                                ? c2.getName().compareTo(c1.getName())
+                                : c1.getName().compareTo(c2.getName());
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -113,9 +117,8 @@ public class CourseService {
      */
     public CourseStatistics GetCoursePriceStatistics() {
         return new CourseStatistics(
-            courseRepository.findMinPrice(),
-            courseRepository.findMaxPrice()
-        );
+                courseRepository.findMinPrice(),
+                courseRepository.findMaxPrice());
     }
 
     /**
@@ -126,28 +129,11 @@ public class CourseService {
      * @throws IllegalArgumentException if the course with the given id does not
      *                                  exist
      */
-    public FullCourseDTO GetCourseById(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid course id!");
-        }
+    @Transactional
+    public FullCourseDTO GetCourseById(long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("The course with this id doesn't exist!"));
         return CourseToFullDTO(course);
-    }
-
-    /**
-     * Utility method to convert Course to LightweightCourseDTO.
-     * 
-     * @param course The course to convert
-     * @return The corresponding LightweightCourseDTO
-     */
-    private LightweightCourseDTO CourseToLightweightDTO(Course course) {
-        return new LightweightCourseDTO(
-                course.getId(),
-                course.getName(),
-                course.getPrice(),
-                course.getShortcut(),
-                course.getCompletedBy().name());
     }
 
     /**
@@ -167,6 +153,13 @@ public class CourseService {
      * @return The corresponding FullCourseDTO
      */
     private FullCourseDTO CourseToFullDTO(Course course) {
+        // Fetch supervisor and teacher ids
+        Long supervisorId = course.getSupervisor().getId();
+        Set<Long> teacherIds = course.getTeachers()
+                .stream()
+                .map(Teacher::getId)
+                .collect(Collectors.toSet());
+
         return new FullCourseDTO(
                 course.getId(),
                 course.getName(),
@@ -174,6 +167,8 @@ public class CourseService {
                 course.getDescription(),
                 course.getShortcut(),
                 GetSupervisorName(course),
+                supervisorId,
+                teacherIds,
                 GetTeacherNames(course),
                 course.getCompletedBy().name());
     }

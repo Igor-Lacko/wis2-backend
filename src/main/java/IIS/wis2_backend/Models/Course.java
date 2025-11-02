@@ -37,6 +37,8 @@ public class Course {
     /**
      * Course description.
      */
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**
@@ -65,12 +67,12 @@ public class Course {
     /**
      * Course supervisor/"garant"
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Teacher supervisor;
 
     /**
      * Course teachers
      */
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     private Set<Teacher> teachers;
 }

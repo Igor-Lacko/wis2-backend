@@ -63,7 +63,7 @@ public class CourseController {
      * @param id Course id.
      */
     @GetMapping("/{id}")
-    public FullCourseDTO GetCourseById(@PathVariable Long id) {
+    public FullCourseDTO GetCourseById(@PathVariable long id) {
         return courseService.GetCourseById(id);
     }
 }

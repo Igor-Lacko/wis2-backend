@@ -1,10 +1,14 @@
 package IIS.wis2_backend.Repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import IIS.wis2_backend.DTO.Projections.CourseTeacherProjection;
+import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.Models.Course;
 
 /**
@@ -35,4 +39,27 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      */
     @Query("SELECT MIN(c.price) FROM Course c")
     Double findMinPrice();
+
+    /**
+     * Returns all courses projected as LightweightCourseProjection.
+     * 
+     * @return List of LightweightCourseProjection.
+     */
+    List<LightweightCourseProjection> findAllBy();
+
+    /**
+     * Returns all supervised courses for a teacher with the given id.
+     * 
+     * @param teacherId ID of the teacher.
+     * @return List of courses supervised by the teacher.
+     */
+    List<CourseTeacherProjection> findBySupervisor_Id(Long teacherId);
+
+    /**
+     * Returns all courses taught by a teacher with the given id.
+     * 
+     * @param teacherId ID of the teacher.
+     * @return List of courses taught by the teacher.
+     */
+    List<CourseTeacherProjection> findByTeachers_Id(Long teacherId);
 }

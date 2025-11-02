@@ -1,15 +1,21 @@
 package IIS.wis2_backend.Services;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.NestedDTOs.CourseDTOForTeacher;
+import IIS.wis2_backend.DTO.NestedDTOs.OfficeDTOForTeacher;
 import IIS.wis2_backend.DTO.User.TeacherDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.User.*;
+import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -36,137 +42,39 @@ public class UserService {
     private final TeacherRepository teacherRepository;
 
     /**
+     * Course repository, to get courses taught/supervised by a teacher.
+     */
+    private final CourseRepository courseRepository;
+
+    /**
      * Constructor for UserService.
      * 
      * @param userRepository    User repository.
      * @param studentRepository Student repository.
      * @param teacherRepository Teacher repository.
+     * @param courseRepository  Course repository.
      */
     @Autowired
     public UserService(UserRepository userRepository, StudentRepository studentRepository,
-            TeacherRepository teacherRepository) {
+            TeacherRepository teacherRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
+        this.courseRepository = courseRepository;
     }
 
     /**
-     * Getter for all users.
+     * Returns a public profile of a teacher by their user id.
      * 
-     * @return List of all users.
+     * @param userId The id of the user (teacher).
+     * @return The public profile of the teacher.
      */
-    public List<UserDTO> GetAllUsers() {
-        return userRepository
-                .findAll()
-                .stream()
-                .map(this::UserToDTO)
-                .toList();
-    }
+    public TeacherDTO GetTeacherPublicProfile(long userId) {
+        Teacher teacher = teacherRepository.findById(userId).orElseThrow(
+            () -> new NotFoundException("Teacher with this ID does not exist!")
+        );
 
-    /**
-     * Getter for user by ID.
-     * 
-     * @param id User ID.
-     * @return UserDTO or null if not found.
-     */
-    public UserDTO GetUserById(Long id) {
-        return userRepository
-                .findById(id)
-                .map(this::UserToDTO)
-                .orElse(null);
-    }
-
-    /**
-     * Update an existing user with fields that don't necessarily have to be
-     * validated.
-     * 
-     * @param id      ID of the user to update.
-     * @param userDTO DTO with updated user data.
-     * @return Updated UserDTO or null if user not found.
-     */
-    public UserDTO UpdateUser(Long id, UserDTO userDTO) {
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    existingUser.setFirstName(userDTO.getFirstName());
-                    existingUser.setLastName(userDTO.getLastName());
-                    Wis2User updatedUser = userRepository.save(existingUser);
-                    return UserToDTO(updatedUser);
-                })
-                .orElse(null);
-    }
-
-    /**
-     * Delete an existing user.
-     * 
-     * @param id ID of the user to delete.
-     * @return true if user was deleted, false if not found.
-     */
-    public boolean DeleteUser(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Getter for all teachers.
-     * 
-     * @return List of all teachers.
-     */
-    public List<TeacherDTO> GetAllTeachers() {
-        return teacherRepository
-                .findAll()
-                .stream()
-                .map(this::TeacherToDTO)
-                .toList();
-    }
-
-    public List<TeacherDTO> GetTeachersByName(String name) {
-        return teacherRepository
-                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
-                .stream()
-                .map(this::TeacherToDTO)
-                .toList();
-    }
-
-    /**
-     * Getter for teacher by ID.
-     * 
-     * @param id Teacher ID.
-     * @return TeacherDTO or null if not found.
-     */
-    public TeacherDTO GetTeacherById(Long id) {
-        return teacherRepository
-                .findById(id)
-                .map(this::TeacherToDTO)
-                .orElse(null);
-    }
-
-    /**
-     * Gets all students.
-     * 
-     * @return List of all students.
-     */
-    public List<UserDTO> GetAllStudents() {
-        return studentRepository
-                .findAll()
-                .stream()
-                .map(this::UserToDTO)
-                .toList();
-    }
-
-    /**
-     * Gets a student by ID.
-     * 
-     * @param id Student ID.
-     * @return UserDTO (so far) or null if not found.
-     */
-    public UserDTO GetStudentById(Long id) {
-        return studentRepository
-                .findById(id)
-                .map(this::UserToDTO)
-                .orElse(null);
+        return TeacherToDTO(teacher);
     }
 
     /**
@@ -203,6 +111,11 @@ public class UserService {
                 .activated(false)
                 .build();
 
+
+        if (user == null) {
+            throw new InternalException("User could not be created!");
+        }
+
         return UserToDTO(userRepository.save(user));
     }
 
@@ -229,12 +142,41 @@ public class UserService {
      * @return TeacherDTO.
      */
     private TeacherDTO TeacherToDTO(Teacher teacher) {
+        // Fetch supervised courses
+        Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_Id(teacher.getId())
+            .stream()
+            .map(proj -> new CourseDTOForTeacher(
+                proj.getId(),
+                proj.getName(),
+                proj.getShortcut()
+            ))
+            .collect(Collectors.toSet());
+
+        // And taught courses!
+        Set<CourseDTOForTeacher> taughtCourses = courseRepository.findByTeachers_Id(teacher.getId())
+            .stream()
+            .map(proj -> new CourseDTOForTeacher(
+                proj.getId(),
+                proj.getName(),
+                proj.getShortcut()
+            ))
+            .collect(Collectors.toSet());
+
+        // Also map office
+        OfficeDTOForTeacher officeDTO = new OfficeDTOForTeacher(
+                teacher.getOffice().getId(),
+                teacher.getOffice().getShortcut()
+        );
+
         return TeacherDTO.builder()
                 .id(teacher.getId())
                 .firstName(teacher.getFirstName())
                 .lastName(teacher.getLastName())
+                .username(teacher.getUsername())
                 .email(teacher.getEmail())
-                .office(teacher.getOffice().getShortcut())
+                .office(officeDTO)
+                .supervisedCourses(supervisedCourses)
+                .taughtCourses(taughtCourses)
                 .build();
     }
 }

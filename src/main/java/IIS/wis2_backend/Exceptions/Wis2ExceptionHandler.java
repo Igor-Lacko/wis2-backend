@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.DoesntMatchException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
@@ -128,6 +129,17 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = DoesntMatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody ExceptionResponseType handleDoesntMatchException(DoesntMatchException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for InternalException.
+     * 
+     * @param e the InternalException.
+     */
+    @ExceptionHandler(value = InternalException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public @ResponseBody ExceptionResponseType handleInternalException(InternalException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 }
