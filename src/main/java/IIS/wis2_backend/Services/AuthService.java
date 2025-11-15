@@ -10,6 +10,7 @@ import IIS.wis2_backend.DTO.Auth.LoginDTO;
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
 import IIS.wis2_backend.DTO.User.RegisterResponseDTO;
 import IIS.wis2_backend.DTO.User.UserDTO;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Utils.JWTUtils;
@@ -108,5 +109,18 @@ public class AuthService {
         authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
         return jwtUtils.generateToken(loginDTO.getUsername());
+    }
+
+    /**
+     * Returns a user's role.
+     * 
+     * @param username the username of the user.
+     * @return the role of the user.
+     */
+    public String GetUserRole(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> user.getRole().name())
+                // This shouldn't happen since it's after authentication
+                .orElseThrow(() -> new NotFoundException("This user doesn't exist!"));
     }
 }

@@ -17,7 +17,6 @@ import IIS.wis2_backend.DTO.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
-import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import jakarta.transaction.Transactional;
@@ -70,7 +69,6 @@ public class CourseService {
 
         List<LightweightCourseProjection> courses = courseRepository.findAllBy();
 
-        // TODO move filtering to database level?
         // Filter
         Set<LightweightCourseProjection> filteredCourses = courses.stream()
                 .filter(c -> (filter.getQuery() == null

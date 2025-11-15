@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Auth.RegisterDTO;
@@ -117,6 +118,19 @@ public class UserService {
         }
 
         return UserToDTO(userRepository.save(user));
+    }
+
+    /**
+     * For AuthController. Returns user role and id to send back to the client.
+     * 
+     * @param username the username of the user.
+     * @return pair of user id and role.
+     */
+    public Pair<Long, String> GetUserIdAndRole(String username) {
+        Wis2User user = userRepository.findByUsername(username)
+                // Shouldn't happen since it's after authentication
+                .orElseThrow(() -> new NotFoundException("This user doesn't exist!"));
+        return Pair.of(user.getId(), user.getRole().name());
     }
 
     /**

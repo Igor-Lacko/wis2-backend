@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -51,9 +52,22 @@ public class JWTFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws IOException, ServletException {
-        String authHeader = request.getHeader("Authorization");
+        Cookie[] cookies = request.getCookies();
+        String token = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (cookies == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("JWT")) {
+                token = cookie.getValue();
+                break;
+            }
+        }
+
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -67,7 +81,6 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
 
-        String token = authHeader.substring("Bearer ".length());
 
         if (!jwtUtils.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
