@@ -75,4 +75,10 @@ public class Course {
      */
     @ManyToMany(fetch = FetchType.LAZY)
     private Set<Teacher> teachers;
+
+    /**
+     * Course schedule
+     */
+    @OneToOne
+    private Schedule schedule;
 }

@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Models;
 
-import IIS.wis2_backend.Models.Room.Room;
+import java.util.Set;
+
 import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,14 +29,14 @@ public class Schedule {
     private Wis2User user;
 
     /**
-     * Or schedule room!
-     */
-    @OneToOne(optional = true)
-    private Room room;
-
-    /**
      * Or even... schedule course?
      */
     @OneToOne(optional = true)
     private Course course;
+
+    /**
+     * Schedule items.
+     */
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<ScheduleItem> items;
 }

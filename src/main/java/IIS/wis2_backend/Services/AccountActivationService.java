@@ -15,7 +15,6 @@ import IIS.wis2_backend.Utils.LinkTokenUtils;
 
 import java.time.Instant;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -55,7 +54,6 @@ public class AccountActivationService {
      * 
      * @param activationTokenRepository Repository for activation tokens.
      */
-    @Autowired
     public AccountActivationService(LinkTokenRepository activationTokenRepository,
             UserRepository userRepository, MailService mailService) {
         this.activationTokenRepository = activationTokenRepository;

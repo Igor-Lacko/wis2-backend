@@ -42,6 +42,16 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     private Lesson lesson;
 
     /**
+     * Type of the schedule item.
+     */
+    private String type;
+
+    /**
+     * Always concerns a course.
+     */
+    private String courseName;
+
+    /**
      * Schedule item date.
      */
     private Date date;

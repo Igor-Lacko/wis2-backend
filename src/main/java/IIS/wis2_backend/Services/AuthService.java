@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -61,7 +60,6 @@ public class AuthService {
      * @param authenticationManager Authentication manager to authenticate users.
      * @param jwtUtils              JWT utility class to generate tokens.
      */
-    @Autowired
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager, JWTUtils jwtUtils, UserService userService,
             AccountActivationService accountActivationService) {

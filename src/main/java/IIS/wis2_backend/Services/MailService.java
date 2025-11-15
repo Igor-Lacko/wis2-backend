@@ -2,7 +2,6 @@ package IIS.wis2_backend.Services;
 
 import org.springframework.stereotype.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,7 +32,6 @@ public class MailService {
      *
      * @param mailSender the JavaMailSender instance
      */
-    @Autowired
     public MailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }

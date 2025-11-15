@@ -3,7 +3,6 @@ package IIS.wis2_backend.Services;
 import java.sql.Date;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -60,7 +59,6 @@ public class MockDBService {
 	 * @param studentRepository Student repository.
 	 * @param courseRepository  Course repository.
 	 */
-	@Autowired
 	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
 			StudentRepository studentRepository,
 			CourseRepository courseRepository, OfficeRepository officeRepository) {

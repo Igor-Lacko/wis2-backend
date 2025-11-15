@@ -3,7 +3,6 @@ package IIS.wis2_backend.Services;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +54,6 @@ public class UserService {
      * @param teacherRepository Teacher repository.
      * @param courseRepository  Course repository.
      */
-    @Autowired
     public UserService(UserRepository userRepository, StudentRepository studentRepository,
             TeacherRepository teacherRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
