@@ -82,6 +82,12 @@ public class Wis2User {
     private boolean activated;
 
     /**
+     * User schedule.
+     */
+    @OneToOne(cascade = CascadeType.ALL)
+    private Schedule schedule;
+
+    /**
      * TODO: ak sa nam bude chciet byt fancy 
      * Last login
      */

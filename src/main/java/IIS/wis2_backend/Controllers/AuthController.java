@@ -68,6 +68,7 @@ public class AuthController {
         // Create cookie from token
         ResponseCookie cookie = ResponseCookie.from("JWT", token)
             .httpOnly(true)
+            .sameSite("Lax")
             .path("/")
             .maxAge(24 * 60 * 60)
             .build();
