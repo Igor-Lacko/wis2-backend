@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Course.CourseStatistics;
@@ -42,7 +41,6 @@ public class CourseService {
      * @param courseRepository  the course repository
      * @param teacherRepository the teacher repository
      */
-    @Autowired
     public CourseService(CourseRepository courseRepository, TeacherRepository teacherRepository) {
         this.courseRepository = courseRepository;
         this.teacherRepository = teacherRepository;

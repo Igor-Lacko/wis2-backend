@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +25,6 @@ public class Wis2UserDetailsService implements UserDetailsService {
      * 
      * @param userRepository The user repository.
      */
-    @Autowired
     public Wis2UserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

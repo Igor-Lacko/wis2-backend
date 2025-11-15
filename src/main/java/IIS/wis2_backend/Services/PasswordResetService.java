@@ -2,7 +2,6 @@ package IIS.wis2_backend.Services;
 
 import java.time.Instant;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -61,7 +60,6 @@ public class PasswordResetService {
      * 
      * @param passwordResetTokenRepository Repository for password reset tokens.
      */
-    @Autowired
     public PasswordResetService(LinkTokenRepository passwordResetTokenRepository, UserRepository userRepository,
             MailService mailService, PasswordEncoder passwordEncoder) {
         this.passwordResetTokenRepository = passwordResetTokenRepository;

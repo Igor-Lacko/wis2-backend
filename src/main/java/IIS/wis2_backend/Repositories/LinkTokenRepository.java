@@ -12,7 +12,7 @@ import IIS.wis2_backend.Models.LinkToken;
  * Repository for activation and password reset tokens.
  */
 @Repository
-public interface LinkTokenRepository extends JpaRepository<LinkToken, String> {
+public interface LinkTokenRepository extends JpaRepository<LinkToken, Long> {
     /**
      * Finds a link token by its token (the actual string) and type.
      * 
