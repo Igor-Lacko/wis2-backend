@@ -94,7 +94,8 @@ public class AuthService {
 
         return RegisterResponseDTO.builder()
                 .id(newUser.getId())
-                .username(newUser.getUsername())
+                .firstName(newUser.getFirstName())
+                .lastName(newUser.getLastName())
                 .email(newUser.getEmail())
                 .build();
     }

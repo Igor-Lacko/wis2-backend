@@ -72,7 +72,7 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Also skip public endpoints, TODO maybe remove
+        // Also skip public endpoints
         String path = request.getServletPath();
         for (String endpoint : AuthConfig.PUBLIC_ENDPOINTS) {
             if (path.startsWith(endpoint)) {
