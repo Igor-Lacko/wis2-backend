@@ -2,7 +2,6 @@ package IIS.wis2_backend.Config.Auth;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -65,7 +64,6 @@ public class AuthConfig {
      * 
      * @param authService The authentication service.
      */
-    @Autowired
     public AuthConfig(Wis2UserDetailsService wis2UserDetailsService, AuthenticationEntryPoint unauthorizedHandler,
             UserRepository userRepository, JWTUtils jwtUtils) {
         this.wis2UserDetailsService = wis2UserDetailsService;

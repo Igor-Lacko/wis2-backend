@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +27,6 @@ public class PasswordResetController {
      * 
      * @param passwordResetService Password reset service.
      */
-    @Autowired
     public PasswordResetController(PasswordResetService passwordResetService) {
         this.passwordResetService = passwordResetService;
     }

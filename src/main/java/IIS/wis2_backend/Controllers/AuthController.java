@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -39,7 +38,6 @@ public class AuthController {
      * 
      * @param authService Service for authentication related operations.
      */
-    @Autowired
     public AuthController(AuthService authService, UserService userService) {
         this.authService = authService;
         this.userService = userService;
