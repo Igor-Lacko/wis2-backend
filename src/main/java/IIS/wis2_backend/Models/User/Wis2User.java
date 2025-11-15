@@ -79,4 +79,9 @@ public class Wis2User {
      */
     @Column(nullable = false)
     private boolean activated;
+
+    /**
+     * TODO: ak sa nam bude chciet byt fancy 
+     * Last login
+     */
 }

@@ -1,5 +1,7 @@
 package IIS.wis2_backend.DTO.User;
 
+import java.sql.Date;
+
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -16,4 +18,6 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String email;
+    private Date birthday;
+    private String telephoneNumber;
 }

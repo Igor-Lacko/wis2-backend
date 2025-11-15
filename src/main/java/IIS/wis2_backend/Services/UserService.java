@@ -146,6 +146,8 @@ public class UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
+                .birthday(user.getBirthday())
+                .telephoneNumber(user.getTelephoneNumber())
                 .build();
     }
 
@@ -192,5 +194,13 @@ public class UserService {
                 .supervisedCourses(supervisedCourses)
                 .taughtCourses(taughtCourses)
                 .build();
+    }
+
+    public UserDTO GetUserById(long userId) {
+        Wis2User user = userRepository.findById(userId).orElseThrow(
+            () -> new NotFoundException("User with this ID does not exist!")
+        );
+
+        return UserToDTO(user);
     }
 }
