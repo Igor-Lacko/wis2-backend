@@ -35,9 +35,4 @@ public abstract class Room {
      * Room floor. Is a string ("basement, etc.")
      */
     private String floor;
-
-    /**
-     * Room capacity.
-     */
-    private Integer capacity;
 }

@@ -14,7 +14,7 @@ import lombok.*;
 @Builder
 public class Exam extends Term {
     /**
-     * Number of exam attempts.
+     * Which exam attempt it is.
      */
-    Integer attempts;
+    Integer attempt;
 }

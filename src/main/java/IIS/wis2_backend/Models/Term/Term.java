@@ -79,12 +79,14 @@ public abstract class Term {
      * Teacher for this term.
      */
     @ManyToOne
+    @NonNull
     private Teacher supervisor;
 
     /**
      * Room or rooms where the term takes place.
      */
     @ManyToMany
+    @NonNull
     private Set<Room> rooms;
 
     /**

@@ -1,5 +1,6 @@
 package IIS.wis2_backend.DTO.Request.Term;
 
+import io.micrometer.common.lang.NonNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,5 +16,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ExamCreationDTO extends TermCreationDTO {
-    private Integer attempts;
+    @NonNull
+    private Integer nofAttempt;
 }

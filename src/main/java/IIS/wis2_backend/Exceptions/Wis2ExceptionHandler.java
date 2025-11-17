@@ -13,6 +13,7 @@ import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.NotImplementedException;
 
 /**
  * Global exception handler class for mapping exceptions to HTTP responses.
@@ -78,7 +79,8 @@ public class Wis2ExceptionHandler {
     }
 
     /**
-     * Handler for DisabledException. Occurs when a unactivated user tries to log in.
+     * Handler for DisabledException. Occurs when a unactivated user tries to log
+     * in.
      * 
      * @param e the DisabledException.
      */
@@ -89,7 +91,8 @@ public class Wis2ExceptionHandler {
     }
 
     /**
-     * Handler for LinkExpiredException, which occurs when an account activation link or password reset link has expired.
+     * Handler for LinkExpiredException, which occurs when an account activation
+     * link or password reset link has expired.
      * 
      * @param e the LinkExpiredException.
      */
@@ -140,6 +143,17 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = InternalException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public @ResponseBody ExceptionResponseType handleInternalException(InternalException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for NotImplementedException.
+     * 
+     * @param e the NotImplementedException.
+     */
+    @ExceptionHandler(value = NotImplementedException.class)
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    public @ResponseBody ExceptionResponseType handleNotImplementedException(NotImplementedException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 }
