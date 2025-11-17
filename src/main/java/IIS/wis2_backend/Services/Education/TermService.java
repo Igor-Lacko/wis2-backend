@@ -6,11 +6,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO;
 import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotImplementedException;
 import IIS.wis2_backend.Models.Room.Room;
+import IIS.wis2_backend.Models.Term.Exam;
 import IIS.wis2_backend.Models.Term.MidtermExam;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Teacher;
@@ -109,6 +111,35 @@ public class TermService {
 
         scheduleService.CreateScheduleForTerm(midtermExam, "midterm");
         return ConvertToLightweightDTO(midtermExam);
+    }
+
+    public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
+        // Again, needed entities
+        Teacher supervisor = GetSupervisor(dto.getSupervisorID());
+        Set<Room> rooms = GetRooms(dto.getRoomIDs());
+
+        // Create final exam
+        Exam exam = Exam.builder()
+                .minPoints(dto.getMinPoints())
+                .maxPoints(dto.getMaxPoints())
+                .date(dto.getDate())
+                .duration(dto.getDuration())
+                .description(dto.getDescription())
+                .name(dto.getName())
+                .mandatory(dto.getMandatory())
+                .supervisor(supervisor)
+                .rooms(rooms)
+                .attempt(dto.getNofAttempt())
+                .build();
+
+        examRepository.save(exam);
+
+        if (dto.getAutoRegistration()) {
+            Autoregister(exam, Optional.of(dto.getNofAttempt()));
+        }
+
+        scheduleService.CreateScheduleForTerm(exam, "final");
+        return ConvertToLightweightDTO(exam);
     }
 
     /**

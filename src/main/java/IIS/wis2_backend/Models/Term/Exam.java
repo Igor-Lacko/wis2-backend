@@ -2,6 +2,7 @@ package IIS.wis2_backend.Models.Term;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Model representing an exam.
@@ -11,7 +12,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Exam extends Term {
     /**
      * Which exam attempt it is.
