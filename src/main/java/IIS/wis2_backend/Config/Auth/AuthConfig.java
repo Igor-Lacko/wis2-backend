@@ -17,7 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import IIS.wis2_backend.Repositories.User.UserRepository;
-import IIS.wis2_backend.Services.Wis2UserDetailsService;
+import IIS.wis2_backend.Services.Account.Wis2UserDetailsService;
 import IIS.wis2_backend.Utils.JWTUtils;
 
 /**

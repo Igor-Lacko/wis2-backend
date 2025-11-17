@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import IIS.wis2_backend.DTO.Auth.RegisterDTO;
-import IIS.wis2_backend.DTO.NestedDTOs.CourseDTOForTeacher;
-import IIS.wis2_backend.DTO.NestedDTOs.OfficeDTOForTeacher;
-import IIS.wis2_backend.DTO.User.TeacherDTO;
-import IIS.wis2_backend.DTO.User.UserDTO;
+import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
+import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
+import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import IIS.wis2_backend.Services.Wis2UserDetailsService;
+import IIS.wis2_backend.Services.Account.Wis2UserDetailsService;
 import IIS.wis2_backend.Utils.JWTUtils;
 
 import org.springframework.lang.NonNull;

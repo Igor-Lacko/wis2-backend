@@ -37,6 +37,11 @@ public class Schedule {
     /**
      * Schedule items.
      */
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "schedule_schedule_item",
+        joinColumns = @JoinColumn(name = "schedule_id"),
+        inverseJoinColumns = @JoinColumn(name = "schedule_item_id")
+    )
     private Set<ScheduleItem> items;
 }

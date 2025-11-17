@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import IIS.wis2_backend.DTO.Projections.CourseForTeacherProjection;
-import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
+import IIS.wis2_backend.DTO.Response.Projections.CourseForTeacherProjection;
+import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.Models.Course;
 
 /**

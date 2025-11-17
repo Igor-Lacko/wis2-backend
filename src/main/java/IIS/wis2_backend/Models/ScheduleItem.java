@@ -1,6 +1,6 @@
 package IIS.wis2_backend.Models;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Models.Term.Term;
@@ -24,12 +24,6 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     private Long id;
 
     /**
-     * The corresponding schedule.
-     */
-    @ManyToOne
-    private Schedule schedule;
-
-    /**
      * Schedule item term.
      */
     @OneToOne(optional = true)
@@ -44,25 +38,34 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     /**
      * Type of the schedule item.
      */
+    @NonNull
     private String type;
 
     /**
      * Always concerns a course.
      */
+    @NonNull
     private String courseName;
 
     /**
      * Schedule item date.
      */
-    private Date date;
+    @NonNull
+    private LocalDateTime startDate;
 
     /**
-     * Compare schedule items by date.
+     * Schedule item end date.
+     */
+    @NonNull
+    private LocalDateTime endDate;
+
+    /**
+     * Compare schedule items by start date.
      * @param other the other schedule item to compare to
      * @return comparison result
      */
     @Override
     public int compareTo(ScheduleItem other) {
-        return this.date.compareTo(other.date);
+        return this.startDate.compareTo(other.startDate);
     }
 }

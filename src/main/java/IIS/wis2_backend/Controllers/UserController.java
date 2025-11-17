@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.Schedule.ScheduleWeekDTO;
-import IIS.wis2_backend.DTO.User.TeacherDTO;
-import IIS.wis2_backend.DTO.User.UserDTO;
-import IIS.wis2_backend.Services.ScheduleService;
+import IIS.wis2_backend.DTO.Response.Schedule.ScheduleWeekDTO;
+import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
+import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Services.UserService;
+import IIS.wis2_backend.Services.Education.ScheduleService;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 

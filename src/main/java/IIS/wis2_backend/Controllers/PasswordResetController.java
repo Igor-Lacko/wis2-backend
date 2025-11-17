@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.EmailDTO;
-import IIS.wis2_backend.DTO.PasswordResetDTO;
-import IIS.wis2_backend.Services.PasswordResetService;
+import IIS.wis2_backend.DTO.Request.Mail.EmailDTO;
+import IIS.wis2_backend.DTO.Request.Mail.PasswordResetDTO;
+import IIS.wis2_backend.Services.Account.PasswordResetService;
 import jakarta.validation.Valid;
 
 /**

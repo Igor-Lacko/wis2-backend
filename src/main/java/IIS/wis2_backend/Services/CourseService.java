@@ -6,13 +6,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import IIS.wis2_backend.DTO.Course.CourseStatistics;
-import IIS.wis2_backend.DTO.Course.FullCourseDTO;
-import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
-import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
-import IIS.wis2_backend.DTO.NestedDTOs.TeacherDTOForCourse;
-import IIS.wis2_backend.DTO.Projections.LightweightCourseProjection;
-import IIS.wis2_backend.DTO.Projections.TeacherForCourseProjection;
+import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
+import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
+import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
+import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
+import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;

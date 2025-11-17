@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.EmailDTO;
-import IIS.wis2_backend.Services.AccountActivationService;
+import IIS.wis2_backend.DTO.Request.Mail.EmailDTO;
+import IIS.wis2_backend.Services.Account.AccountActivationService;
 
 /**
  * Controller for handling account activation related requests (well, the one request).

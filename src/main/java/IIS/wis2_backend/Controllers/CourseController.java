@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.Course.CourseStatistics;
-import IIS.wis2_backend.DTO.Course.FullCourseDTO;
-import IIS.wis2_backend.DTO.Course.LightweightCourseDTO;
-import IIS.wis2_backend.DTO.ModelAttributes.CourseFilter;
-import IIS.wis2_backend.DTO.Schedule.ScheduleWeekDTO;
+import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
+import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
+import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Schedule.ScheduleWeekDTO;
 import IIS.wis2_backend.Services.CourseService;
-import IIS.wis2_backend.Services.ScheduleService;
+import IIS.wis2_backend.Services.Education.ScheduleService;
 
 import org.springframework.web.bind.annotation.RequestParam;
 

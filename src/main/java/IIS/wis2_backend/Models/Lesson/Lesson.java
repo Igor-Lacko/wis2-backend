@@ -1,6 +1,6 @@
 package IIS.wis2_backend.Models.Lesson;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import IIS.wis2_backend.Models.Course;
@@ -28,7 +28,7 @@ public abstract class Lesson {
     /**
      * Lesson datetime.
      */
-    private Date datetime;
+    private LocalDateTime dateTime;
 
     /**
      * Lesson duration in minutes.

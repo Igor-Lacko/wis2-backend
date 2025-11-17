@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import IIS.wis2_backend.DTO.Projections.TeacherForCourseProjection;
+import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Models.User.Teacher;
 
 /**

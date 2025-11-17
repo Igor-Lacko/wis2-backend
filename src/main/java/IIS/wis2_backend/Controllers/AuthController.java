@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.Auth.SuccesfulLoginDTO;
-import IIS.wis2_backend.DTO.Auth.LoginDTO;
-import IIS.wis2_backend.DTO.Auth.RegisterDTO;
-import IIS.wis2_backend.DTO.User.RegisterResponseDTO;
-import IIS.wis2_backend.Services.AuthService;
+import IIS.wis2_backend.DTO.Request.Auth.LoginDTO;
+import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.Response.Auth.SuccesfulLoginDTO;
+import IIS.wis2_backend.DTO.Response.User.RegisterResponseDTO;
 import IIS.wis2_backend.Services.UserService;
+import IIS.wis2_backend.Services.Account.AuthService;
 import jakarta.validation.Valid;
 
 /**
