@@ -24,15 +24,18 @@ public abstract class Room {
     /**
      * Room "tag/shortcut"
      */
+    @Column(unique = true, nullable = false)
     private String shortcut;
 
     /**
      * Room building.
      */
+    @Column(nullable = false)
     private String building;
 
     /**
      * Room floor. Is a string ("basement, etc.")
      */
+    @Column(nullable = false)
     private String floor;
 }

@@ -179,10 +179,11 @@ public class ScheduleService {
      * @param type   the type of the lesson
      */
     public void CreateScheduleForLesson(Lesson lesson, String type, Date date) {
-        Set<Student> students = lesson.getRegisteredStudents();
         Course course = lesson.getCourse();
-        Teacher supervisor = lesson.getSupervisor();
+        Set<Student> students = studentRepository.findByStudentCourses_Course_Id(course.getId());
+        Teacher lecturer = lesson.getLecturer();
 
+        // Compute start/end date
         LocalDateTime startDate = lesson.getDateTime();
         LocalDateTime endDate = startDate.plusMinutes(lesson.getDuration());
 
@@ -203,8 +204,8 @@ public class ScheduleService {
             studentRepository.save(student);
         }
 
-        supervisor.getSchedule().getItems().add(scheduleItem);
-        teacherRepository.save(supervisor);
+        lecturer.getSchedule().getItems().add(scheduleItem);
+        teacherRepository.save(lecturer);
 
         course.getSchedule().getItems().add(scheduleItem);
         courseRepository.save(course);

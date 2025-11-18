@@ -1,10 +1,7 @@
 package IIS.wis2_backend.Models.Lesson;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-
 import IIS.wis2_backend.Models.Course;
-import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,16 +33,10 @@ public abstract class Lesson {
     private Integer duration;
 
     /**
-     * Students registered for the lesson.
-     */
-    @OneToMany
-    private Set<Student> registeredStudents;
-
-    /**
      * The teacher for this lesson.
      */
     @ManyToOne
-    private Teacher supervisor;
+    private Teacher lecturer;
 
     /**
      * The course this lesson belongs to.

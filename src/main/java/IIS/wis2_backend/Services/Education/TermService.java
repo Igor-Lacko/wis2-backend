@@ -20,7 +20,7 @@ import IIS.wis2_backend.Models.Term.MidtermExam;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
-import IIS.wis2_backend.Repositories.RoomRepository;
+import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.MidtermExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.TermRepository;
@@ -111,7 +111,7 @@ public class TermService {
 
         scheduleService.CreateScheduleForTerm(midtermExam, TermType.MIDTERM_EXAM.name());
         RegisterTerm(midtermExam, TermType.MIDTERM_EXAM, Optional.empty());
-        return ConvertToLightweightDTO(midtermExam);
+        return ConvertToLightweightDTO(midtermExam, Optional.empty());
     }
 
     public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
@@ -240,9 +240,10 @@ public class TermService {
      * Converts a Term entity to a LightweightTermDTO.
      * 
      * @param term the term entity
+     * @param roomShortcut the room shortcut to avoid refetches since this can be called right after creation when it's in memory
      * @return the lightweight term DTO
      */
-    private LightweightTermDTO ConvertToLightweightDTO(Term term) {
+    private LightweightTermDTO ConvertToLightweightDTO(Term term, Optional<String> roomShortcut) {
         return new LightweightTermDTO(
                 term.getId(),
                 term.getName(),

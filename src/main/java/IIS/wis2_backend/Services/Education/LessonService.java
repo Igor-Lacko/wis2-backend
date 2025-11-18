@@ -2,6 +2,8 @@ package IIS.wis2_backend.Services.Education;
 
 import org.springframework.stereotype.Service;
 
+import IIS.wis2_backend.DTO.Response.Lesson.LightweightLessonDTO;
+import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Repositories.Education.Lesson.LabRepository;
 import IIS.wis2_backend.Repositories.Education.Lesson.LectureRepository;
 import IIS.wis2_backend.Repositories.Education.Lesson.LessonRepository;
@@ -37,5 +39,19 @@ public class LessonService {
         this.lessonRepository = lessonRepository;
         this.lectureRepository = lectureRepository;
         this.labRepository = labRepository;
+    }
+
+    /**
+     * Converts a created Lesson to a LightweightLessonDTO.
+     * 
+     * @param lesson The lesson to convert.
+     */
+    private LightweightLessonDTO convertToLightweightDTO(Lesson lesson, String roomShortcut) {
+        return new LightweightLessonDTO(
+            lesson.getId(),
+            lesson.getDateTime(),
+            lesson.getDuration(),
+            roomShortcut
+        );
     }
 }
