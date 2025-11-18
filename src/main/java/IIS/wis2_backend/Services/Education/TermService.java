@@ -9,12 +9,16 @@ import org.springframework.stereotype.Service;
 import IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO;
 import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
+import IIS.wis2_backend.Enum.CourseEndType;
+import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
-import IIS.wis2_backend.Exceptions.ExceptionTypes.NotImplementedException;
+import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.Term.Exam;
 import IIS.wis2_backend.Models.Term.MidtermExam;
 import IIS.wis2_backend.Models.Term.Term;
+import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.RoomRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
@@ -105,11 +109,8 @@ public class TermService {
 
         midtermExamRepository.save(midtermExam);
 
-        if (dto.getAutoRegistration()) {
-            Autoregister(midtermExam, Optional.empty());
-        }
-
-        scheduleService.CreateScheduleForTerm(midtermExam, "midterm");
+        scheduleService.CreateScheduleForTerm(midtermExam, TermType.MIDTERM_EXAM.name());
+        RegisterTerm(midtermExam, TermType.MIDTERM_EXAM, Optional.empty());
         return ConvertToLightweightDTO(midtermExam);
     }
 
@@ -134,12 +135,82 @@ public class TermService {
 
         examRepository.save(exam);
 
-        if (dto.getAutoRegistration()) {
-            Autoregister(exam, Optional.of(dto.getNofAttempt()));
+        RegisterTerm(exam, TermType.EXAM, Optional.of(dto.getNofAttempt()));
+        scheduleService.CreateScheduleForTerm(exam, TermType.EXAM.name());
+        return ConvertToLightweightDTO(exam);
+    }
+
+    /**
+     * Registers the given term to:
+     * 1. All students who have this course (midterm, final without unit-credit)
+     * 2. All students who have this course and have unit-credit (final with
+     * unit-credit)
+     * 3. All students who can go to the exam and failed the prior attempt.
+     * 
+     * @param term the term to register
+     */
+    private void RegisterTerm(Term term, TermType type, Optional<Integer> whichAttempt) {
+        if (type == TermType.MIDTERM_EXAM) {
+            RegisterForAll(term);
         }
 
-        scheduleService.CreateScheduleForTerm(exam, "final");
-        return ConvertToLightweightDTO(exam);
+        // Check based on the course end type and register accordingly
+        Integer attempt = whichAttempt
+                .orElseThrow(() -> new IllegalArgumentException("Attempt number is required for final exams."));
+
+        Course course = term.getCourse();
+        CourseEndType endType = course.getCompletedBy();
+        Set<StudentCourse> studentCourses = course.getStudentCourses();
+        Set<Student> students = term.getStudents();
+
+        // Register each student who is eligible to take the exam
+        for (StudentCourse sc : studentCourses) {
+            if (CanRegisterForFinalExam(sc, endType, attempt)) {
+                students.add(sc.getStudent());
+            }
+        }
+
+        term.setStudents(students);
+        termRepository.save(term);
+    }
+
+    /**
+     * Registers the given midterm to all students who have this course.
+     * 
+     * @param term the midterm to register
+     */
+    private void RegisterForAll(Term midterm) {
+        Course course = midterm.getCourse();
+        Set<StudentCourse> studentCourses = course.getStudentCourses();
+        Set<Student> students = midterm.getStudents();
+        for (StudentCourse sc : studentCourses) {
+            students.add(sc.getStudent());
+        }
+
+        midterm.setStudents(students);
+        termRepository.save(midterm);
+    }
+
+    /**
+     * Checks if the student can register for the final exam.
+     * 
+     * @param student the student
+     * @param endType the course end type
+     * @return true if can register, false otherwise
+     */
+    private boolean CanRegisterForFinalExam(StudentCourse student, CourseEndType endType, Integer whichAttempt) {
+        // Exam only
+        if (endType == CourseEndType.EXAM) {
+            return !student.getCompleted();
+        }
+
+        // Exam with unit-credit        
+        else if (endType == CourseEndType.UNIT_CREDIT_EXAM) {
+            return student.getUnitCredit() && !student.getCompleted();
+        }
+
+        // Shouldn't happen
+        throw new IllegalArgumentException("Invalid course end type for final exam registration: " + endType.name());
     }
 
     /**
@@ -163,16 +234,6 @@ public class TermService {
         return roomRepository.findAllById(roomIDs)
                 .stream()
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Auto-registers students for the term.
-     * 
-     * @param term        the term
-     * @param whichAttempt optional attempt number
-     */
-    private void Autoregister(Term term, Optional<Integer> whichAttempt) {
-        throw new NotImplementedException("Auto-registration not implemented yet.");
     }
 
     /**

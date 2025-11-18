@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.util.Set;
 
 import IIS.wis2_backend.Enum.CourseEndType;
+import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.User.Teacher;
 import jakarta.persistence.*;
 import lombok.*;
@@ -75,6 +76,12 @@ public class Course {
      */
     @ManyToMany(fetch = FetchType.LAZY)
     private Set<Teacher> teachers;
+
+    /**
+     * Relation to students.
+     */
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StudentCourse> studentCourses;
 
     /**
      * Course schedule
