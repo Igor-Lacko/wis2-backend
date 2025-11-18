@@ -1,11 +1,11 @@
 package IIS.wis2_backend.DTO.Request.Term;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.experimental.SuperBuilder;
 
@@ -29,24 +29,20 @@ public class TermCreationDTO {
     @NotNull
     private Integer duration;
 
-    @NotNull
     private String description;
 
-    @NotNull
+    @NotBlank
     private String name;
-
-    @NotNull
-    private Boolean mandatory;
 
     @NotNull
     private Boolean autoRegistration;
 
-    @NotNull
-    private Long CourseID;
+    @NotBlank
+    private String courseShortcut;
 
-    @NotNull
-    private Long SupervisorID;
+    @NotBlank
+    private String supervisorUsername;
 
-    @NotNull
-    private Set<Long> RoomIDs;
+    @NotBlank
+    private String roomShortcut;
 }

@@ -2,7 +2,6 @@ package IIS.wis2_backend.Services.Education;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -91,8 +90,8 @@ public class TermService {
      */
     public LightweightTermDTO CreateMidtermExam(TermCreationDTO dto) {
         // Get needed entities
-        Teacher supervisor = GetSupervisor(dto.getSupervisorID());
-        Set<Room> rooms = GetRooms(dto.getRoomIDs());
+        Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
+        Room room = GetRoom(dto.getRoomShortcut());
 
         // Create midterm exam
         MidtermExam midtermExam = MidtermExam.builder()
@@ -102,22 +101,21 @@ public class TermService {
                 .duration(dto.getDuration())
                 .description(dto.getDescription())
                 .name(dto.getName())
-                .mandatory(dto.getMandatory())
                 .supervisor(supervisor)
-                .rooms(rooms)
+                .room(room)
                 .build();
 
         midtermExamRepository.save(midtermExam);
 
         scheduleService.CreateScheduleForTerm(midtermExam, TermType.MIDTERM_EXAM.name());
         RegisterTerm(midtermExam, TermType.MIDTERM_EXAM, Optional.empty());
-        return ConvertToLightweightDTO(midtermExam, Optional.empty());
+        return ConvertToLightweightDTO(midtermExam);
     }
 
     public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
         // Again, needed entities
-        Teacher supervisor = GetSupervisor(dto.getSupervisorID());
-        Set<Room> rooms = GetRooms(dto.getRoomIDs());
+        Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
+        Room room = GetRoom(dto.getRoomShortcut());
 
         // Create final exam
         Exam exam = Exam.builder()
@@ -127,9 +125,8 @@ public class TermService {
                 .duration(dto.getDuration())
                 .description(dto.getDescription())
                 .name(dto.getName())
-                .mandatory(dto.getMandatory())
                 .supervisor(supervisor)
-                .rooms(rooms)
+                .room(room)
                 .attempt(dto.getNofAttempt())
                 .build();
 
@@ -204,7 +201,7 @@ public class TermService {
             return !student.getCompleted();
         }
 
-        // Exam with unit-credit        
+        // Exam with unit-credit
         else if (endType == CourseEndType.UNIT_CREDIT_EXAM) {
             return student.getUnitCredit() && !student.getCompleted();
         }
@@ -216,38 +213,33 @@ public class TermService {
     /**
      * Basically calls GetTeacherByID or throws.
      * 
-     * @param supervisorID the ID of the supervisor
+     * @param supervisorUsername the username of the supervisor
      * @return the teacher
      */
-    private Teacher GetSupervisor(Long supervisorID) {
-        return teacherRepository.findById(supervisorID)
-                .orElseThrow(() -> new NotFoundException("Teacher not found with ID: " + supervisorID));
+    private Teacher GetSupervisor(String supervisorUsername) {
+        return teacherRepository.findByUsername(supervisorUsername)
+                .orElseThrow(() -> new NotFoundException("Teacher not found with username: " + supervisorUsername));
     }
 
     /**
-     * Fetches rooms based on provided IDs.
+     * Fetches the term room based on the provided shortcut.
      * 
-     * @param roomIDs the set of room IDs
-     * @return the set of rooms
+     * @param roomShortcut the room shortcut
+     * @return the fetched room
      */
-    private Set<Room> GetRooms(Set<Long> roomIDs) {
-        return roomRepository.findAllById(roomIDs)
-                .stream()
-                .collect(Collectors.toSet());
+    private Room GetRoom(String roomShortcut) {
+        return roomRepository.findByShortcut(roomShortcut)
+                .orElseThrow(() -> new NotFoundException("Room not found with shortcut: " + roomShortcut));
     }
 
     /**
      * Converts a Term entity to a LightweightTermDTO.
      * 
      * @param term the term entity
-     * @param roomShortcut the room shortcut to avoid refetches since this can be called right after creation when it's in memory
      * @return the lightweight term DTO
      */
-    private LightweightTermDTO ConvertToLightweightDTO(Term term, Optional<String> roomShortcut) {
+    private LightweightTermDTO ConvertToLightweightDTO(Term term) {
         return new LightweightTermDTO(
-                term.getId(),
-                term.getName(),
-                term.getDate(),
-                term.getDuration());
+                term.getName(), term.getDate(), term.getDuration(), term.getRoom().getShortcut());
     }
 }

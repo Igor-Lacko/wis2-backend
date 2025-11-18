@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Repositories.User;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -39,4 +40,13 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @return List of teachers teaching the course.
      */
     List<TeacherForCourseProjection> findByTaughtCourses_Id(Long courseId);
+
+    /**
+     * Find a teacher by their username.
+     * 
+     * @param username The username of the teacher.
+     * 
+     * @return The teacher with the given username.
+     */
+    Optional<Teacher> findByUsername(String username);
 }

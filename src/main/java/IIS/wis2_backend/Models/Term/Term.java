@@ -31,25 +31,25 @@ public abstract class Term {
     /**
      * Min amount of points you HAVE to receive for the term. (Well, can be 0)
      */
-    @NonNull
+    @Column(nullable = false)
     private Integer minPoints;
 
     /**
      * Max amount of points you CAN receive for the term.
      */
-    @NonNull
+    @Column(nullable = false)
     private Integer maxPoints;
 
     /**
      * Term date.
      */
-    @NonNull
+    @Column(nullable = false)
     private LocalDateTime date;
 
     /**
      * Term duration in minutes.
      */
-    @NonNull
+    @Column(nullable = false)
     private Integer duration;
 
     /**
@@ -60,14 +60,8 @@ public abstract class Term {
     /**
      * Term name.
      */
-    @NonNull
+    @Column(nullable = false)
     private String name;
-
-    /**
-     * Indicates if the term is mandatory.
-     */
-    @NonNull
-    private Boolean mandatory;
 
     /**
      * Registered students for this term.
@@ -79,19 +73,20 @@ public abstract class Term {
      * Teacher for this term.
      */
     @ManyToOne
-    @NonNull
+    @Column(nullable = false)
     private Teacher supervisor;
 
     /**
      * Room or rooms where the term takes place.
      */
-    @ManyToMany
-    @NonNull
-    private Set<Room> rooms;
+    @ManyToOne
+    @Column(nullable = false)
+    private Room room;
 
     /**
      * Course this term belongs to.
      */
     @ManyToOne
+    @Column(nullable = false)
     private Course course;
 }
