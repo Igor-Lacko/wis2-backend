@@ -16,12 +16,12 @@ import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
-import IIS.wis2_backend.Models.Term.Exam;
-import IIS.wis2_backend.Models.Term.MidtermExam;
-import IIS.wis2_backend.Models.Term.Term;
+import IIS.wis2_backend.Models.Term.*;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
+import IIS.wis2_backend.Repositories.Education.Term.LabRepository;
+import IIS.wis2_backend.Repositories.Education.Term.LectureRepository;
 import IIS.wis2_backend.Repositories.Education.Term.MidtermExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.TermRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
@@ -42,9 +42,19 @@ public class TermService {
     private final ExamRepository examRepository;
 
     /**
-     * Midterm exam repository (create, specific stuff).
+     * Midterm exam repository (same)
      */
     private final MidtermExamRepository midtermExamRepository;
+
+    /**
+     * Lecture repository (same)
+     */
+    private final LectureRepository lectureRepository;
+
+    /**
+     * Lab repository (same)
+     */
+    private final LabRepository labRepository;
 
     /**
      * To fetch teachers.
@@ -74,42 +84,94 @@ public class TermService {
      */
     public TermService(TermRepository termRepository, ExamRepository examRepository,
             MidtermExamRepository midtermExamRepository, ScheduleService scheduleService,
-            TeacherRepository teacherRepository, RoomRepository roomRepository) {
+            TeacherRepository teacherRepository, RoomRepository roomRepository, LabRepository labRepository,
+            LectureRepository lectureRepository) {
         this.termRepository = termRepository;
         this.examRepository = examRepository;
         this.midtermExamRepository = midtermExamRepository;
         this.scheduleService = scheduleService;
         this.teacherRepository = teacherRepository;
         this.roomRepository = roomRepository;
+        this.labRepository = labRepository;
+        this.lectureRepository = lectureRepository;
     }
 
     /**
      * Creates a midterm exam based on the provided DTO.
      * 
-     * @param dto the term creation DTO
+     * @param dto  the term creation DTO
+     * @param type the type of the term
      * @return the created lightweight term DTO
      */
-    public LightweightTermDTO CreateMidtermExam(TermCreationDTO dto) {
+    public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto, TermType type) {
         // Get needed entities
         Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
-        MidtermExam midtermExam = MidtermExam.builder()
-                .minPoints(dto.getMinPoints())
-                .maxPoints(dto.getMaxPoints())
-                .date(dto.getDate())
-                .duration(dto.getDuration())
-                .description(dto.getDescription())
-                .name(dto.getName())
-                .supervisor(supervisor)
-                .room(room)
-                .build();
+        Term term = CreateNonExamTermFromDTO(dto, type, supervisor, room);
 
-        scheduleService.CreateScheduleForTerm(midtermExam, TermType.MIDTERM_EXAM.name());
-        RegisterTerm(midtermExam, TermType.MIDTERM_EXAM, Optional.empty());
-        midtermExamRepository.save(midtermExam);
+        scheduleService.CreateScheduleForTerm(term, type.name());
+        RegisterTerm(term, type, Optional.empty());
+        
+        // Save based on type
+        if (type == TermType.MIDTERM_EXAM) {
+            midtermExamRepository.save((MidtermExam) term);
+        } else if (type == TermType.LAB) {
+            labRepository.save((Lab) term);
+        } else if (type == TermType.LECTURE) {
+            lectureRepository.save((Lecture) term);
+        }
 
-        return ConvertToLightweightDTO(midtermExam);
+        return ConvertToLightweightDTO(term);
+    }
+
+    /**
+     * Bloated convenience method to create non-exam terms (lectures, labs,
+     * midterms).
+     * 
+     * @param dto  the term creation DTO
+     * @param type the type of the term
+     * @param supervisor the supervisor teacher
+     * @param room the room
+     * @return the created term
+     */
+    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, TermType type, Teacher supervisor, Room room) {
+        if (type == TermType.MIDTERM_EXAM) {
+            return MidtermExam.builder()
+                    .minPoints(dto.getMinPoints())
+                    .maxPoints(dto.getMaxPoints())
+                    .date(dto.getDate())
+                    .duration(dto.getDuration())
+                    .description(dto.getDescription())
+                    .name(dto.getName())
+                    .supervisor(supervisor)
+                    .room(room)
+                    .build();
+        } else if (type == TermType.LAB) {
+            return Lab.builder()
+                    .minPoints(dto.getMinPoints())
+                    .maxPoints(dto.getMaxPoints())
+                    .date(dto.getDate())
+                    .duration(dto.getDuration())
+                    .description(dto.getDescription())
+                    .name(dto.getName())
+                    .supervisor(supervisor)
+                    .room(room)
+                    .build();
+        } else if (type == TermType.LECTURE) {
+            return Lecture.builder()
+                    .minPoints(dto.getMinPoints())
+                    .maxPoints(dto.getMaxPoints())
+                    .date(dto.getDate())
+                    .duration(dto.getDuration())
+                    .description(dto.getDescription())
+                    .name(dto.getName())
+                    .supervisor(supervisor)
+                    .room(room)
+                    .build();
+        } else {
+            throw new IllegalArgumentException("Unsupported term type for non-exam term creation: " + type.name());
+        }
     }
 
     public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {

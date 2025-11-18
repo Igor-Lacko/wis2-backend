@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Models.Term;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 import IIS.wis2_backend.Models.Course;
@@ -65,7 +66,8 @@ public abstract class Term {
      * Registered students for this term.
      */
     @OneToMany
-    private Set<StudentTerm> students;
+    @Builder.Default
+    private Set<StudentTerm> students = new HashSet<StudentTerm>();
 
     /**
      * Teacher for this term.
@@ -91,6 +93,6 @@ public abstract class Term {
     /**
      * If the term is autoregistered.
      */
-    @Column(nullable = false)
-    private Boolean autoregistered;
+    @Builder.Default
+    private Boolean autoregistered = false;
 }
