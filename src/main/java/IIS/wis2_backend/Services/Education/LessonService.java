@@ -10,7 +10,6 @@ import IIS.wis2_backend.DTO.Request.Lesson.LessonCreationDTO;
 import IIS.wis2_backend.DTO.Response.Lesson.LightweightLessonDTO;
 import IIS.wis2_backend.Enum.LessonType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
-import IIS.wis2_backend.Exceptions.ExceptionTypes.NotImplementedException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Lesson.Lab;
 import IIS.wis2_backend.Models.Lesson.Lecture;
