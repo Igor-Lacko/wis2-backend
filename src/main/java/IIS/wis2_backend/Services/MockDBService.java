@@ -12,11 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.Room.LabRoom;
 import IIS.wis2_backend.Models.Room.Office;
+import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.Room.OfficeRepository;
+import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -59,6 +62,11 @@ public class MockDBService {
 	private final TermService termService;
 
 	/**
+	 * Room repository so we can create rooms for terms in the mock DB.
+	 */
+	private final RoomRepository roomRepository;
+
+	/**
 	 * Constructor for MockDBService.
 	 * 
 	 * @param teacherRepository Teacher repository.
@@ -67,13 +75,15 @@ public class MockDBService {
 	 */
 	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
 			StudentRepository studentRepository,
-			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService) {
+			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
+			RoomRepository roomRepository) {
 		this.userRepository = userRepository;
 		this.teacherRepository = teacherRepository;
 		this.studentRepository = studentRepository;
 		this.courseRepository = courseRepository;
 		this.officeRepository = officeRepository;
 		this.termService = termService;
+		this.roomRepository = roomRepository;
 	}
 
 	/**
@@ -161,6 +171,94 @@ public class MockDBService {
 	}
 
 	/**
+	 * Inserts mock terms for ISA.
+	 */
+	public void InsertMockTermsForISA() {
+		// Ensure some rooms exist for terms
+		InsertRoomIfNotExists("LAB_A", "Main", "1", true, true);
+		InsertRoomIfNotExists("LAB_B", "Main", "2", true, true);
+		InsertRoomIfNotExists("LEC_1", "Main", "1", false, null);
+		InsertRoomIfNotExists("LEC_2", "Annex", "1", false, null);
+
+		// find the ISA course
+		Course isa = courseRepository.findAll().stream()
+				.filter(c -> "ISA".equals(c.getShortcut()))
+				.findFirst()
+				.orElse(null);
+
+		if (isa == null) {
+			return;
+		}
+
+		String courseShortcut = isa.getShortcut();
+		String supervisorUsername = isa.getSupervisor() != null ? isa.getSupervisor().getUsername() : null;
+		if (supervisorUsername == null) {
+			// nothing we can do without a supervisor
+			return;
+		}
+
+		java.time.LocalDateTime base = java.time.LocalDateTime.now().plusDays(7);
+
+		// Create ~20 terms across several weeks and types
+		for (int i = 0; i < 20; i++) {
+			java.time.LocalDateTime date = base.plusWeeks(i / 3).withHour(9 + (i % 5)).withMinute(0).withSecond(0).withNano(0);
+
+			// Alternate types: every 6th is final exam, others are midterms, labs or lectures
+			if (i % 6 == 5) {
+				// final exam
+				IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO exam = IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO.builder()
+						.name("ISA Final Exam " + (i / 6 + 1))
+						.minPoints(0)
+						.maxPoints(100)
+						.date(date)
+						.duration(120)
+						.description("Final exam for ISA - mock entry " + i)
+						.autoRegistration(true)
+						.courseShortcut(courseShortcut)
+						.supervisorUsername(supervisorUsername)
+						.roomShortcut(i % 2 == 0 ? "LAB_A" : "LEC_1")
+						.nofAttempt(1)
+						.build();
+
+				try {
+					termService.CreateFinalExam(exam);
+				} catch (Exception ex) {
+					// ignore failures in mock seeding
+				}
+			} else {
+				// non-exam term (midterm, lab, lecture)
+				IIS.wis2_backend.DTO.Request.Term.TermCreationDTO dto = IIS.wis2_backend.DTO.Request.Term.TermCreationDTO.builder()
+						.name((i % 3 == 0 ? "ISA Midterm " : (i % 3 == 1 ? "ISA Lab " : "ISA Lecture ")) + (i + 1))
+						.minPoints(0)
+						.maxPoints(100)
+						.date(date)
+						.duration(i % 3 == 0 ? 90 : 60)
+						.description("Mock term " + i)
+						.autoRegistration(true)
+						.courseShortcut(courseShortcut)
+						.supervisorUsername(supervisorUsername)
+						.roomShortcut(i % 3 == 1 ? "LAB_B" : "LEC_2")
+						.build();
+
+				try {
+					if (i % 3 == 0) {
+						// midterm
+						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.MIDTERM_EXAM);
+					} else if (i % 3 == 1) {
+						// lab
+						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.LAB);
+					} else {
+						// lecture
+						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.LECTURE);
+					}
+				} catch (Exception ex) {
+					// swallow exceptions during mock seeding
+				}
+			}
+		}
+	}
+
+	/**
 	 * Inserts an office into the mock db if it doesn't exist yet.
 	 * 
 	 * @param shortcut Shortcut of the office.
@@ -179,6 +277,40 @@ public class MockDBService {
 	}
 
 	/**
+	 * Inserts a room into the mock db if it doesn't exist yet.
+	 * Supports creating simple LectureRoom or LabRoom.
+	 *
+	 * @param shortcut  room shortcut/tag
+	 * @param building  building name
+	 * @param floor     floor description
+	 * @param isLab     if true create LabRoom, otherwise LectureRoom
+	 * @param pcSupport only relevant for lab rooms (may be null)
+	 */
+	private void InsertRoomIfNotExists(String shortcut, String building, String floor, boolean isLab,
+			Boolean pcSupport) {
+		if (roomRepository.findByShortcut(shortcut).isPresent()) {
+			return;
+		}
+
+		if (isLab) {
+			IIS.wis2_backend.Models.Room.LabRoom lab = LabRoom
+					.builder()
+					.shortcut(shortcut)
+					.building(building)
+					.floor(floor)
+					.pcSupport(pcSupport == null ? Boolean.FALSE : pcSupport)
+					.build();
+			roomRepository.save(lab);
+		} else {
+			IIS.wis2_backend.Models.Room.LectureRoom lec = new IIS.wis2_backend.Models.Room.LectureRoom();
+			lec.setShortcut(shortcut);
+			lec.setBuilding(building);
+			lec.setFloor(floor);
+			roomRepository.save(lec);
+		}
+	}
+
+	/**
 	 * Runs all the InsertMockX methods.
 	 */
 	@Transactional
@@ -188,6 +320,8 @@ public class MockDBService {
 		InsertMockStudents();
 		InsertMockTeachers();
 		InsertMockCourses();
+		// create mock terms/schedule for ISA
+		InsertMockTermsForISA();
 	}
 
 	/**
@@ -228,13 +362,6 @@ public class MockDBService {
 		InsertMockTeacherIfNotExists("Monica", "Green", "monica.green@example.com", "D4.78");
 		InsertMockTeacherIfNotExists("Robert", "Baker", "robert.baker@example.com", "E5.90");
 		InsertMockTeacherIfNotExists("Veronica", "Hall", "veronica.hall@example.com", "A1.12");
-	}
-
-	/**
-	 * Milujem ISA
-	 */
-	public void InsertMockTermsAndLessonsForISA() {
-
 	}
 
 	/**
