@@ -158,9 +158,11 @@ public class ScheduleService {
         scheduleItemRepository.save(scheduleItem);
 
         // Associate with everything
-        for (Student student : students) {
-            student.getSchedule().getItems().add(scheduleItem);
-            studentRepository.save(student);
+        if (term.getAutoregistered()) {
+            for (Student student : students) {
+                student.getSchedule().getItems().add(scheduleItem);
+                studentRepository.save(student);
+            }
         }
 
         supervisor.getSchedule().getItems().add(scheduleItem);
@@ -199,9 +201,11 @@ public class ScheduleService {
         scheduleItemRepository.save(scheduleItem);
 
         // Associate with everything
-        for (Student student : students) {
-            student.getSchedule().getItems().add(scheduleItem);
-            studentRepository.save(student);
+        if (lesson.getAutoregistered()) {
+            for (Student student : students) {
+                student.getSchedule().getItems().add(scheduleItem);
+                studentRepository.save(student);
+            }
         }
 
         lecturer.getSchedule().getItems().add(scheduleItem);

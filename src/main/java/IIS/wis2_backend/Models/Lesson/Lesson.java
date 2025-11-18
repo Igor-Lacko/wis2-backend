@@ -57,4 +57,10 @@ public abstract class Lesson {
     @ManyToOne
     @Column(nullable = false)
     private Room room;
+
+    /**
+     * If the lesson is autoregistered.
+     */
+    @Column(nullable = false)
+    private Boolean autoregistered;
 }

@@ -31,4 +31,7 @@ public class LessonCreationDTO {
 
     @NotBlank
     private String roomShortcut;
+
+    @NotNull
+    private Boolean autoregistered;
 }

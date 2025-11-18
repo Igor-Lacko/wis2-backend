@@ -111,6 +111,7 @@ public class LessonService {
                 .lecturer(lecturer)
                 .course(course)
                 .room(room)
+                .autoregistered(dto.getAutoregistered())
                 .build();
 
         lectureRepository.save(lecture);

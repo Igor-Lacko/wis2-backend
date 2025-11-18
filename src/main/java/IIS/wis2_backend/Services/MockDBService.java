@@ -20,6 +20,8 @@ import IIS.wis2_backend.Repositories.Room.OfficeRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
+import IIS.wis2_backend.Services.Education.LessonService;
+import IIS.wis2_backend.Services.Education.TermService;
 
 /**
  * Mock database service for testing purposes.
@@ -53,6 +55,16 @@ public class MockDBService {
 	private final OfficeRepository officeRepository;
 
 	/**
+	 * TermService to create test terms.
+	 */
+	private final TermService termService;
+
+	/**
+	 * LessonService to create test lessons.
+	 */
+	private final LessonService lessonService;
+
+	/**
 	 * Constructor for MockDBService.
 	 * 
 	 * @param teacherRepository Teacher repository.
@@ -61,12 +73,15 @@ public class MockDBService {
 	 */
 	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
 			StudentRepository studentRepository,
-			CourseRepository courseRepository, OfficeRepository officeRepository) {
+			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
+			LessonService lessonService) {
 		this.userRepository = userRepository;
 		this.teacherRepository = teacherRepository;
 		this.studentRepository = studentRepository;
 		this.courseRepository = courseRepository;
 		this.officeRepository = officeRepository;
+		this.termService = termService;
+		this.lessonService = lessonService;
 	}
 
 	/**

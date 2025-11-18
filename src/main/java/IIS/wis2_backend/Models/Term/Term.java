@@ -89,4 +89,10 @@ public abstract class Term {
     @ManyToOne
     @Column(nullable = false)
     private Course course;
+
+    /**
+     * If the term is autoregistered.
+     */
+    @Column(nullable = false)
+    private Boolean autoregistered;
 }

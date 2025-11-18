@@ -30,11 +30,13 @@ public class Course {
     /**
      * Course name.
      */
+    @Column(nullable = false)
     private String name;
 
     /**
      * Course price. (keep this here?)
      */
+    @Column(nullable = false)
     private Double price;
 
     /**
@@ -53,12 +55,8 @@ public class Course {
     /**
      * Date the course was created.
      */
+    @Column(nullable = false)
     private Date createdAt;
-
-    /**
-     * Date the course was last updated.
-     */
-    private Date updatedAt;
 
     /**
      * Course end type.
@@ -71,6 +69,7 @@ public class Course {
      * Course supervisor/"garant"
      */
     @ManyToOne(fetch = FetchType.LAZY)
+    @Column(nullable = false)
     private Teacher supervisor;
 
     /**
@@ -102,4 +101,10 @@ public class Course {
      */
     @OneToOne
     private Schedule schedule;
+
+    /**
+     * Course capacity
+     */
+    @Column(nullable = false)
+    private Integer capacity;
 }
