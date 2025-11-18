@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,6 +24,14 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return true if the course exists, false otherwise.
      */
     boolean existsByShortcut(String shortcut);
+
+    /**
+     * Retrieves a course by its shortcut.
+     * 
+     * @param shortcut Shortcut of the course.
+     * @return Course with the given shortcut.
+     */
+    Optional<Course> findByShortcut(String shortcut);
 
     /**
      * Finds the maximum course price.

@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Services.Education;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -93,7 +94,6 @@ public class TermService {
         Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
-        // Create midterm exam
         MidtermExam midtermExam = MidtermExam.builder()
                 .minPoints(dto.getMinPoints())
                 .maxPoints(dto.getMaxPoints())
@@ -105,10 +105,10 @@ public class TermService {
                 .room(room)
                 .build();
 
-        midtermExamRepository.save(midtermExam);
-
         scheduleService.CreateScheduleForTerm(midtermExam, TermType.MIDTERM_EXAM.name());
         RegisterTerm(midtermExam, TermType.MIDTERM_EXAM, Optional.empty());
+        midtermExamRepository.save(midtermExam);
+
         return ConvertToLightweightDTO(midtermExam);
     }
 
@@ -130,10 +130,10 @@ public class TermService {
                 .attempt(dto.getNofAttempt())
                 .build();
 
-        examRepository.save(exam);
-
         RegisterTerm(exam, TermType.EXAM, Optional.of(dto.getNofAttempt()));
         scheduleService.CreateScheduleForTerm(exam, TermType.EXAM.name());
+        examRepository.save(exam);
+
         return ConvertToLightweightDTO(exam);
     }
 
@@ -158,7 +158,7 @@ public class TermService {
         Course course = term.getCourse();
         CourseEndType endType = course.getCompletedBy();
         Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<StudentTerm> students = term.getStudents();
+        Set<StudentTerm> students = new HashSet<StudentTerm>();
 
         // Register each student who is eligible to take the exam
         for (StudentCourse sc : studentCourses) {
@@ -172,7 +172,6 @@ public class TermService {
         }
 
         term.setStudents(students);
-        termRepository.save(term);
     }
 
     /**
@@ -193,7 +192,6 @@ public class TermService {
         }
 
         midterm.setStudents(students);
-        termRepository.save(midterm);
     }
 
     /**

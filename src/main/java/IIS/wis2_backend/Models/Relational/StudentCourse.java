@@ -57,11 +57,12 @@ public class StudentCourse {
     /**
      * If the student has completed the course.
      */
+    @Column(nullable = false)
     private Boolean completed;
 
     /**
-     * If the course is over. This means if !completed at the time this is true, the student has failed the course.
+     * If the student has failed the course. Separate from !completed, can be due to different factors.
      */
     @Column(nullable = false)
-    private Boolean courseOver;
+    private Boolean failed;
 }

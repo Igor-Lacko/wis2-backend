@@ -178,7 +178,7 @@ public class ScheduleService {
      * @param lesson the lesson to create schedules for
      * @param type   the type of the lesson
      */
-    public void CreateScheduleForLesson(Lesson lesson, String type, Date date) {
+    public void CreateScheduleForLesson(Lesson lesson, String type) {
         Course course = lesson.getCourse();
         Set<Student> students = studentRepository.findByStudentCourses_Course_Id(course.getId());
         Teacher lecturer = lesson.getLecturer();
