@@ -38,6 +38,4 @@ public class LessonService {
         this.lectureRepository = lectureRepository;
         this.labRepository = labRepository;
     }
-
-    
 }
