@@ -13,7 +13,6 @@ import IIS.wis2_backend.DTO.Response.Schedule.ScheduleWeekDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.ScheduleItem;
-import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
@@ -131,7 +130,7 @@ public class ScheduleService {
     }
 
     /**
-     * Creates a schedule item for the given term and updates all user, room and
+     * Creates a schedule item for the given term and updates all user and
      * course schedules affiliated with it.
      * Called after creating a term (exam or midterm exam).
      * 
@@ -158,58 +157,13 @@ public class ScheduleService {
         scheduleItemRepository.save(scheduleItem);
 
         // Associate with everything
-        if (term.getAutoregistered()) {
-            for (Student student : students) {
-                student.getSchedule().getItems().add(scheduleItem);
-                studentRepository.save(student);
-            }
+        for (Student student : students) {
+            student.getSchedule().getItems().add(scheduleItem);
+            studentRepository.save(student);
         }
 
         supervisor.getSchedule().getItems().add(scheduleItem);
         teacherRepository.save(supervisor);
-
-        course.getSchedule().getItems().add(scheduleItem);
-        courseRepository.save(course);
-    }
-
-    /**
-     * Creates a schedule item for the given lesson and updates all user and
-     * course schedules affiliated with it.
-     * Called after creating a lesson.
-     * 
-     * @param lesson the lesson to create schedules for
-     * @param type   the type of the lesson
-     */
-    public void CreateScheduleForLesson(Lesson lesson, String type) {
-        Course course = lesson.getCourse();
-        Set<Student> students = studentRepository.findByStudentCourses_Course_Id(course.getId());
-        Teacher lecturer = lesson.getLecturer();
-
-        // Compute start/end date
-        LocalDateTime startDate = lesson.getDateTime();
-        LocalDateTime endDate = startDate.plusMinutes(lesson.getDuration());
-
-        // Create and save the item
-        ScheduleItem scheduleItem = ScheduleItem.builder()
-                .lesson(lesson)
-                .type(type)
-                .courseName(course.getName())
-                .startDate(startDate)
-                .endDate(endDate)
-                .build();
-
-        scheduleItemRepository.save(scheduleItem);
-
-        // Associate with everything
-        if (lesson.getAutoregistered()) {
-            for (Student student : students) {
-                student.getSchedule().getItems().add(scheduleItem);
-                studentRepository.save(student);
-            }
-        }
-
-        lecturer.getSchedule().getItems().add(scheduleItem);
-        teacherRepository.save(lecturer);
 
         course.getSchedule().getItems().add(scheduleItem);
         courseRepository.save(course);

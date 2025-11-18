@@ -2,7 +2,6 @@ package IIS.wis2_backend.Models;
 
 import java.time.LocalDateTime;
 
-import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Models.Term.Term;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,12 +27,6 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
      */
     @OneToOne(optional = true)
     private Term term;
-
-    /**
-     * Schedule item lesson.
-     */
-    @OneToOne(optional = true)
-    private Lesson lesson;
 
     /**
      * Type of the schedule item.

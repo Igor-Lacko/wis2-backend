@@ -1,9 +1,14 @@
 package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
+import java.util.Set;
+import java.util.HashSet;
+
+import org.checkerframework.checker.units.qual.C;
 
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.Schedule;
+import IIS.wis2_backend.Models.ScheduleItem;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -79,19 +84,19 @@ public class Wis2User {
      * User role.
      */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Roles role;
+    @Builder.Default
+    private Roles role = Roles.USER;
 
     /**
      * If the user account is activated.
      */
-    @Column(nullable = false)
-    private boolean activated;
+    @Builder.Default
+    private boolean activated = false;
 
     /**
-     * User schedule.
+     * User schedule as a set of schedule items.
      */
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     private Schedule schedule;
 
     /**

@@ -31,13 +31,11 @@ public abstract class Term {
     /**
      * Min amount of points you HAVE to receive for the term. (Well, can be 0)
      */
-    @Column(nullable = false)
     private Integer minPoints;
 
     /**
      * Max amount of points you CAN receive for the term.
      */
-    @Column(nullable = false)
     private Integer maxPoints;
 
     /**

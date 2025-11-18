@@ -20,7 +20,6 @@ import IIS.wis2_backend.Repositories.Room.OfficeRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
-import IIS.wis2_backend.Services.Education.LessonService;
 import IIS.wis2_backend.Services.Education.TermService;
 
 /**
@@ -60,11 +59,6 @@ public class MockDBService {
 	private final TermService termService;
 
 	/**
-	 * LessonService to create test lessons.
-	 */
-	private final LessonService lessonService;
-
-	/**
 	 * Constructor for MockDBService.
 	 * 
 	 * @param teacherRepository Teacher repository.
@@ -73,15 +67,13 @@ public class MockDBService {
 	 */
 	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
 			StudentRepository studentRepository,
-			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
-			LessonService lessonService) {
+			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService) {
 		this.userRepository = userRepository;
 		this.teacherRepository = teacherRepository;
 		this.studentRepository = studentRepository;
 		this.courseRepository = courseRepository;
 		this.officeRepository = officeRepository;
 		this.termService = termService;
-		this.lessonService = lessonService;
 	}
 
 	/**
@@ -156,6 +148,8 @@ public class MockDBService {
 					.completedBy(endType)
 					.supervisor(supervisor)
 					.teachers(teachers)
+					.capacity(100)
+					.autoregister(true)
 					.build();
 
 			if (course == null) {
@@ -234,6 +228,13 @@ public class MockDBService {
 		InsertMockTeacherIfNotExists("Monica", "Green", "monica.green@example.com", "D4.78");
 		InsertMockTeacherIfNotExists("Robert", "Baker", "robert.baker@example.com", "E5.90");
 		InsertMockTeacherIfNotExists("Veronica", "Hall", "veronica.hall@example.com", "A1.12");
+	}
+
+	/**
+	 * Milujem ISA
+	 */
+	public void InsertMockTermsAndLessonsForISA() {
+
 	}
 
 	/**

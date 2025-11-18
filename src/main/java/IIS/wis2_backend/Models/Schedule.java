@@ -31,7 +31,7 @@ public class Schedule {
     /**
      * Or even... schedule course?
      */
-    @OneToOne(optional = true)
+    @OneToOne(optional = true, mappedBy = "schedule")
     private Course course;
 
     /**

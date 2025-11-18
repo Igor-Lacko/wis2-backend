@@ -5,5 +5,7 @@ package IIS.wis2_backend.Enum;
  */
 public enum TermType {
     EXAM,
-    MIDTERM_EXAM
+    MIDTERM_EXAM,
+    LAB,
+    LECTURE
 }

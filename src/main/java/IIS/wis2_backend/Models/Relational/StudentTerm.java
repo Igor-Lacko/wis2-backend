@@ -34,7 +34,7 @@ public class StudentTerm {
     private Term term;
 
     /**
-     * Points the student has earned for this term. Null if not graded yet.
+     * Points the student has earned for this term. Null if not graded yet or the term is an lecture.
      */
     private Integer points;
 }

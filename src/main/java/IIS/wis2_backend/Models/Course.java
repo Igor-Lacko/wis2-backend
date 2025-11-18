@@ -2,9 +2,9 @@ package IIS.wis2_backend.Models;
 
 import java.sql.Date;
 import java.util.Set;
+import java.util.HashSet;
 
 import IIS.wis2_backend.Enum.CourseEndType;
-import IIS.wis2_backend.Models.Lesson.Lesson;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Teacher;
@@ -82,24 +82,20 @@ public class Course {
      * Relation to students.
      */
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<StudentCourse> studentCourses;
+    @Builder.Default
+    private Set<StudentCourse> studentCourses = new HashSet<StudentCourse>();
 
     /**
      * Relation to terms.
      */
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Term> terms;
+    @Builder.Default
+    private Set<Term> terms = new HashSet<Term>();
 
     /**
-     * And to lessons!
+     * Course schedule.
      */
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Lesson> lessons;
-
-    /**
-     * Course schedule
-     */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Schedule schedule;
 
     /**
@@ -107,4 +103,10 @@ public class Course {
      */
     @Column(nullable = false)
     private Integer capacity;
+
+    /**
+     * If the course can be autoregistered up to capacity.
+     */
+    @Column(nullable = false)
+    private Boolean autoregister;
 }
