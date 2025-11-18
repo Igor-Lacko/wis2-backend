@@ -13,11 +13,11 @@ import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
+import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.Term.Exam;
 import IIS.wis2_backend.Models.Term.MidtermExam;
 import IIS.wis2_backend.Models.Term.Term;
-import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
@@ -158,12 +158,16 @@ public class TermService {
         Course course = term.getCourse();
         CourseEndType endType = course.getCompletedBy();
         Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<Student> students = term.getStudents();
+        Set<StudentTerm> students = term.getStudents();
 
         // Register each student who is eligible to take the exam
         for (StudentCourse sc : studentCourses) {
             if (CanRegisterForFinalExam(sc, endType, attempt)) {
-                students.add(sc.getStudent());
+                StudentTerm studentTerm = StudentTerm.builder()
+                        .student(sc.getStudent())
+                        .term(term)
+                        .build();
+                students.add(studentTerm);
             }
         }
 
@@ -179,9 +183,13 @@ public class TermService {
     private void RegisterForAll(Term midterm) {
         Course course = midterm.getCourse();
         Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<Student> students = midterm.getStudents();
+        Set<StudentTerm> students = midterm.getStudents();
         for (StudentCourse sc : studentCourses) {
-            students.add(sc.getStudent());
+            StudentTerm studentTerm = StudentTerm.builder()
+                    .student(sc.getStudent())
+                    .term(midterm)
+                    .build();
+            students.add(studentTerm);
         }
 
         midterm.setStudents(students);

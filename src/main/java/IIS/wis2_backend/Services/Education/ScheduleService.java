@@ -139,7 +139,7 @@ public class ScheduleService {
      * @param type the type of the term (exam or midterm)
      */
     public void CreateScheduleForTerm(Term term, String type) {
-        Set<Student> students = term.getStudents();
+        Set<Student> students = studentRepository.findByStudentTerms_Term_Id(term.getId());
         Course course = term.getCourse();
         Teacher supervisor = term.getSupervisor();
 

@@ -27,4 +27,12 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @return list of students enrolled in the course
      */
     Set<Student> findByStudentCourses_Course_Id(Long courseId);
+
+    /**
+     * Finds all student registered for a given term by using StudentTerm relationship.
+     * 
+     * @param termId the ID of the term
+     * @return list of students registered for the term
+     */
+    Set<Student> findByStudentTerms_Term_Id(Long termId);
 }
