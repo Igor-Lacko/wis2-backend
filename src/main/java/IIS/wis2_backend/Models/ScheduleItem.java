@@ -31,25 +31,25 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     /**
      * Type of the schedule item.
      */
-    @NonNull
+    @Column(nullable = false)
     private String type;
 
     /**
      * Always concerns a course.
      */
-    @NonNull
+    @Column(nullable = false)
     private String courseName;
 
     /**
      * Schedule item date.
      */
-    @NonNull
+    @Column(nullable = false)
     private LocalDateTime startDate;
 
     /**
      * Schedule item end date.
      */
-    @NonNull
+    @Column(nullable = false)
     private LocalDateTime endDate;
 
     /**

@@ -67,27 +67,27 @@ public abstract class Term {
      */
     @OneToMany
     @Builder.Default
-    private Set<StudentTerm> students = new HashSet<StudentTerm>();
+    private Set<StudentTerm> studentTerms = new HashSet<StudentTerm>();
 
     /**
      * Teacher for this term.
      */
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false, name = "teacher_id")
     private Teacher supervisor;
 
     /**
      * Room or rooms where the term takes place.
      */
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false, name = "room_id")
     private Room room;
 
     /**
      * Course this term belongs to.
      */
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false, name = "course_id")
     private Course course;
 
     /**

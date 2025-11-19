@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Models;
 
-import java.sql.Date;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -53,12 +52,6 @@ public class Course {
     private String shortcut;
 
     /**
-     * Date the course was created.
-     */
-    @Column(nullable = false)
-    private Date createdAt;
-
-    /**
      * Course end type.
      */
     @Enumerated(EnumType.STRING)
@@ -69,7 +62,7 @@ public class Course {
      * Course supervisor/"garant"
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(nullable = false)
+    @JoinColumn(nullable = false, name = "supervisor_id")
     private Teacher supervisor;
 
     /**

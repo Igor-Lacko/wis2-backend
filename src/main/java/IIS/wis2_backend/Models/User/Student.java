@@ -3,6 +3,7 @@ package IIS.wis2_backend.Models.User;
 import java.util.Set;
 
 import IIS.wis2_backend.Models.Relational.StudentCourse;
+import IIS.wis2_backend.Models.Relational.StudentTerm;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -25,5 +26,11 @@ public class Student extends Wis2User {
      * Relation to courses.
      */
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<StudentCourse> courses;
+    private Set<StudentCourse> studentCourses;
+
+    /**
+     * Relation to terms.
+     */
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StudentTerm> studentTerms;
 }

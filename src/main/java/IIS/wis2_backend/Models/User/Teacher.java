@@ -24,6 +24,7 @@ public class Teacher extends Wis2User {
      * Teacher's office.
      */
     @ManyToOne
+    @JoinColumn(name = "office_id")
     private Office office;
 
     /**

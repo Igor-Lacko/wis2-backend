@@ -233,7 +233,7 @@ public class TermService {
             }
         }
 
-        term.setStudents(students);
+        term.setStudentTerms(students);
     }
 
     /**
@@ -244,7 +244,7 @@ public class TermService {
     private void RegisterForAll(Term midterm) {
         Course course = midterm.getCourse();
         Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<StudentTerm> students = midterm.getStudents();
+        Set<StudentTerm> students = midterm.getStudentTerms();
         for (StudentCourse sc : studentCourses) {
             StudentTerm studentTerm = StudentTerm.builder()
                     .student(sc.getStudent())
@@ -253,7 +253,7 @@ public class TermService {
             students.add(studentTerm);
         }
 
-        midterm.setStudents(students);
+        midterm.setStudentTerms(students);
     }
 
     /**

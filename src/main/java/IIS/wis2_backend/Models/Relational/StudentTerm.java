@@ -25,12 +25,14 @@ public class StudentTerm {
      * The student in the relation.
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "student_id")
     private Student student;
 
     /**
      * The term in the relation.
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "term_id")
     private Term term;
 
     /**

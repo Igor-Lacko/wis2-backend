@@ -1,14 +1,9 @@
 package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
-import java.util.Set;
-import java.util.HashSet;
-
-import org.checkerframework.checker.units.qual.C;
 
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.Schedule;
-import IIS.wis2_backend.Models.ScheduleItem;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -29,49 +24,42 @@ public class Wis2User {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @NonNull
     private Long id;
 
     /**
      * Unique username.
      */
     @Column(nullable = false, unique = true)
-    @NonNull
     private String username;
 
     /**
      * User first name.
      */
     @Column(nullable = false)
-    @NonNull
     private String firstName;
 
     /**
      * User last name.
      */
     @Column(nullable = false)
-    @NonNull
     private String lastName;
 
     /**
      * User email.
      */
     @Column(nullable = false, unique = true)
-    @NonNull
     private String email;
 
     /**
      * User password hash.
      */
     @Column(nullable = false)
-    @NonNull
     private String password;
 
     /**
      * User birthday.
      */
     @Column(nullable = false)
-    @NonNull
     private Date birthday;
 
     /**

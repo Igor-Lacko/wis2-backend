@@ -9,12 +9,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import IIS.wis2_backend.Enum.CourseEndType;
-import IIS.wis2_backend.Enum.Roles;
+import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
+import IIS.wis2_backend.Enum.TermType;
+import IIS.wis2_backend.Enum.*;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Room.LabRoom;
+import IIS.wis2_backend.Models.Room.LectureRoom;
 import IIS.wis2_backend.Models.Room.Office;
-import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
@@ -105,7 +106,7 @@ public class MockDBService {
 					.email(email)
 					.password("pwd")
 					.activated(true)
-					.role(Roles.USER)
+					.role(IIS.wis2_backend.Enum.Roles.USER)
 					.office(teacherOffice)
 					.build();
 
@@ -148,7 +149,7 @@ public class MockDBService {
 	 * @param price    Price of the course.
 	 * @param shortcut Shortcut of the course.
 	 */
-	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut, CourseEndType endType,
+	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut, IIS.wis2_backend.Enum.CourseEndType endType,
 			Teacher supervisor, Set<Teacher> teachers) {
 		if (!courseRepository.existsByShortcut(shortcut)) {
 			Course course = Course.builder()
@@ -227,7 +228,7 @@ public class MockDBService {
 				}
 			} else {
 				// non-exam term (midterm, lab, lecture)
-				IIS.wis2_backend.DTO.Request.Term.TermCreationDTO dto = IIS.wis2_backend.DTO.Request.Term.TermCreationDTO.builder()
+				TermCreationDTO dto = TermCreationDTO.builder()
 						.name((i % 3 == 0 ? "ISA Midterm " : (i % 3 == 1 ? "ISA Lab " : "ISA Lecture ")) + (i + 1))
 						.minPoints(0)
 						.maxPoints(100)
@@ -243,13 +244,13 @@ public class MockDBService {
 				try {
 					if (i % 3 == 0) {
 						// midterm
-						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.MIDTERM_EXAM);
+						termService.CreateNonExamTerm(dto, TermType.MIDTERM_EXAM);
 					} else if (i % 3 == 1) {
 						// lab
-						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.LAB);
+						termService.CreateNonExamTerm(dto, TermType.LAB);
 					} else {
 						// lecture
-						termService.CreateNonExamTerm(dto, IIS.wis2_backend.Enum.TermType.LECTURE);
+						termService.CreateNonExamTerm(dto, TermType.LECTURE);
 					}
 				} catch (Exception ex) {
 					// swallow exceptions during mock seeding
@@ -267,6 +268,8 @@ public class MockDBService {
 		if (!officeRepository.existsByShortcut(shortcut)) {
 			Office office = Office.builder()
 					.shortcut(shortcut)
+					.building("Offices")
+					.floor("1")
 					.build();
 
 			if (office == null) {
@@ -293,7 +296,7 @@ public class MockDBService {
 		}
 
 		if (isLab) {
-			IIS.wis2_backend.Models.Room.LabRoom lab = LabRoom
+			LabRoom lab = LabRoom
 					.builder()
 					.shortcut(shortcut)
 					.building(building)
@@ -302,7 +305,7 @@ public class MockDBService {
 					.build();
 			roomRepository.save(lab);
 		} else {
-			IIS.wis2_backend.Models.Room.LectureRoom lec = new IIS.wis2_backend.Models.Room.LectureRoom();
+			LectureRoom lec = new LectureRoom();
 			lec.setShortcut(shortcut);
 			lec.setBuilding(building);
 			lec.setFloor(floor);
