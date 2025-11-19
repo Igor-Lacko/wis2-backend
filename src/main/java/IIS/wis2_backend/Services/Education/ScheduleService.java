@@ -5,23 +5,26 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Response.Schedule.ScheduleItemDTO;
 import IIS.wis2_backend.DTO.Response.Schedule.ScheduleWeekDTO;
+import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.ScheduleItem;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
-import IIS.wis2_backend.Repositories.Education.ScheduleItemRepository;
+import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleItemRepository;
+import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
 import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
-import IIS.wis2_backend.Specifications.ScheduleItemSpecification;
 
 /**
  * Service for managing schedules.
@@ -54,19 +57,29 @@ public class ScheduleService {
     private final ScheduleItemRepository scheduleItemRepository;
 
     /**
+     * And for entire schedules!
+     */
+    private final ScheduleRepository scheduleRepository;
+
+    /**
      * Constructor for ScheduleService.
      * 
      * @param userRepository   Repository for user schedules.
      * @param courseRepository Repository for course schedules.
+     * @param scheduleItemRepository Repository for schedule items.
+     * @param studentRepository Repository for students.
+     * @param teacherRepository Repository for teachers.
+     * @param scheduleRepository Repository for entire schedules.
      */
     public ScheduleService(UserRepository userRepository, CourseRepository courseRepository,
             ScheduleItemRepository scheduleItemRepository, StudentRepository studentRepository,
-            TeacherRepository teacherRepository) {
+            TeacherRepository teacherRepository, ScheduleRepository scheduleRepository) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.scheduleItemRepository = scheduleItemRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     /**
@@ -81,11 +94,10 @@ public class ScheduleService {
             throw new IllegalArgumentException("weekStartDate must be a Monday");
         }
 
-        Long scheduleId = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"))
-                .getSchedule().getId();
+        Schedule schedule = scheduleRepository.findByUser_Username(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
-        return GetScheduleItemsForGivenWeek(scheduleId, weekStartDate);
+        return GetScheduleItemsForGivenWeek(schedule, weekStartDate);
     }
 
     /**
@@ -100,11 +112,17 @@ public class ScheduleService {
             throw new IllegalArgumentException("weekStartDate must be a Monday");
         }
 
-        Long scheduleId = courseRepository.findByShortcut(shortcut)
-                .orElseThrow(() -> new NotFoundException("Course not found"))
-                .getSchedule().getId();
+        Schedule schedule = scheduleRepository.findByCourse_Shortcut(shortcut)
+                .orElseThrow(() -> new NotFoundException("Course not found"));
 
-        return GetScheduleItemsForGivenWeek(scheduleId, weekStartDate);
+        List<ScheduleItemDTO> items = schedule.getItems()
+            .stream()
+            .map(this::ScheduleItemToDTO)
+            .collect(Collectors.toList());
+
+        return new ScheduleWeekDTO(items);
+
+        //return GetScheduleItemsForGivenWeek(schedule, weekStartDate);
     }
 
     /**
@@ -114,14 +132,16 @@ public class ScheduleService {
      * @param weekStartDate Start date of the week.
      * @return ScheduleWeekDTO representing the schedule items.
      */
-    private ScheduleWeekDTO GetScheduleItemsForGivenWeek(long scheduleId, LocalDate weekStartDate) {
-        List<ScheduleItemDTO> scheduleItems = scheduleItemRepository.findAll(
-                ScheduleItemSpecification.HasScheduleIdAndIsInGivenWeek(scheduleId, Date.valueOf(weekStartDate)))
-                .stream()
-                .map(this::ScheduleItemToDTO)
-                .toList();
-
-        return new ScheduleWeekDTO(scheduleItems);
+    private ScheduleWeekDTO GetScheduleItemsForGivenWeek(Schedule schedule, LocalDate weekStartDate) {
+        LocalDateTime weekEndDate = weekStartDate.plusDays(7).atStartOfDay();
+        List<ScheduleItemDTO> items = schedule.getItems()
+            .stream()
+            .filter(item -> 
+                !item.getEndDate().isBefore(weekStartDate.atStartOfDay()) &&
+                !item.getStartDate().isAfter(weekEndDate))
+            .map(this::ScheduleItemToDTO)
+            .collect(Collectors.toList());
+        return new ScheduleWeekDTO(items);
     }
 
     /**
@@ -145,9 +165,8 @@ public class ScheduleService {
      * Called after creating a term (exam or midterm exam).
      * 
      * @param term the term to create schedules for
-     * @param type the type of the term (exam or midterm)
      */
-    public void CreateScheduleForTerm(Term term, String type) {
+    public void CreateScheduleForTerm(Term term, TermType type) {
         Set<Student> students = studentRepository.findByStudentTerms_Term_Id(term.getId());
         Course course = term.getCourse();
         Teacher supervisor = term.getSupervisor();
@@ -158,10 +177,10 @@ public class ScheduleService {
         // Create and save the item
         ScheduleItem scheduleItem = ScheduleItem.builder()
                 .term(term)
-                .type(type)
                 .courseName(course.getName())
                 .startDate(startDate)
                 .endDate(endDate)
+                .type(type)
                 .build();
 
         scheduleItemRepository.save(scheduleItem);

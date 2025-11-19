@@ -1,4 +1,4 @@
-package IIS.wis2_backend.Repositories.Education;
+package IIS.wis2_backend.Repositories.Education.Schedule;
 
 import IIS.wis2_backend.Models.ScheduleItem;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ScheduleItemRepository
-        extends JpaRepository<ScheduleItem, Long>, JpaSpecificationExecutor<ScheduleItem> {
+                extends JpaRepository<ScheduleItem, Long>, JpaSpecificationExecutor<ScheduleItem> {
 
 }

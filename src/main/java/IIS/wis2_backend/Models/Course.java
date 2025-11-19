@@ -41,7 +41,6 @@ public class Course {
     /**
      * Course description.
      */
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 

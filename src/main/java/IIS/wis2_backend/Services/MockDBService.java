@@ -13,12 +13,14 @@ import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Enum.*;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.Room.LabRoom;
 import IIS.wis2_backend.Models.Room.LectureRoom;
 import IIS.wis2_backend.Models.Room.Office;
 import IIS.wis2_backend.Models.User.Student;
 import IIS.wis2_backend.Models.User.Teacher;
 import IIS.wis2_backend.Repositories.CourseRepository;
+import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.Room.OfficeRepository;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
@@ -68,16 +70,25 @@ public class MockDBService {
 	private final RoomRepository roomRepository;
 
 	/**
+	 * Schedule repository.
+	 */
+	private final ScheduleRepository scheduleRepository;
+
+	/**
 	 * Constructor for MockDBService.
 	 * 
-	 * @param teacherRepository Teacher repository.
-	 * @param studentRepository Student repository.
-	 * @param courseRepository  Course repository.
+	 * @param teacherRepository  Teacher repository.
+	 * @param studentRepository  Student repository.
+	 * @param courseRepository   Course repository.
+	 * @param officeRepository   Office repository.
+	 * @param termService        Term service.
+	 * @param roomRepository     Room repository.
+	 * @param scheduleRepository Schedule repository.
 	 */
 	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
 			StudentRepository studentRepository,
 			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
-			RoomRepository roomRepository) {
+			RoomRepository roomRepository, ScheduleRepository scheduleRepository) {
 		this.userRepository = userRepository;
 		this.teacherRepository = teacherRepository;
 		this.studentRepository = studentRepository;
@@ -85,6 +96,7 @@ public class MockDBService {
 		this.officeRepository = officeRepository;
 		this.termService = termService;
 		this.roomRepository = roomRepository;
+		this.scheduleRepository = scheduleRepository;
 	}
 
 	/**
@@ -149,7 +161,8 @@ public class MockDBService {
 	 * @param price    Price of the course.
 	 * @param shortcut Shortcut of the course.
 	 */
-	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut, IIS.wis2_backend.Enum.CourseEndType endType,
+	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut,
+			IIS.wis2_backend.Enum.CourseEndType endType,
 			Teacher supervisor, Set<Teacher> teachers) {
 		if (!courseRepository.existsByShortcut(shortcut)) {
 			Course course = Course.builder()
@@ -163,11 +176,20 @@ public class MockDBService {
 					.autoregister(true)
 					.build();
 
-			if (course == null) {
+			// Create an empty schedule for the course
+			Schedule schedule = Schedule.builder()
+					.course(course)
+					.build();
+
+			if (schedule == null) {
 				return;
 			}
 
+			scheduleRepository.save(schedule);
+
+			course.setSchedule(schedule);
 			courseRepository.save(course);
+
 		}
 	}
 
@@ -202,12 +224,16 @@ public class MockDBService {
 
 		// Create ~20 terms across several weeks and types
 		for (int i = 0; i < 20; i++) {
-			java.time.LocalDateTime date = base.plusWeeks(i / 3).withHour(9 + (i % 5)).withMinute(0).withSecond(0).withNano(0);
+			java.time.LocalDateTime date = base.plusWeeks(i / 3).withHour(9 + (i % 5)).withMinute(0).withSecond(0)
+					.withNano(0);
+			System.out.println("Creating mock term at " + date.toString());
 
-			// Alternate types: every 6th is final exam, others are midterms, labs or lectures
+			// Alternate types: every 6th is final exam, others are midterms, labs or
+			// lectures
 			if (i % 6 == 5) {
 				// final exam
-				IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO exam = IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO.builder()
+				IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO exam = IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO
+						.builder()
 						.name("ISA Final Exam " + (i / 6 + 1))
 						.minPoints(0)
 						.maxPoints(100)
@@ -218,6 +244,7 @@ public class MockDBService {
 						.courseShortcut(courseShortcut)
 						.supervisorUsername(supervisorUsername)
 						.roomShortcut(i % 2 == 0 ? "LAB_A" : "LEC_1")
+						.type(TermType.EXAM)
 						.nofAttempt(1)
 						.build();
 
@@ -239,18 +266,19 @@ public class MockDBService {
 						.courseShortcut(courseShortcut)
 						.supervisorUsername(supervisorUsername)
 						.roomShortcut(i % 3 == 1 ? "LAB_B" : "LEC_2")
+						.type(i % 3 == 0 ? TermType.MIDTERM_EXAM : (i % 3 == 1 ? TermType.LAB : TermType.LECTURE))
 						.build();
 
 				try {
 					if (i % 3 == 0) {
 						// midterm
-						termService.CreateNonExamTerm(dto, TermType.MIDTERM_EXAM);
+						termService.CreateNonExamTerm(dto);
 					} else if (i % 3 == 1) {
 						// lab
-						termService.CreateNonExamTerm(dto, TermType.LAB);
+						termService.CreateNonExamTerm(dto);
 					} else {
 						// lecture
-						termService.CreateNonExamTerm(dto, TermType.LECTURE);
+						termService.CreateNonExamTerm(dto);
 					}
 				} catch (Exception ex) {
 					// swallow exceptions during mock seeding

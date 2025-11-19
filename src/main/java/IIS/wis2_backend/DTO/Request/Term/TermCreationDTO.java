@@ -2,6 +2,7 @@ package IIS.wis2_backend.DTO.Request.Term;
 
 import java.time.LocalDateTime;
 
+import IIS.wis2_backend.Enum.TermType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,4 +46,7 @@ public class TermCreationDTO {
 
     @NotBlank
     private String roomShortcut;
+
+    @NotNull
+    private TermType type;
 }

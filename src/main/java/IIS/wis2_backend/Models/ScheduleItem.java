@@ -2,6 +2,7 @@ package IIS.wis2_backend.Models;
 
 import java.time.LocalDateTime;
 
+import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Models.Term.Term;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +33,8 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
      * Type of the schedule item.
      */
     @Column(nullable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private TermType type;
 
     /**
      * Always concerns a course.

@@ -100,18 +100,18 @@ public class TermService {
      * Creates a midterm exam based on the provided DTO.
      * 
      * @param dto  the term creation DTO
-     * @param type the type of the term
      * @return the created lightweight term DTO
      */
-    public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto, TermType type) {
+    public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto) {
         // Get needed entities
         Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
-        Term term = CreateNonExamTermFromDTO(dto, type, supervisor, room);
+        Term term = CreateNonExamTermFromDTO(dto, supervisor, room);
+        TermType type = dto.getType();
 
-        scheduleService.CreateScheduleForTerm(term, type.name());
-        RegisterTerm(term, type, Optional.empty());
+        scheduleService.CreateScheduleForTerm(term, type);
+        RegisterTerm(term, dto.getType(), Optional.empty());
         
         // Save based on type
         if (type == TermType.MIDTERM_EXAM) {
@@ -130,12 +130,12 @@ public class TermService {
      * midterms).
      * 
      * @param dto  the term creation DTO
-     * @param type the type of the term
      * @param supervisor the supervisor teacher
      * @param room the room
      * @return the created term
      */
-    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, TermType type, Teacher supervisor, Room room) {
+    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Teacher supervisor, Room room) {
+        TermType type = dto.getType();
         if (type == TermType.MIDTERM_EXAM) {
             return MidtermExam.builder()
                     .minPoints(dto.getMinPoints())
@@ -193,7 +193,7 @@ public class TermService {
                 .build();
 
         RegisterTerm(exam, TermType.EXAM, Optional.of(dto.getNofAttempt()));
-        scheduleService.CreateScheduleForTerm(exam, TermType.EXAM.name());
+        scheduleService.CreateScheduleForTerm(exam, TermType.EXAM);
         examRepository.save(exam);
 
         return ConvertToLightweightDTO(exam);
