@@ -32,7 +32,6 @@ import IIS.wis2_backend.Services.Education.TermService;
  * Mock database service for testing purposes.
  */
 @Service
-@Profile("dev")
 public class MockDBService {
 	/**
 	 * User repository to clear users/check for existence.
