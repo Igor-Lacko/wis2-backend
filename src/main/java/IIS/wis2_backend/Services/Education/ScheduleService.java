@@ -72,11 +72,16 @@ public class ScheduleService {
     /**
      * Get schedule for a user.
      * 
-     * @param userId ID of the user.
+     * @param username Username of the user.
+     * @param weekStartDate Start date of the week.
      * @return ScheduleWeekDTO representing the user's schedule.
      */
-    public ScheduleWeekDTO GetUserScheduleForGivenWeek(long userId, LocalDate weekStartDate) {
-        Long scheduleId = userRepository.findById(userId)
+    public ScheduleWeekDTO GetUserScheduleForGivenWeek(String username, LocalDate weekStartDate) {
+        if (weekStartDate.getDayOfWeek().getValue() != 1) {
+            throw new IllegalArgumentException("weekStartDate must be a Monday");
+        }
+
+        Long scheduleId = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"))
                 .getSchedule().getId();
 
@@ -86,11 +91,16 @@ public class ScheduleService {
     /**
      * Get schedule for a course.
      * 
-     * @param courseId ID of the course.
+     * @param shortcut        Unique shortcut of the course.
+     * @param weekStartDate Start date of the week.
      * @return ScheduleWeekDTO representing the course's schedule.
      */
-    public ScheduleWeekDTO GetCourseScheduleForGivenWeek(long courseId, LocalDate weekStartDate) {
-        Long scheduleId = courseRepository.findById(courseId)
+    public ScheduleWeekDTO GetCourseScheduleForGivenWeek(String shortcut, LocalDate weekStartDate) {
+        if (weekStartDate.getDayOfWeek().getValue() != 1) {
+            throw new IllegalArgumentException("weekStartDate must be a Monday");
+        }
+
+        Long scheduleId = courseRepository.findByShortcut(shortcut)
                 .orElseThrow(() -> new NotFoundException("Course not found"))
                 .getSchedule().getId();
 

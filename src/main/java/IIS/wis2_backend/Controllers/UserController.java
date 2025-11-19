@@ -1,8 +1,5 @@
 package IIS.wis2_backend.Controllers;
 
-import java.time.LocalDate;
-
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -16,13 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import IIS.wis2_backend.DTO.Response.Schedule.ScheduleWeekDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Services.UserService;
-import IIS.wis2_backend.Services.Education.ScheduleService;
-
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
@@ -37,19 +30,12 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Schedule service for getting user schedules.
-     */
-    private final ScheduleService scheduleService;
-
-    /**
      * Constructor for UserController.
      * 
      * @param userService     Service for user-related operations.
-     * @param scheduleService Schedule service for getting user schedules.
      */
-    public UserController(UserService userService, ScheduleService scheduleService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.scheduleService = scheduleService;
     }
 
     /**
@@ -112,19 +98,4 @@ public class UserController {
 
         return "Success";
     }
-
-    /**
-     * Get schedule for a user.
-     * 
-     * @param id            ID of the user.
-     * @param weekStartDate Start date of the week.
-     * @return ScheduleWeekDTO representing the user's schedule.
-     */
-    @GetMapping("/public/{id}/schedule")
-    public ResponseEntity<ScheduleWeekDTO> GetUserSchedule(@PathVariable long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate) {
-        ScheduleWeekDTO schedule = scheduleService.GetUserScheduleForGivenWeek(id, weekStartDate);
-        return ResponseEntity.ok(schedule);
-    }
-
 }
