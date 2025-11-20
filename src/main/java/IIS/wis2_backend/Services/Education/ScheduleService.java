@@ -22,7 +22,6 @@ import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleItemRepository;
 import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
-import jakarta.transaction.Transactional;
 
 /**
  * Service for managing schedules.

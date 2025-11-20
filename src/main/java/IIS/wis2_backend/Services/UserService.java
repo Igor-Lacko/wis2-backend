@@ -16,6 +16,7 @@ import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
+import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
@@ -119,13 +120,13 @@ public class UserService {
      */
     public UserCoursesDTO GetUserCourses(String username) {
         return UserCoursesDTO.builder()
-                .supervisedCourses(courseRepository.findBySupervisor_Username(username).stream()
+                .supervisedCourses(courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .teachingCourses(courseRepository.findByTeachers_Username(username).stream()
+                .teachingCourses(courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_Username(username).stream()
+                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
                 .build();
@@ -170,7 +171,7 @@ public class UserService {
      */
     private TeacherDTO TeacherToDTO(Wis2User teacher) {
         // Fetch supervised courses
-        Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_Id(teacher.getId())
+        Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
                 .stream()
                 .map(proj -> new CourseDTOForTeacher(
                         proj.getId(),
@@ -179,7 +180,7 @@ public class UserService {
                 .collect(Collectors.toSet());
 
         // And taught courses!
-        Set<CourseDTOForTeacher> taughtCourses = courseRepository.findByTeachers_Id(teacher.getId())
+        Set<CourseDTOForTeacher> taughtCourses = courseRepository.findByTeachers_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
                 .stream()
                 .map(proj -> new CourseDTOForTeacher(
                         proj.getId(),

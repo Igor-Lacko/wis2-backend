@@ -17,10 +17,12 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.Enum.CourseRoleType;
 import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller for course access.
@@ -68,9 +70,9 @@ public class CourseController {
      * 
      * @param id Course id.
      */
-    @GetMapping("/{id}")
-    public FullCourseDTO GetCourseById(@PathVariable long id) {
-        return courseService.GetCourseById(id);
+    @GetMapping("/{shortcut}")
+    public FullCourseDTO GetCourseByShortcut(@PathVariable String shortcut) {
+        return courseService.GetCourseByShortcut(shortcut);
     }
 
     @GetMapping("/pending")
@@ -106,4 +108,42 @@ public class CourseController {
         return ResponseEntity.ok(createdCourse);
     }
 
+    /**
+     * Get courses supervised by a specific user.
+     * 
+     * @param username The username of the supervisor.
+     * @return List of lightweight course DTOs.
+     */
+    @GetMapping("/supervised-by/{username}")
+    @PreAuthorize("#username == authentication.name")
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesBySupervisor(@RequestParam String username) {
+        List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.SUPERVISOR);
+        return ResponseEntity.ok(courses);
+    }
+
+    /**
+     * Get courses taught by a specific teacher.
+     * 
+     * @param username The username of the teacher.
+     * @return List of lightweight course DTOs.
+     */
+    @GetMapping("/taught-by")
+    @PreAuthorize("#username == authentication.name")
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByTeacher(@RequestParam String username) {
+        List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.TEACHER);
+        return ResponseEntity.ok(courses);
+    }
+
+    /**
+     * Get courses studied by a specific student.
+     * 
+     * @param username The username of the student.
+     * @return List of lightweight course DTOs.
+     */
+    @GetMapping("/studied-by")
+    @PreAuthorize("#username == authentication.name")
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByStudent(@RequestParam String username) {
+        List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.STUDENT);
+        return ResponseEntity.ok(courses);
+    }
 }

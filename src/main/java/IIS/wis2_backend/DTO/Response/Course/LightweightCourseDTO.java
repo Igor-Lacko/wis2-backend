@@ -12,9 +12,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class LightweightCourseDTO {
     @NotNull
-    private Long id;
-
-    @NotNull
     @NotEmpty
     private String name;
 

@@ -3,10 +3,10 @@ package IIS.wis2_backend.DTO.Response.Course;
 import java.util.List;
 
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OverviewCourseDTO;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 
 /**
  * DTO representing the courses a user is involved with.
@@ -15,12 +15,12 @@ import lombok.NonNull;
 @Builder
 @Data
 public class UserCoursesDTO {
-    @NonNull
+    @NotNull
     private List<OverviewCourseDTO> supervisedCourses;
 
-    @NonNull
+    @NotNull
     private List<OverviewCourseDTO> teachingCourses;
 
-    @NonNull
+    @NotNull
     private List<OverviewCourseDTO> enrolledCourses;
 }
