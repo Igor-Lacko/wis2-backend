@@ -7,7 +7,7 @@ import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Term.Term;
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -63,13 +63,13 @@ public class Course {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "supervisor_id")
-    private Teacher supervisor;
+    private Wis2User supervisor;
 
     /**
      * Course teachers
      */
     @ManyToMany(fetch = FetchType.LAZY)
-    private Set<Teacher> teachers;
+    private Set<Wis2User> teachers;
 
     /**
      * Relation to students.

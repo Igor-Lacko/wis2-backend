@@ -17,7 +17,7 @@ import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Repositories.CourseRepository;
-import IIS.wis2_backend.Repositories.User.TeacherRepository;
+import IIS.wis2_backend.Repositories.User.UserRepository;
 import jakarta.transaction.Transactional;
 
 /**
@@ -33,17 +33,17 @@ public class CourseService {
     /**
      * Teacher repository to fetch supervisors/teachers.
      */
-    private final TeacherRepository teacherRepository;
+    private final UserRepository userRepository;
 
     /**
      * Constructor for CourseService.
      * 
      * @param courseRepository  the course repository
-     * @param teacherRepository the teacher repository
+     * @param userRepository    the user repository
      */
-    public CourseService(CourseRepository courseRepository, TeacherRepository teacherRepository) {
+    public CourseService(CourseRepository courseRepository, UserRepository userRepository) {
         this.courseRepository = courseRepository;
-        this.teacherRepository = teacherRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -197,8 +197,8 @@ public class CourseService {
      */
     private FullCourseDTO CourseToFullDTO(Course course) {
         // Fetch supervisor and teacher projections
-        TeacherForCourseProjection supervisorProjection = teacherRepository.findFirstBySupervisedCourses_Id(course.getId());
-        List<TeacherForCourseProjection> teacherProjections = teacherRepository.findByTaughtCourses_Id(course.getId());
+        TeacherForCourseProjection supervisorProjection = userRepository.findFirstBySupervisedCourses_Id(course.getId());
+        List<TeacherForCourseProjection> teacherProjections = userRepository.findByTaughtCourses_Id(course.getId());
 
         // Map to DTOs
         TeacherDTOForCourse supervisor = new TeacherDTOForCourse(

@@ -18,14 +18,11 @@ import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.Room.LabRoom;
 import IIS.wis2_backend.Models.Room.LectureRoom;
 import IIS.wis2_backend.Models.Room.Office;
-import IIS.wis2_backend.Models.User.Student;
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.Room.OfficeRepository;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
-import IIS.wis2_backend.Repositories.User.StudentRepository;
-import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Services.Education.TermService;
 
@@ -38,16 +35,6 @@ public class MockDBService {
 	 * User repository to clear users/check for existence.
 	 */
 	private final UserRepository userRepository;
-
-	/**
-	 * Teacher repository to create test teachers.
-	 */
-	private final TeacherRepository teacherRepository;
-
-	/**
-	 * Student repository to create test students.
-	 */
-	private final StudentRepository studentRepository;
 
 	/**
 	 * Course repository to create test courses.
@@ -77,21 +64,17 @@ public class MockDBService {
 	/**
 	 * Constructor for MockDBService.
 	 * 
-	 * @param teacherRepository  Teacher repository.
-	 * @param studentRepository  Student repository.
+	 * @param userRepository     User repository.
 	 * @param courseRepository   Course repository.
 	 * @param officeRepository   Office repository.
 	 * @param termService        Term service.
 	 * @param roomRepository     Room repository.
 	 * @param scheduleRepository Schedule repository.
 	 */
-	public MockDBService(UserRepository userRepository, TeacherRepository teacherRepository,
-			StudentRepository studentRepository,
+	public MockDBService(UserRepository userRepository,
 			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
 			RoomRepository roomRepository, ScheduleRepository scheduleRepository) {
 		this.userRepository = userRepository;
-		this.teacherRepository = teacherRepository;
-		this.studentRepository = studentRepository;
 		this.courseRepository = courseRepository;
 		this.officeRepository = officeRepository;
 		this.termService = termService;
@@ -110,7 +93,7 @@ public class MockDBService {
 		Office teacherOffice = officeRepository.findByShortcut(office);
 
 		if (!userRepository.existsByEmail(email)) {
-			Teacher teacher = Teacher.builder()
+			Wis2User teacher = Wis2User.builder()
 					.firstName(firstName)
 					.lastName(lastName)
 					.username(firstName.toLowerCase() + "." + lastName.toLowerCase())
@@ -123,7 +106,7 @@ public class MockDBService {
 					.build();
 
 			if (teacher != null) {
-				teacherRepository.save(teacher);
+				userRepository.save(teacher);
 			}
 		}
 	}
@@ -137,7 +120,7 @@ public class MockDBService {
 	 */
 	private void InsertMockStudentIfNotExists(String firstName, String lastName, String email) {
 		if (!userRepository.existsByEmail(email)) {
-			Student student = Student.builder()
+			Wis2User student = Wis2User.builder()
 					.firstName(firstName)
 					.lastName(lastName)
 					.username(firstName.toLowerCase() + "." + lastName.toLowerCase())
@@ -149,7 +132,7 @@ public class MockDBService {
 					.build();
 
 			if (student != null) {
-				studentRepository.save(student);
+				userRepository.save(student);
 			}
 		}
 	}
@@ -163,7 +146,7 @@ public class MockDBService {
 	 */
 	private void InsertMockCourseIfNotExists(String name, Double price, String shortcut,
 			IIS.wis2_backend.Enum.CourseEndType endType,
-			Teacher supervisor, Set<Teacher> teachers) {
+			Wis2User supervisor, Set<Wis2User> teachers) {
 		if (!courseRepository.existsByShortcut(shortcut)) {
 			Course course = Course.builder()
 					.name(name)
@@ -404,69 +387,69 @@ public class MockDBService {
 	 */
 	public void InsertMockCourses() {
 		// find teachers by email (they are created in InsertMockTeachers)
-		Teacher pavel = teacherRepository.findAll().stream()
+		Wis2User pavel = userRepository.findAll().stream()
 				.filter(t -> "ppavel@fit.vutbr.cz".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher jdoe = teacherRepository.findAll().stream()
+		Wis2User jdoe = userRepository.findAll().stream()
 				.filter(t -> "jdoe@fit.vutbr.cz".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher alice = teacherRepository.findAll().stream()
+		Wis2User alice = userRepository.findAll().stream()
 				.filter(t -> "alice.johnson@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher martin = teacherRepository.findAll().stream()
+		Wis2User martin = userRepository.findAll().stream()
 				.filter(t -> "martin.smith@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher eva = teacherRepository.findAll().stream()
+		Wis2User eva = userRepository.findAll().stream()
 				.filter(t -> "eva.brown@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher thomas = teacherRepository.findAll().stream()
+		Wis2User thomas = userRepository.findAll().stream()
 				.filter(t -> "thomas.cooper@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher clara = teacherRepository.findAll().stream()
+		Wis2User clara = userRepository.findAll().stream()
 				.filter(t -> "clara.taylor@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher lucas = teacherRepository.findAll().stream()
+		Wis2User lucas = userRepository.findAll().stream()
 				.filter(t -> "lucas.white@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher paul = teacherRepository.findAll().stream()
+		Wis2User paul = userRepository.findAll().stream()
 				.filter(t -> "paul.davis@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher monica = teacherRepository.findAll().stream()
+		Wis2User monica = userRepository.findAll().stream()
 				.filter(t -> "monica.green@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher robert = teacherRepository.findAll().stream()
+		Wis2User robert = userRepository.findAll().stream()
 				.filter(t -> "robert.baker@example.com".equals(t.getEmail())).findFirst().orElse(null);
-		Teacher veronica = teacherRepository.findAll().stream()
+		Wis2User veronica = userRepository.findAll().stream()
 				.filter(t -> "veronica.hall@example.com".equals(t.getEmail())).findFirst().orElse(null);
 
 		// build teacher sets for courses
-		java.util.Set<Teacher> iisTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> iisTeachers = new java.util.HashSet<>();
 		if (pavel != null)
 			iisTeachers.add(pavel);
 		if (alice != null)
 			iisTeachers.add(alice);
 
-		java.util.Set<Teacher> idsTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> idsTeachers = new java.util.HashSet<>();
 		if (jdoe != null)
 			idsTeachers.add(jdoe);
 		if (martin != null)
 			idsTeachers.add(martin);
 
-		java.util.Set<Teacher> iusTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> iusTeachers = new java.util.HashSet<>();
 		if (alice != null)
 			iusTeachers.add(alice);
 		if (eva != null)
 			iusTeachers.add(eva);
 
-		java.util.Set<Teacher> ipkTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> ipkTeachers = new java.util.HashSet<>();
 		if (martin != null)
 			ipkTeachers.add(martin);
 		if (thomas != null)
 			ipkTeachers.add(thomas);
 
-		java.util.Set<Teacher> isaTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> isaTeachers = new java.util.HashSet<>();
 		if (eva != null)
 			isaTeachers.add(eva);
 		if (clara != null)
 			isaTeachers.add(clara);
 
-		java.util.Set<Teacher> iosTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> iosTeachers = new java.util.HashSet<>();
 		if (thomas != null)
 			iosTeachers.add(thomas);
 		if (lucas != null)
 			iosTeachers.add(lucas);
 
-		java.util.Set<Teacher> ifjTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> ifjTeachers = new java.util.HashSet<>();
 		if (clara != null)
 			ifjTeachers.add(clara);
 		if (paul != null)
@@ -474,7 +457,7 @@ public class MockDBService {
 		if (veronica != null)
 			ifjTeachers.add(veronica);
 
-		java.util.Set<Teacher> izuTeachers = new java.util.HashSet<>();
+		java.util.Set<Wis2User> izuTeachers = new java.util.HashSet<>();
 		if (lucas != null)
 			izuTeachers.add(lucas);
 		if (monica != null)

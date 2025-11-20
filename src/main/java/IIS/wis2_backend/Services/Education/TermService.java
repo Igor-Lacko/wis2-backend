@@ -17,14 +17,14 @@ import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
 import IIS.wis2_backend.Models.Term.*;
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.LabRepository;
 import IIS.wis2_backend.Repositories.Education.Term.LectureRepository;
 import IIS.wis2_backend.Repositories.Education.Term.MidtermExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.TermRepository;
-import IIS.wis2_backend.Repositories.User.TeacherRepository;
+import IIS.wis2_backend.Repositories.User.UserRepository;
 
 /**
  * Service for managing terms.
@@ -59,7 +59,7 @@ public class TermService {
     /**
      * To fetch teachers.
      */
-    private final TeacherRepository teacherRepository;
+    private final UserRepository userRepository;
 
     /**
      * To fetch rooms.
@@ -79,18 +79,18 @@ public class TermService {
      * @param examRepository         the final exam repository
      * @param midtermExamRepository  the midterm exam repository
      * @param scheduleService        the schedule service
-     * @param teacherRepository      the teacher repository
+     * @param userRepository         the user repository
      * @param roomRepository         the room repository
      */
     public TermService(TermRepository termRepository, ExamRepository examRepository,
             MidtermExamRepository midtermExamRepository, ScheduleService scheduleService,
-            TeacherRepository teacherRepository, RoomRepository roomRepository, LabRepository labRepository,
+            UserRepository userRepository, RoomRepository roomRepository, LabRepository labRepository,
             LectureRepository lectureRepository) {
         this.termRepository = termRepository;
         this.examRepository = examRepository;
         this.midtermExamRepository = midtermExamRepository;
         this.scheduleService = scheduleService;
-        this.teacherRepository = teacherRepository;
+        this.userRepository = userRepository;
         this.roomRepository = roomRepository;
         this.labRepository = labRepository;
         this.lectureRepository = lectureRepository;
@@ -104,7 +104,7 @@ public class TermService {
      */
     public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto) {
         // Get needed entities
-        Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
+        Wis2User supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
         Term term = CreateNonExamTermFromDTO(dto, supervisor, room);
@@ -134,7 +134,7 @@ public class TermService {
      * @param room the room
      * @return the created term
      */
-    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Teacher supervisor, Room room) {
+    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Wis2User supervisor, Room room) {
         TermType type = dto.getType();
         if (type == TermType.MIDTERM_EXAM) {
             return MidtermExam.builder()
@@ -176,7 +176,7 @@ public class TermService {
 
     public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
         // Again, needed entities
-        Teacher supervisor = GetSupervisor(dto.getSupervisorUsername());
+        Wis2User supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
         // Create final exam
@@ -284,8 +284,8 @@ public class TermService {
      * @param supervisorUsername the username of the supervisor
      * @return the teacher
      */
-    private Teacher GetSupervisor(String supervisorUsername) {
-        return teacherRepository.findByUsername(supervisorUsername)
+    private Wis2User GetSupervisor(String supervisorUsername) {
+        return userRepository.findByUsername(supervisorUsername)
                 .orElseThrow(() -> new NotFoundException("Teacher not found with username: " + supervisorUsername));
     }
 

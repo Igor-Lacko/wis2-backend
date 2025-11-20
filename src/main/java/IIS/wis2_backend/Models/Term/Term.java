@@ -7,7 +7,7 @@ import java.util.Set;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -74,7 +74,7 @@ public abstract class Term {
      */
     @ManyToOne
     @JoinColumn(nullable = false, name = "teacher_id")
-    private Teacher supervisor;
+    private Wis2User supervisor;
 
     /**
      * Room or rooms where the term takes place.

@@ -1,7 +1,7 @@
 package IIS.wis2_backend.Models.Relational;
 
 import IIS.wis2_backend.Models.Term.Term;
-import IIS.wis2_backend.Models.User.Student;
+import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +26,7 @@ public class StudentTerm {
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "student_id")
-    private Student student;
+    private Wis2User student;
 
     /**
      * The term in the relation.

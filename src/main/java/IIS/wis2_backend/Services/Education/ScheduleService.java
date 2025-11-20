@@ -17,13 +17,10 @@ import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.ScheduleItem;
 import IIS.wis2_backend.Models.Term.Term;
-import IIS.wis2_backend.Models.User.Student;
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleItemRepository;
 import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
-import IIS.wis2_backend.Repositories.User.StudentRepository;
-import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import jakarta.transaction.Transactional;
 
@@ -36,16 +33,6 @@ public class ScheduleService {
      * User repository for user schedules.
      */
     private final UserRepository userRepository;
-
-    /**
-     * Student to update their schedule.
-     */
-    private final StudentRepository studentRepository;
-
-    /**
-     * Same for teachers!
-     */
-    private final TeacherRepository teacherRepository;
 
     /**
      * And for course schedules!
@@ -68,18 +55,13 @@ public class ScheduleService {
      * @param userRepository         Repository for user schedules.
      * @param courseRepository       Repository for course schedules.
      * @param scheduleItemRepository Repository for schedule items.
-     * @param studentRepository      Repository for students.
-     * @param teacherRepository      Repository for teachers.
      * @param scheduleRepository     Repository for entire schedules.
      */
     public ScheduleService(UserRepository userRepository, CourseRepository courseRepository,
-            ScheduleItemRepository scheduleItemRepository, StudentRepository studentRepository,
-            TeacherRepository teacherRepository, ScheduleRepository scheduleRepository) {
+            ScheduleItemRepository scheduleItemRepository, ScheduleRepository scheduleRepository) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.scheduleItemRepository = scheduleItemRepository;
-        this.studentRepository = studentRepository;
-        this.teacherRepository = teacherRepository;
         this.scheduleRepository = scheduleRepository;
     }
 
@@ -161,9 +143,9 @@ public class ScheduleService {
      * @param type the type of the term
      */
     public void CreateScheduleForTerm(Term term, TermType type) {
-        Set<Student> students = studentRepository.findByStudentTerms_Term_Id(term.getId());
+        Set<Wis2User> students = userRepository.findByStudentTerms_Term_Id(term.getId());
         Course course = term.getCourse();
-        Teacher supervisor = term.getSupervisor();
+        Wis2User supervisor = term.getSupervisor();
 
         LocalDateTime startDate = term.getDate();
         LocalDateTime endDate = startDate.plusMinutes(term.getDuration());
@@ -181,7 +163,7 @@ public class ScheduleService {
         System.out.println("Created schedule item for term ID " + term.getId());
 
         // Associate with everything and persist the schedules (owner of the join table)
-        for (Student student : students) {
+        for (Wis2User student : students) {
             Schedule s = student.getSchedule();
             if (s == null)
                 continue;

@@ -1,9 +1,16 @@
 package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
+import java.util.Set;
+
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import IIS.wis2_backend.Enum.Roles;
+import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
+import IIS.wis2_backend.Models.Relational.StudentCourse;
+import IIS.wis2_backend.Models.Relational.StudentTerm;
+import IIS.wis2_backend.Models.Room.Office;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -12,7 +19,6 @@ import lombok.experimental.SuperBuilder;
  * Model representing a registered user.
  */
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -87,6 +93,50 @@ public class Wis2User {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
+
+    // --- Student Fields ---
+
+    /**
+     * Student's GPA
+     */
+    private Float gradeAverage;
+
+    /**
+     * Relation to courses.
+     */
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StudentCourse> studentCourses;
+
+    /**
+     * Relation to terms.
+     */
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StudentTerm> studentTerms;
+
+    // --- Teacher Fields ---
+
+    /**
+     * Teacher's office.
+     */
+    @ManyToOne
+    @JoinColumn(name = "office_id")
+    private Office office;
+
+    /**
+     * Supervised courses.
+     */
+    @OneToMany(mappedBy = "supervisor", fetch = FetchType.LAZY)
+    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    private Set<Course> supervisedCourses;
+
+    /**
+     * Taught courses.
+     */
+    @ManyToMany(mappedBy = "teachers", fetch = FetchType.LAZY)
+    @ToStringExclude
+    @EqualsAndHashCode.Exclude
+    private Set<Course> taughtCourses;
 
     /**
      * TODO: ak sa nam bude chciet byt fancy 

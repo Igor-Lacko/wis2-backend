@@ -2,10 +2,12 @@ package IIS.wis2_backend.Repositories.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Models.User.Wis2User;
 
 /**
@@ -68,4 +70,37 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * @return Optional containing the Wis2User with the given email, or empty if not found.
      */
     Optional<Wis2User> findByEmail(String email);
+
+    /**
+     * Finds all students in a given course by using StudentCourse relationship.
+     * 
+     * @param courseId the ID of the course
+     * @return list of students enrolled in the course
+     */
+    Set<Wis2User> findByStudentCourses_Course_Id(Long courseId);
+
+    /**
+     * Finds all student registered for a given term by using StudentTerm relationship.
+     * 
+     * @param termId the ID of the term
+     * @return list of students registered for the term
+     */
+    Set<Wis2User> findByStudentTerms_Term_Id(Long termId);
+
+    /**
+     * Find the course's supervising teacher.
+     * 
+     * @param courseId ID of the course.
+     * @return The supervising teacher of the course.
+     */
+    TeacherForCourseProjection findFirstBySupervisedCourses_Id(Long courseId);
+
+    /**
+     * Find teachers teaching a specific course.
+     * 
+     * @param courseId ID of the course.
+     * 
+     * @return List of teachers teaching the course.
+     */
+    List<TeacherForCourseProjection> findByTaughtCourses_Id(Long courseId);
 }

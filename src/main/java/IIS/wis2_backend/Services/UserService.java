@@ -22,8 +22,6 @@ import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.CourseRepository;
-import IIS.wis2_backend.Repositories.User.StudentRepository;
-import IIS.wis2_backend.Repositories.User.TeacherRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 /**
@@ -37,17 +35,6 @@ public class UserService {
     private final UserRepository userRepository;
 
     /**
-     * Repo for students, when setting course unit credit or grading.
-     */
-    private final StudentRepository studentRepository;
-
-    /**
-     * Repo for teachers, when assigning a teacher to a lesson/term/project, or
-     * searching by office...
-     */
-    private final TeacherRepository teacherRepository;
-
-    /**
      * Course repository, to get courses taught/supervised by a teacher.
      */
     private final CourseRepository courseRepository;
@@ -56,15 +43,10 @@ public class UserService {
      * Constructor for UserService.
      * 
      * @param userRepository    User repository.
-     * @param studentRepository Student repository.
-     * @param teacherRepository Teacher repository.
      * @param courseRepository  Course repository.
      */
-    public UserService(UserRepository userRepository, StudentRepository studentRepository,
-            TeacherRepository teacherRepository, CourseRepository courseRepository) {
+    public UserService(UserRepository userRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
-        this.studentRepository = studentRepository;
-        this.teacherRepository = teacherRepository;
         this.courseRepository = courseRepository;
     }
 
@@ -75,7 +57,7 @@ public class UserService {
      * @return The public profile of the teacher.
      */
     public TeacherDTO GetTeacherPublicProfile(long userId) {
-        Teacher teacher = teacherRepository.findById(userId).orElseThrow(
+        Wis2User teacher = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Teacher with this ID does not exist!"));
 
         return TeacherToDTO(teacher);
@@ -186,7 +168,7 @@ public class UserService {
      * @param teacher Teacher entity.
      * @return TeacherDTO.
      */
-    private TeacherDTO TeacherToDTO(Teacher teacher) {
+    private TeacherDTO TeacherToDTO(Wis2User teacher) {
         // Fetch supervised courses
         Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_Id(teacher.getId())
                 .stream()
@@ -206,9 +188,12 @@ public class UserService {
                 .collect(Collectors.toSet());
 
         // Also map office
-        OfficeDTOForTeacher officeDTO = new OfficeDTOForTeacher(
+        OfficeDTOForTeacher officeDTO = null;
+        if (teacher.getOffice() != null) {
+             officeDTO = new OfficeDTOForTeacher(
                 teacher.getOffice().getId(),
                 teacher.getOffice().getShortcut());
+        }
 
         return TeacherDTO.builder()
                 .id(teacher.getId())

@@ -2,7 +2,7 @@ package IIS.wis2_backend.Models.Room;
 
 import java.util.Set;
 
-import IIS.wis2_backend.Models.User.Teacher;
+import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -23,5 +23,5 @@ public class Office extends Room {
     @OneToMany(mappedBy = "office")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<Teacher> teachers;
+    private Set<Wis2User> teachers;
 }
