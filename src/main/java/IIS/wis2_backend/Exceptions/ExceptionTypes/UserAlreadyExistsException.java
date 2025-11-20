@@ -6,6 +6,15 @@ package IIS.wis2_backend.Exceptions.ExceptionTypes;
  */
 public class UserAlreadyExistsException extends RuntimeException {
     /**
+     * Constructor for UserAlreadyExistsException with a custom message.
+     * 
+     * @param message Custom error message.
+     */
+    public UserAlreadyExistsException(String message) {
+        super(message);
+    }
+
+    /**
      * Constructor for UserAlreadyExistsException.
      * 
      * @param exceptionCause The email/username that caused the exception.

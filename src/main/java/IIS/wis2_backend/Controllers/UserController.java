@@ -8,11 +8,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.PatchMapping;
+import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
@@ -97,7 +98,6 @@ public class UserController {
         return ResponseEntity.ok(userService.GetUserCourses(username));
     }
 
-    // TODO move to shared nieco
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> GetUserById(@PathVariable long id,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -115,11 +115,22 @@ public class UserController {
         }
     }
 
-    @PutMapping("{id}")
-    public String putMethodName(@PathVariable String id, @RequestBody UserDTO updatedUser) {
-        // TODO: process PUT request
 
-        return "Success";
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable long id, @RequestBody UpdateUserRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            UserDTO user = userService.GetUserById(id);
+
+            if (!user.getUsername().equals(userDetails.getUsername())) {
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+
+            return ResponseEntity.ok(userService.updateUser(id, request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/all")

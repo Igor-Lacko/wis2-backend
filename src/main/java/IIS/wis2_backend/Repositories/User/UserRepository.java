@@ -46,6 +46,14 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
     boolean existsByUsername(String username);
 
     /**
+     * Checks only by telephone number.
+     * 
+     * @param telephoneNumber Telephone number to check.
+     * @return True if a user with the given telephone number exists, false otherwise.
+     */
+    boolean existsByTelephoneNumber(String telephoneNumber);
+
+    /**
      * Finds a user by username.
      * 
      * @param username Username to search for.

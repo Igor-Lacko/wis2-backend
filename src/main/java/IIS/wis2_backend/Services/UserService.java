@@ -7,6 +7,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
@@ -17,6 +18,7 @@ import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.CourseRepository;
@@ -277,5 +279,42 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
         user.setRole(Roles.ADMIN);
         userRepository.save(user);
+    }
+
+    /**
+     * Update user profile.
+     * 
+     * @param id      User ID.
+     * @param request Update request.
+     * @return Updated UserDTO.
+     */
+    public UserDTO updateUser(Long id, UpdateUserRequest request) {
+        Wis2User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getEmail() != null) {
+            if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+                throw new UserAlreadyExistsException("Email already in use");
+            }
+            user.setEmail(request.getEmail());
+        }
+        if (request.getBirthday() != null) {
+            user.setBirthday(request.getBirthday());
+        }
+        if (request.getTelephoneNumber() != null) {
+            if (!request.getTelephoneNumber().equals(user.getTelephoneNumber())
+                    && userRepository.existsByTelephoneNumber(request.getTelephoneNumber())) {
+                throw new UserAlreadyExistsException("Telephone number already in use");
+            }
+            user.setTelephoneNumber(request.getTelephoneNumber());
+        }
+
+        return UserToDTO(userRepository.save(user));
     }
 }
