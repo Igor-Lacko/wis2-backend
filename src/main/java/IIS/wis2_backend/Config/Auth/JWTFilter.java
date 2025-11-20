@@ -72,16 +72,6 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Also skip public endpoints
-        String path = request.getServletPath();
-        for (String endpoint : AuthConfig.PUBLIC_ENDPOINTS) {
-            if (path.startsWith(endpoint)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-
-
         if (!jwtUtils.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
@@ -95,7 +85,6 @@ public class JWTFilter extends OncePerRequestFilter {
                     userDetails,
                     null,
                     userDetails.getAuthorities());
-
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

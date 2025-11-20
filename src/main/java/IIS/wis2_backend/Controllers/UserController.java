@@ -97,7 +97,7 @@ public class UserController {
 
         return ResponseEntity.ok(userService.GetUserCourses(username));
     }
-
+ 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> GetUserById(@PathVariable long id,
             @AuthenticationPrincipal UserDetails userDetails) {

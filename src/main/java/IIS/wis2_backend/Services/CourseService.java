@@ -16,6 +16,7 @@ import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.RequestStatus;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
@@ -172,6 +173,10 @@ public class CourseService {
         // Find supervisor
         Wis2User supervisor = userRepository.findByUsername(supervisorUsername)
                 .orElseThrow(() -> new NotFoundException("Supervisor not found"));
+
+        if (courseRepository.existsByShortcut(courseCreationDTO.shortcut())) {
+            throw new AlreadySetException("Course with shortcut " + courseCreationDTO.shortcut() + " already exists :(((");
+        }
 
         // Create course
         Course course = Course.builder()

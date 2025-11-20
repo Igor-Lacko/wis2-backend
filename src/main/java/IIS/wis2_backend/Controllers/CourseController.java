@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 
 import IIS.wis2_backend.DTO.Request.Course.CourseCreationDTO;
 import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
@@ -100,9 +99,10 @@ public class CourseController {
      * @return The created course as a lightweight DTO.
      */
     @PostMapping("/create")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LightweightCourseDTO> createCourse(@RequestBody @Valid CourseCreationDTO dto,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        LightweightCourseDTO createdCourse = courseService.CreateCourse(dto, userDetails.getUsername());
+            Authentication authentication) {
+        LightweightCourseDTO createdCourse = courseService.CreateCourse(dto, authentication.getName());
         return ResponseEntity.ok(createdCourse);
     }
 
