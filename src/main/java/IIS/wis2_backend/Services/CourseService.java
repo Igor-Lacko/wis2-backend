@@ -11,6 +11,15 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
+import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
+import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
+import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
+import IIS.wis2_backend.DTO.Response.Course.TermGradeDTO;
+import IIS.wis2_backend.DTO.Response.User.UserShortened;
+import IIS.wis2_backend.Models.Relational.StudentCourse;
+import IIS.wis2_backend.Models.Relational.StudentTerm;
+import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
@@ -24,6 +33,7 @@ import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
+import IIS.wis2_backend.Repositories.Relational.StudentTermRepository;
 import jakarta.transaction.Transactional;
 
 /**
@@ -42,14 +52,21 @@ public class CourseService {
     private final UserRepository userRepository;
 
     /**
+     * StudentTerm repository.
+     */
+    private final StudentTermRepository studentTermRepository;
+
+    /**
      * Constructor for CourseService.
      * 
      * @param courseRepository the course repository
      * @param userRepository   the user repository
+     * @param studentTermRepository the student term repository
      */
-    public CourseService(CourseRepository courseRepository, UserRepository userRepository) {
+    public CourseService(CourseRepository courseRepository, UserRepository userRepository, StudentTermRepository studentTermRepository) {
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
+        this.studentTermRepository = studentTermRepository;
     }
 
     /**
@@ -322,5 +339,129 @@ public class CourseService {
                 projection.getPrice(),
                 projection.getShortcut(),
                 projection.getCompletedBy());
+    }
+
+    @Transactional
+    public List<CourseShortened> getCoursesTaughtBy(String username) {
+        Wis2User teacher = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Teacher not found: " + username));
+        
+        return teacher.getTaughtCourses().stream()
+                .map(course -> CourseShortened.builder()
+                        .id(course.getId())
+                        .name(course.getName())
+                        .price(course.getPrice())
+                        .shortcut(course.getShortcut())
+                        .completedBy(course.getCompletedBy().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<StudentGradeDTO> getStudentsInCourse(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
+        
+        return course.getStudentCourses().stream()
+                .map(sc -> StudentGradeDTO.builder()
+                        .student(UserShortened.builder()
+                                .id(sc.getStudent().getId())
+                                .username(sc.getStudent().getUsername())
+                                .firstName(sc.getStudent().getFirstName())
+                                .lastName(sc.getStudent().getLastName())
+                                .build())
+                        .grade(sc.getFinalGrade())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateStudentGrade(Long courseId, Long studentId, Double grade) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
+        
+        StudentCourse studentCourse = course.getStudentCourses().stream()
+                .filter(sc -> sc.getStudent().getId().equals(studentId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Student not found in course"));
+        
+        studentCourse.setFinalGrade(grade);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public List<TermListDTO> getCourseTerms(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException("Course not found"));
+
+        return course.getTerms().stream()
+                .map(term -> TermListDTO.builder()
+                        .id(term.getId())
+                        .name(term.getName())
+                        .type(getTermType(term))
+                        .maxPoints(term.getMaxPoints())
+                        .date(term.getDate())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private String getTermType(Term term) {
+        if (term instanceof IIS.wis2_backend.Models.Term.Exam) return "EXAM";
+        if (term instanceof IIS.wis2_backend.Models.Term.MidtermExam) return "EXAM";
+        if (term instanceof IIS.wis2_backend.Models.Term.Lab) return "LAB";
+        return "ASSIGNMENT";
+    }
+
+    @Transactional
+    public List<GradebookEntryDTO> getCourseGradebook(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException("Course not found"));
+
+        return course.getStudentCourses().stream()
+                .map(sc -> {
+                    Wis2User student = sc.getStudent();
+                    List<TermGradeDTO> termGrades = course.getTerms().stream()
+                            .map(term -> {
+                                return term.getStudentTerms().stream()
+                                    .filter(st -> st.getStudent().getId().equals(student.getId()))
+                                    .findFirst()
+                                    .map(st -> TermGradeDTO.builder()
+                                            .termId(term.getId())
+                                            .points(st.getPoints())
+                                            .build())
+                                    .orElse(null);
+                            })
+                            .filter(java.util.Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    return GradebookEntryDTO.builder()
+                            .student(UserShortened.builder()
+                                    .id(student.getId())
+                                    .username(student.getUsername())
+                                    .firstName(student.getFirstName())
+                                    .lastName(student.getLastName())
+                                    .build())
+                            .termGrades(termGrades)
+                            .finalGrade(sc.getFinalGrade())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateStudentTermPoints(Long courseId, Long termId, Long studentId, Integer points) {
+        if (!courseRepository.existsById(courseId)) {
+             throw new NotFoundException("Course not found");
+        }
+        
+        StudentTerm studentTerm = studentTermRepository.findByTermIdAndStudentId(termId, studentId)
+                .orElseThrow(() -> new NotFoundException("StudentTerm not found"));
+        
+        if (!studentTerm.getTerm().getCourse().getId().equals(courseId)) {
+             throw new IllegalArgumentException("Term does not belong to the specified course");
+        }
+
+        studentTerm.setPoints(points);
+        studentTermRepository.save(studentTerm);
     }
 }

@@ -88,6 +88,8 @@ public abstract class Term {
      */
     @ManyToOne
     @JoinColumn(nullable = false, name = "course_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Course course;
 
     /**

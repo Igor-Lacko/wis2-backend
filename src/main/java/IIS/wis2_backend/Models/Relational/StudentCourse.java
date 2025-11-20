@@ -25,12 +25,16 @@ public class StudentCourse {
      * The student in the relation.
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Wis2User student;
 
     /**
      * The course in the relation.
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Course course;
 
     /**

@@ -17,6 +17,12 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
+import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
+import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
+import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
+import IIS.wis2_backend.DTO.Request.Course.TermPointsUpdateDTO;
+import IIS.wis2_backend.DTO.Request.Course.GradeUpdateDTO;
 import IIS.wis2_backend.Enum.CourseRoleType;
 import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
@@ -124,13 +130,11 @@ public class CourseController {
      * Get courses taught by a specific teacher.
      * 
      * @param username The username of the teacher.
-     * @return List of lightweight course DTOs.
+     * @return List of shortened course DTOs.
      */
     @GetMapping("/taught-by/{username}")
-    @PreAuthorize("#username == authentication.name")
-    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByTeacher(@PathVariable String username) {
-        List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.TEACHER);
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<List<CourseShortened>> getCoursesTaughtBy(@PathVariable String username) {
+        return ResponseEntity.ok(courseService.getCoursesTaughtBy(username));
     }
 
     /**
@@ -144,5 +148,36 @@ public class CourseController {
     public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByStudent(@PathVariable String username) {
         List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.STUDENT);
         return ResponseEntity.ok(courses);
+    }
+
+    @GetMapping("/{courseId}/students")
+    public ResponseEntity<List<StudentGradeDTO>> getStudentsInCourse(@PathVariable Long courseId) {
+        return ResponseEntity.ok(courseService.getStudentsInCourse(courseId));
+    }
+
+    @PostMapping("/{courseId}/students/{studentId}/grade")
+    public ResponseEntity<Void> updateStudentGrade(@PathVariable Long courseId, @PathVariable Long studentId, @RequestBody GradeUpdateDTO gradeDTO) {
+        courseService.updateStudentGrade(courseId, studentId, gradeDTO.getGrade());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{courseId}/terms")
+    public ResponseEntity<List<TermListDTO>> getCourseTerms(@PathVariable Long courseId) {
+        return ResponseEntity.ok(courseService.getCourseTerms(courseId));
+    }
+
+    @GetMapping("/{courseId}/gradebook")
+    public ResponseEntity<List<GradebookEntryDTO>> getCourseGradebook(@PathVariable Long courseId) {
+        return ResponseEntity.ok(courseService.getCourseGradebook(courseId));
+    }
+
+    @PostMapping("/{courseId}/terms/{termId}/students/{studentId}/grade")
+    public ResponseEntity<Void> updateStudentTermPoints(
+            @PathVariable Long courseId,
+            @PathVariable Long termId,
+            @PathVariable Long studentId,
+            @RequestBody TermPointsUpdateDTO dto) {
+        courseService.updateStudentTermPoints(courseId, termId, studentId, dto.getPoints());
+        return ResponseEntity.ok().build();
     }
 }

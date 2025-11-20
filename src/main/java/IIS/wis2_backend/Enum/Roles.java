@@ -8,5 +8,7 @@ public enum Roles {
     ADMIN,
 
     /** Standard user role with limited permissions. */
-    USER
+    USER,
+    /** Teacher role with permissions to manage courses and students. */
+    TEACHER
 }

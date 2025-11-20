@@ -27,12 +27,16 @@ public class Schedule {
      * Schedule user.
      */
     @OneToOne(optional = true, mappedBy = "schedule")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Wis2User user;
 
     /**
      * Or even... schedule course?
      */
     @OneToOne(optional = true, mappedBy = "schedule")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Course course;
 
     /**

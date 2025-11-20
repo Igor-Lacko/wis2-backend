@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Enum.*;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
+import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Room.LabRoom;
 import IIS.wis2_backend.Models.Room.LectureRoom;
 import IIS.wis2_backend.Models.Room.Office;
@@ -62,6 +64,11 @@ public class MockDBService {
 	private final ScheduleRepository scheduleRepository;
 
 	/**
+	 * Password encoder to encode passwords.
+	 */
+	private final PasswordEncoder passwordEncoder;
+
+	/**
 	 * Constructor for MockDBService.
 	 * 
 	 * @param userRepository     User repository.
@@ -70,16 +77,18 @@ public class MockDBService {
 	 * @param termService        Term service.
 	 * @param roomRepository     Room repository.
 	 * @param scheduleRepository Schedule repository.
+	 * @param passwordEncoder    Password encoder.
 	 */
 	public MockDBService(UserRepository userRepository,
 			CourseRepository courseRepository, OfficeRepository officeRepository, TermService termService,
-			RoomRepository roomRepository, ScheduleRepository scheduleRepository) {
+			RoomRepository roomRepository, ScheduleRepository scheduleRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.courseRepository = courseRepository;
 		this.officeRepository = officeRepository;
 		this.termService = termService;
 		this.roomRepository = roomRepository;
 		this.scheduleRepository = scheduleRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	/**
@@ -340,6 +349,8 @@ public class MockDBService {
 		InsertMockCourses();
 		// create mock terms/schedule for ISA
 		InsertMockTermsForISA();
+		// create special teacher with courses and students
+		InsertSpecialTeacher();
 	}
 
 	/**
@@ -544,6 +555,122 @@ public class MockDBService {
 						c.setDescription(desc);
 						courseRepository.save(c);
 					});
+		}
+	}
+
+	/**
+	 * Inserts a special teacher with courses, deadlines and students.
+	 */
+	public void InsertSpecialTeacher() {
+		// Create Teacher
+		String teacherEmail = "special.teacher@example.com";
+		if (!userRepository.existsByEmail(teacherEmail)) {
+			Wis2User teacher = Wis2User.builder()
+					.firstName("Special")
+					.lastName("Teacher")
+					.username("special.teacher")
+					.email(teacherEmail)
+					.password(passwordEncoder.encode("password"))
+					.birthday(Date.valueOf("1985-05-05"))
+					.activated(true)
+					.role(Roles.TEACHER)
+					.build();
+			userRepository.save(teacher);
+		}
+
+		Wis2User teacher = userRepository.findByEmail(teacherEmail).orElse(null);
+		if (teacher == null)
+			return;
+
+		// Create Course
+		String courseShortcut = "SPC";
+		if (!courseRepository.existsByShortcut(courseShortcut)) {
+			Set<Wis2User> teachers = new HashSet<>();
+			teachers.add(teacher);
+
+			Course course = Course.builder()
+					.name("Special Course")
+					.price(500.0)
+					.shortcut(courseShortcut)
+					.completedBy(CourseEndType.EXAM)
+					.supervisor(teacher)
+					.teachers(teachers)
+					.capacity(50)
+					.autoregister(true)
+					.description("A special course for testing.")
+					.build();
+
+			Schedule schedule = Schedule.builder()
+					.course(course)
+					.items(new HashSet<>())
+					.build();
+			scheduleRepository.save(schedule);
+			course.setSchedule(schedule);
+			courseRepository.save(course);
+		}
+
+		// Create Students
+		Course course = courseRepository.findByShortcut(courseShortcut).orElse(null);
+		for (int i = 1; i <= 5; i++) {
+			String studentEmail = "special.student" + i + "@example.com";
+			if (!userRepository.existsByEmail(studentEmail)) {
+				Wis2User student = Wis2User.builder()
+						.firstName("Special")
+						.lastName("Student" + i)
+						.username("special.student" + i)
+						.email(studentEmail)
+						.password(passwordEncoder.encode("password"))
+						.birthday(Date.valueOf("2005-01-01"))
+						.activated(true)
+						.role(Roles.USER)
+						.build();
+				userRepository.save(student);
+			}
+
+			if (course != null) {
+				Wis2User student = userRepository.findByEmail(studentEmail).orElse(null);
+				if (student != null) {
+					boolean enrolled = course.getStudentCourses().stream()
+							.anyMatch(sc -> sc.getStudent().getId().equals(student.getId()));
+					if (!enrolled) {
+						StudentCourse sc = StudentCourse.builder()
+								.student(student)
+								.course(course)
+								.points(0)
+								.completed(false)
+								.failed(false)
+								.build();
+						course.getStudentCourses().add(sc);
+					}
+				}
+			}
+		}
+		if (course != null) {
+			courseRepository.save(course);
+		}
+
+		// Create Terms (Deadlines)
+		java.time.LocalDateTime base = java.time.LocalDateTime.now().plusDays(3);
+		for (int i = 0; i < 5; i++) {
+			java.time.LocalDateTime date = base.plusWeeks(i);
+			TermCreationDTO dto = TermCreationDTO.builder()
+					.name("Special Assignment " + (i + 1))
+					.minPoints(0)
+					.maxPoints(20)
+					.date(date)
+					.duration(60)
+					.description("Special assignment deadline " + i)
+					.autoRegistration(true)
+					.courseShortcut(courseShortcut)
+					.supervisorUsername(teacher.getUsername())
+					.roomShortcut("LAB_A") // Assuming LAB_A exists from InsertMockTermsForISA
+					.type(TermType.LAB)
+					.build();
+			try {
+				termService.CreateNonExamTerm(dto);
+			} catch (Exception ex) {
+				// ignore
+			}
 		}
 	}
 
