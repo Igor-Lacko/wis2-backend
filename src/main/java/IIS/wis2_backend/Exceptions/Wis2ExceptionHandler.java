@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -167,5 +168,17 @@ public class Wis2ExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public @ResponseBody ExceptionResponseType handleUnauthorizedException(UnauthorizedException e) {
         return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for MediaTypeNotAcceptableException.
+     * 
+     * @param e the MediaTypeNotAcceptableException.
+     */
+    @ExceptionHandler(value = HttpMediaTypeNotAcceptableException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public @ResponseBody ExceptionResponseType handleHttpMediaTypeNotAcceptableException(
+            HttpMediaTypeNotAcceptableException e) {
+        return new ExceptionResponseType("Requested media type is not acceptable: " + e.getMessage());
     }
 }

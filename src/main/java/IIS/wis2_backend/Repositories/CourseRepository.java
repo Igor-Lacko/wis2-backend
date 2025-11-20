@@ -2,7 +2,6 @@ package IIS.wis2_backend.Repositories;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -80,7 +79,7 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @param username Username of the supervisor.
      * @return List of courses supervised by the user.
      */
-    Set<OverviewCourseProjection> findBySupervisor_Username(String username);
+    List<OverviewCourseProjection> findBySupervisor_Username(String username);
 
     /**
      * Returns all courses taught by {username}
@@ -88,7 +87,7 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @param username Username of the teacher.
      * @return List of courses taught by the user.
      */
-    Set<OverviewCourseProjection> findByTeachers_Username(String username);
+    List<OverviewCourseProjection> findByTeachers_Username(String username);
 
     /**
      * Returns all courses in which {username} is enrolled
@@ -96,5 +95,5 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @param username Username of the student.
      * @return List of courses in which the user is enrolled.
      */
-    Set<OverviewCourseProjection> findDistinctByStudentCourses_Student_Username(String username);
+    List<OverviewCourseProjection> findDistinctByStudentCourses_Student_Username(String username);
 }

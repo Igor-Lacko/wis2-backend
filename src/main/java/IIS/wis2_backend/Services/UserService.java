@@ -10,6 +10,8 @@ import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.OverviewCourseDTO;
+import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
@@ -133,9 +135,15 @@ public class UserService {
      */
     public UserCoursesDTO GetUserCourses(String username) {
         return UserCoursesDTO.builder()
-                .supervisedCourses(courseRepository.findBySupervisor_Username(username))
-                .teachingCourses(courseRepository.findByTeachers_Username(username))
-                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_Username(username))
+                .supervisedCourses(courseRepository.findBySupervisor_Username(username).stream()
+                        .map(this::OverviewProjectionToDTO)
+                        .collect(Collectors.toList()))
+                .teachingCourses(courseRepository.findByTeachers_Username(username).stream()
+                        .map(this::OverviewProjectionToDTO)
+                        .collect(Collectors.toList()))
+                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_Username(username).stream()
+                        .map(this::OverviewProjectionToDTO)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -210,6 +218,18 @@ public class UserService {
                 .supervisedCourses(supervisedCourses)
                 .taughtCourses(taughtCourses)
                 .build();
+    }
+
+    /**
+     * Convert OverviewCourseProjection to OverviewCourseDTO.
+     * 
+     * @param proj OverviewCourseProjection.
+     * @return OverviewCourseDTO.
+     */
+    private OverviewCourseDTO OverviewProjectionToDTO(OverviewCourseProjection proj) {
+        return new OverviewCourseDTO(
+                proj.getName(),
+                proj.getShortcut());
     }
 
     public UserDTO GetUserById(long userId) {

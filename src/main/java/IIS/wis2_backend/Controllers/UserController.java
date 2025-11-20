@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
@@ -83,9 +82,9 @@ public class UserController {
      * @param userDetails Authenticated user details.
      * @param username    Username of the user whose courses are being fetched.
      */
-    @GetMapping("/courses")
+    @GetMapping("/courses/{username}")
     public ResponseEntity<UserCoursesDTO> FetchUserCourses(@AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam String username) {
+            @PathVariable String username) {
         String authUsername = userDetails.getUsername();
         if (!authUsername.equals(username)) {
             throw new UnauthorizedException("You can't view other users' courses!");

@@ -1,10 +1,11 @@
 package IIS.wis2_backend.DTO.Response.Course;
 
-import java.util.Set;
+import java.util.List;
 
-import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.OverviewCourseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NonNull;
 
 /**
@@ -12,13 +13,14 @@ import lombok.NonNull;
  */
 @AllArgsConstructor
 @Builder
+@Data
 public class UserCoursesDTO {
     @NonNull
-    private Set<OverviewCourseProjection> supervisedCourses;
+    private List<OverviewCourseDTO> supervisedCourses;
 
     @NonNull
-    private Set<OverviewCourseProjection> teachingCourses;
+    private List<OverviewCourseDTO> teachingCourses;
 
     @NonNull
-    private Set<OverviewCourseProjection> enrolledCourses;
+    private List<OverviewCourseDTO> enrolledCourses;
 }
