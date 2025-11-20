@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.DTO.Response.Projections.CourseForTeacherProjection;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
-import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Enum.RequestStatus;
 
@@ -79,32 +78,34 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     List<CourseForTeacherProjection> findByTeachers_IdAndStatus(Long teacherId, RequestStatus status);
 
     /**
-     * Returns all courses supervised by {username} with the given status.
+     * Generic method to find courses by supervisor's username and status with a dynamic projection.
      * 
      * @param username Username of the supervisor.
      * @param status   Status of the course.
-     * @return List of courses supervised by the user.
+     * @param type     The class type of the projection.
+     * @return List of projected courses.
      */
-    List<OverviewCourseProjection> findBySupervisor_UsernameAndStatus(String username, RequestStatus status);
+    <T> List<T> findBySupervisor_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
 
     /**
-     * Returns all courses taught by {username} with the given status.
+     * Generic method to find courses by teacher's username and status with a dynamic projection.
      * 
      * @param username Username of the teacher.
      * @param status   Status of the course.
-     * @return List of courses taught by the user.
+     * @param type     The class type of the projection.
+     * @return List of projected courses.
      */
-    List<OverviewCourseProjection> findByTeachers_UsernameAndStatus(String username, RequestStatus status);
+    <T> List<T> findByTeachers_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
 
     /**
-     * Returns all courses in which {username} is enrolled with the given status.
+     * Generic method to find courses in which {username} is enrolled with the given status with a dynamic projection.
      * 
      * @param username Username of the student.
      * @param status   Status of the course.
-     * @return List of courses in which the user is enrolled.
+     * @param type     The class type of the projection.
+     * @return List of projected courses.
      */
-    List<OverviewCourseProjection> findDistinctByStudentCourses_Student_UsernameAndStatus(String username,
-            RequestStatus status);
+    <T> List<T> findDistinctByStudentCourses_Student_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
 
     /**
      * Returns all courses with the given status.
@@ -121,33 +122,4 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return Count of courses with the given status.
      */
     long countByStatus(RequestStatus status);
-
-    /**
-     * Returns all courses in which {username} is enrolled with the given status
-     * projected as LightweightCourseProjection.
-     * 
-     * @param username Name of the student.
-     * @param status   Probably APPROVED
-     * @return List of LightweightCourseProjection.
-     */
-    List<LightweightCourseProjection> findLightweightDistinctByStudentCourses_Student_UsernameAndStatus(String username,
-            RequestStatus status);
-
-    /**
-     * Finds courses by supervisor's username and status as a lightweight projection.
-     * 
-     * @param username Username of the supervisor.
-     * @param status   Status of the course.
-     * @return List of LightweightCourseProjection.
-     */
-    List<LightweightCourseProjection> findLightweightBySupervisor_UsernameAndStatus(String username, RequestStatus status);
-
-    /**
-     * Finds courses by teacher's username and status as a lightweight projection.
-     * 
-     * @param username Username of the teacher.
-     * @param status   Status of the course.
-     * @return List of LightweightCourseProjection.
-     */
-    List<LightweightCourseProjection> findLightweightByTeachers_UsernameAndStatus(String username, RequestStatus status);
 }

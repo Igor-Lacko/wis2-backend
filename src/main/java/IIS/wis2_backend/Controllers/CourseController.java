@@ -22,7 +22,6 @@ import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller for course access.
@@ -116,7 +115,7 @@ public class CourseController {
      */
     @GetMapping("/supervised-by/{username}")
     @PreAuthorize("#username == authentication.name")
-    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesBySupervisor(@RequestParam String username) {
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesBySupervisor(@PathVariable String username) {
         List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.SUPERVISOR);
         return ResponseEntity.ok(courses);
     }
@@ -127,9 +126,9 @@ public class CourseController {
      * @param username The username of the teacher.
      * @return List of lightweight course DTOs.
      */
-    @GetMapping("/taught-by")
+    @GetMapping("/taught-by/{username}")
     @PreAuthorize("#username == authentication.name")
-    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByTeacher(@RequestParam String username) {
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByTeacher(@PathVariable String username) {
         List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.TEACHER);
         return ResponseEntity.ok(courses);
     }
@@ -140,9 +139,9 @@ public class CourseController {
      * @param username The username of the student.
      * @return List of lightweight course DTOs.
      */
-    @GetMapping("/studied-by")
+    @GetMapping("/studied-by/{username}")
     @PreAuthorize("#username == authentication.name")
-    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByStudent(@RequestParam String username) {
+    public ResponseEntity<List<LightweightCourseDTO>> GetCoursesByStudent(@PathVariable String username) {
         List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.STUDENT);
         return ResponseEntity.ok(courses);
     }

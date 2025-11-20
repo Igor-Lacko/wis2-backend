@@ -234,17 +234,17 @@ public class CourseService {
     public List<LightweightCourseDTO> GetCoursesByRole(String username, CourseRoleType role) {
         switch (role) {
             case SUPERVISOR:
-                return courseRepository.findLightweightBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                return courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
 
             case TEACHER:
-                return courseRepository.findLightweightByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                return courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
 
             case STUDENT:
-                return courseRepository.findLightweightDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                return courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
         }

@@ -120,13 +120,13 @@ public class UserService {
      */
     public UserCoursesDTO GetUserCourses(String username) {
         return UserCoursesDTO.builder()
-                .supervisedCourses(courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                .supervisedCourses(courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .teachingCourses(courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                .teachingCourses(courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED).stream()
+                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
                 .build();
