@@ -7,6 +7,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
@@ -14,6 +15,7 @@ import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.StudentRepository;
@@ -70,8 +72,7 @@ public class UserService {
      */
     public TeacherDTO GetTeacherPublicProfile(long userId) {
         Teacher teacher = teacherRepository.findById(userId).orElseThrow(
-            () -> new NotFoundException("Teacher with this ID does not exist!")
-        );
+                () -> new NotFoundException("Teacher with this ID does not exist!"));
 
         return TeacherToDTO(teacher);
     }
@@ -110,12 +111,32 @@ public class UserService {
                 .activated(false)
                 .build();
 
-
         if (user == null) {
             throw new InternalException("User could not be created!");
         }
 
+        Schedule schedule = Schedule.builder()
+                .user(user)
+                .build();
+
+        user.setSchedule(schedule);
+
         return UserToDTO(userRepository.save(user));
+    }
+
+    /**
+     * Returns all courses the user is associated with.
+     * 
+     * @param username Username of the user.
+     * @return UserCoursesDTO containing sets of supervised, taught and enrolled
+     *         courses.
+     */
+    public UserCoursesDTO GetUserCourses(String username) {
+        return UserCoursesDTO.builder()
+                .supervisedCourses(courseRepository.findBySupervisor_Username(username))
+                .teachingCourses(courseRepository.findByTeachers_Username(username))
+                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_Username(username))
+                .build();
     }
 
     /**
@@ -158,29 +179,26 @@ public class UserService {
     private TeacherDTO TeacherToDTO(Teacher teacher) {
         // Fetch supervised courses
         Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_Id(teacher.getId())
-            .stream()
-            .map(proj -> new CourseDTOForTeacher(
-                proj.getId(),
-                proj.getName(),
-                proj.getShortcut()
-            ))
-            .collect(Collectors.toSet());
+                .stream()
+                .map(proj -> new CourseDTOForTeacher(
+                        proj.getId(),
+                        proj.getName(),
+                        proj.getShortcut()))
+                .collect(Collectors.toSet());
 
         // And taught courses!
         Set<CourseDTOForTeacher> taughtCourses = courseRepository.findByTeachers_Id(teacher.getId())
-            .stream()
-            .map(proj -> new CourseDTOForTeacher(
-                proj.getId(),
-                proj.getName(),
-                proj.getShortcut()
-            ))
-            .collect(Collectors.toSet());
+                .stream()
+                .map(proj -> new CourseDTOForTeacher(
+                        proj.getId(),
+                        proj.getName(),
+                        proj.getShortcut()))
+                .collect(Collectors.toSet());
 
         // Also map office
         OfficeDTOForTeacher officeDTO = new OfficeDTOForTeacher(
                 teacher.getOffice().getId(),
-                teacher.getOffice().getShortcut()
-        );
+                teacher.getOffice().getShortcut());
 
         return TeacherDTO.builder()
                 .id(teacher.getId())
@@ -196,8 +214,7 @@ public class UserService {
 
     public UserDTO GetUserById(long userId) {
         Wis2User user = userRepository.findById(userId).orElseThrow(
-            () -> new NotFoundException("User with this ID does not exist!")
-        );
+                () -> new NotFoundException("User with this ID does not exist!"));
 
         return UserToDTO(user);
     }

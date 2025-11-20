@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Services.UserService;
-
 
 /**
  * Controller for user-related requests.
@@ -32,7 +34,7 @@ public class UserController {
     /**
      * Constructor for UserController.
      * 
-     * @param userService     Service for user-related operations.
+     * @param userService Service for user-related operations.
      */
     public UserController(UserService userService) {
         this.userService = userService;
@@ -72,6 +74,24 @@ public class UserController {
     @GetMapping("/public/{id}")
     public TeacherDTO GetPublicProfile(@PathVariable long id) {
         return userService.GetTeacherPublicProfile(id);
+    }
+
+    /**
+     * Returns three sets: currently supervising courses, currently teaching and
+     * currently enrolled courses.
+     * 
+     * @param userDetails Authenticated user details.
+     * @param username    Username of the user whose courses are being fetched.
+     */
+    @GetMapping("/courses")
+    public ResponseEntity<UserCoursesDTO> FetchUserCourses(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String username) {
+        String authUsername = userDetails.getUsername();
+        if (!authUsername.equals(username)) {
+            throw new UnauthorizedException("You can't view other users' courses!");
+        }
+
+        return ResponseEntity.ok(userService.GetUserCourses(username));
     }
 
     // TODO move to shared nieco

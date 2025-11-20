@@ -116,14 +116,7 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findByCourse_Shortcut(shortcut)
                 .orElseThrow(() -> new NotFoundException("Course not found"));
 
-        List<ScheduleItemDTO> items = scheduleItemRepository.findAll()
-                .stream()
-                .map(this::ScheduleItemToDTO)
-                .collect(Collectors.toList());
-
-        return new ScheduleWeekDTO(items);
-
-        // return GetScheduleItemsForGivenWeek(schedule, weekStartDate);
+        return GetScheduleItemsForGivenWeek(schedule, weekStartDate);
     }
 
     /**

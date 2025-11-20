@@ -84,7 +84,7 @@ public class Wis2User {
     /**
      * User schedule as a set of schedule items.
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 

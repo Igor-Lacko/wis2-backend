@@ -14,6 +14,7 @@ import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotImplementedException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 
 /**
  * Global exception handler class for mapping exceptions to HTTP responses.
@@ -154,6 +155,17 @@ public class Wis2ExceptionHandler {
     @ExceptionHandler(value = NotImplementedException.class)
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     public @ResponseBody ExceptionResponseType handleNotImplementedException(NotImplementedException e) {
+        return new ExceptionResponseType(e.getMessage());
+    }
+
+    /**
+     * Handler for UnauthorizedException.
+     * 
+     * @param e the UnauthorizedException.
+     */
+    @ExceptionHandler(value = UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public @ResponseBody ExceptionResponseType handleUnauthorizedException(UnauthorizedException e) {
         return new ExceptionResponseType(e.getMessage());
     }
 }
