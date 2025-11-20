@@ -238,4 +238,44 @@ public class UserService {
 
         return UserToDTO(user);
     }
+
+    /**
+     * Get all users.
+     * @return List of all users.
+     */
+    public java.util.List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> UserDTO.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .birthday(user.getBirthday())
+                        .telephoneNumber(user.getTelephoneNumber())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Delete a user by ID.
+     * @param id User ID.
+     */
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("User not found");
+        }
+        userRepository.deleteById(id);
+    }
+
+    /**
+     * Promote a user to ADMIN.
+     * @param id User ID.
+     */
+    public void promoteUser(Long id) {
+        Wis2User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        user.setRole(Roles.ADMIN);
+        userRepository.save(user);
+    }
 }

@@ -18,6 +18,10 @@ import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Services.UserService;
+import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Controller for user-related requests.
@@ -116,5 +120,25 @@ public class UserController {
         // TODO: process PUT request
 
         return "Success";
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/promote")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> promoteUser(@PathVariable Long id) {
+        userService.promoteUser(id);
+        return ResponseEntity.ok().build();
     }
 }

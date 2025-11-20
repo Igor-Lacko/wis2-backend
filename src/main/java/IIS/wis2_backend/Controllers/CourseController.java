@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
@@ -63,5 +65,23 @@ public class CourseController {
     @GetMapping("/{id}")
     public FullCourseDTO GetCourseById(@PathVariable long id) {
         return courseService.GetCourseById(id);
+    }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<LightweightCourseDTO> getPendingCourses() {
+        return courseService.getPendingCourses();
+    }
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void approveCourse(@PathVariable Long id) {
+        courseService.approveCourse(id);
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void rejectCourse(@PathVariable Long id) {
+        courseService.rejectCourse(id);
     }
 }

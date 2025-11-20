@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import IIS.wis2_backend.Enum.CourseEndType;
+import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.Models.User.Teacher;
@@ -102,4 +103,12 @@ public class Course {
      */
     @Column(nullable = false)
     private Boolean autoregister;
+
+    /**
+     * Course approval status.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private RequestStatus status = RequestStatus.PENDING;
 }

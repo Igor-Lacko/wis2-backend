@@ -143,6 +143,43 @@ public class CourseService {
     }
 
     /**
+     * Get all pending courses.
+     * @return List of pending courses.
+     */
+    public List<LightweightCourseDTO> getPendingCourses() {
+        return courseRepository.findByStatus(IIS.wis2_backend.Enum.RequestStatus.PENDING).stream()
+                .map(course -> new LightweightCourseDTO(
+                        course.getId(),
+                        course.getName(),
+                        course.getPrice(),
+                        course.getShortcut(),
+                        course.getCompletedBy().toString()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Approve a course.
+     * @param id Course ID.
+     */
+    public void approveCourse(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Course not found"));
+        course.setStatus(IIS.wis2_backend.Enum.RequestStatus.APPROVED);
+        courseRepository.save(course);
+    }
+
+    /**
+     * Reject a course.
+     * @param id Course ID.
+     */
+    public void rejectCourse(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Course not found"));
+        course.setStatus(IIS.wis2_backend.Enum.RequestStatus.REJECTED);
+        courseRepository.save(course);
+    }
+
+    /**
      * Utility method to validate sortBy field.
      * 
      * @param sortBy The field to sort by

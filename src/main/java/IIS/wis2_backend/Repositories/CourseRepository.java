@@ -12,6 +12,7 @@ import IIS.wis2_backend.DTO.Response.Projections.CourseForTeacherProjection;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Enum.RequestStatus;
 
 /**
  * Repository for course CRUD operations.
@@ -96,4 +97,20 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return List of courses in which the user is enrolled.
      */
     List<OverviewCourseProjection> findDistinctByStudentCourses_Student_Username(String username);
+
+    /**
+     * Returns all courses with the given status.
+     * 
+     * @param status Status of the course.
+     * @return List of courses with the given status.
+     */
+    List<Course> findByStatus(RequestStatus status);
+
+    /**
+     * Returns the count of courses with the given status.
+     * 
+     * @param status Status of the course.
+     * @return Count of courses with the given status.
+     */
+    long countByStatus(RequestStatus status);
 }

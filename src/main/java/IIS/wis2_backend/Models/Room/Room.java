@@ -38,4 +38,10 @@ public abstract class Room {
      */
     @Column(nullable = false)
     private String floor;
+
+    /**
+     * Room capacity.
+     */
+    @Column(nullable = false)
+    private Integer capacity;
 }
