@@ -8,13 +8,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import IIS.wis2_backend.DTO.Request.Course.CourseCreationDTO;
 import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
 import IIS.wis2_backend.Services.CourseService;
+import jakarta.validation.Valid;
+
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Controller for course access.
@@ -84,4 +91,19 @@ public class CourseController {
     public void rejectCourse(@PathVariable Long id) {
         courseService.rejectCourse(id);
     }
+
+    /**
+     * Creates a new course.
+     * 
+     * @param dto         The course creation DTO.
+     * @param userDetails The authenticated user details for supervisor assignment.
+     * @return The created course as a lightweight DTO.
+     */
+    @PostMapping("/create")
+    public ResponseEntity<LightweightCourseDTO> createCourse(@RequestBody @Valid CourseCreationDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        LightweightCourseDTO createdCourse = courseService.CreateCourse(dto, userDetails.getUsername());
+        return ResponseEntity.ok(createdCourse);
+    }
+
 }

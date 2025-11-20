@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import IIS.wis2_backend.DTO.Request.Course.CourseCreationDTO;
 import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
@@ -14,8 +15,11 @@ import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.CourseEndType;
+import IIS.wis2_backend.Enum.RequestStatus;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import jakarta.transaction.Transactional;
@@ -158,6 +162,38 @@ public class CourseService {
     }
 
     /**
+     * Create a new course.
+     * @param courseCreationDTO Course creation DTO.
+     * @param supervisorUsername Supervisor's username.
+     * 
+     * @return Created course as LightweightCourseDTO.
+     */
+    public LightweightCourseDTO CreateCourse(CourseCreationDTO courseCreationDTO, String supervisorUsername) {
+        // Find supervisor
+        Wis2User supervisor = userRepository.findByUsername(supervisorUsername)
+                .orElseThrow(() -> new NotFoundException("Supervisor not found"));
+
+        // Create course
+        Course course = Course.builder()
+                .name(courseCreationDTO.name())
+                .price(courseCreationDTO.price())
+                .shortcut(courseCreationDTO.shortcut())
+                .completedBy(courseCreationDTO.type())
+                .capacity(courseCreationDTO.capacity())
+                .autoregister(courseCreationDTO.autoregister())
+                .supervisor(supervisor)
+                .status(RequestStatus.PENDING)
+                .build();
+
+        if (course == null) {
+            throw new InternalException("Course creation failed!");
+        }
+
+        courseRepository.save(course);
+        return CourseToLightweightDTO(course);
+    }
+
+    /**
      * Approve a course.
      * @param id Course ID.
      */
@@ -220,5 +256,20 @@ public class CourseService {
                 teachers,
                 course.getCompletedBy().name()
         );
+    }
+
+    /**
+     * Utility method to convert Course to LightweightCourseDTO.
+     * 
+     * @param course The course to convert
+     * @return The corresponding LightweightCourseDTO
+     */
+    private LightweightCourseDTO CourseToLightweightDTO(Course course) {
+        return new LightweightCourseDTO(
+                course.getId(),
+                course.getName(),
+                course.getPrice(),
+                course.getShortcut(),
+                course.getCompletedBy().name());
     }
 }
