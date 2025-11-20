@@ -85,6 +85,7 @@ public class Wis2User {
      * User schedule as a set of schedule items.
      */
     @OneToOne
+    @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
     /**

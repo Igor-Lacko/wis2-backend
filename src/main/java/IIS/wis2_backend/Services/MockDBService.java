@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Services;
 
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -178,6 +179,7 @@ public class MockDBService {
 			// Create an empty schedule for the course
 			Schedule schedule = Schedule.builder()
 					.course(course)
+					.items(new HashSet<>())
 					.build();
 
 			if (schedule == null) {

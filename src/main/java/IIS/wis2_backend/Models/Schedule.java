@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Models;
 
 import java.util.Set;
+import java.util.HashSet;
 
 import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
@@ -25,7 +26,7 @@ public class Schedule {
     /**
      * Schedule user.
      */
-    @OneToOne(optional = true)
+    @OneToOne(optional = true, mappedBy = "schedule")
     private Wis2User user;
 
     /**
@@ -43,5 +44,6 @@ public class Schedule {
         joinColumns = @JoinColumn(name = "schedule_id"),
         inverseJoinColumns = @JoinColumn(name = "schedule_item_id")
     )
-    private Set<ScheduleItem> items;
+    @Builder.Default
+    private Set<ScheduleItem> items = new HashSet<ScheduleItem>();
 }

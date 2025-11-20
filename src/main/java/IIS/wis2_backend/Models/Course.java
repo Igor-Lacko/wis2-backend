@@ -88,6 +88,7 @@ public class Course {
      * Course schedule.
      */
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
     /**
