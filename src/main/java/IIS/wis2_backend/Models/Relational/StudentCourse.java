@@ -77,6 +77,7 @@ public class StudentCourse {
      * Status of the student's request to join the course.
      */
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     private RequestStatus status = RequestStatus.PENDING;
 }

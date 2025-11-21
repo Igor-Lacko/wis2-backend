@@ -2,6 +2,7 @@ package IIS.wis2_backend.Controllers;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
@@ -20,12 +20,11 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.PendingRequestsListDTO;
 import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
-import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
-import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Request.Course.TermPointsUpdateDTO;
 import IIS.wis2_backend.DTO.Request.Course.GradeUpdateDTO;
@@ -34,7 +33,6 @@ import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller for course access.
@@ -180,9 +178,8 @@ public class CourseController {
     @GetMapping("/{shortcut}/terms")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TermListDTO>> GetCourseTerms(
-        @PathVariable String shortcut,
-        Authentication authentication
-    ) {
+            @PathVariable String shortcut,
+            Authentication authentication) {
         List<TermListDTO> terms = courseService.GetCourseTerms(shortcut, authentication.getName());
         return ResponseEntity.ok(terms);
     }
@@ -192,11 +189,6 @@ public class CourseController {
     public ResponseEntity<Void> GetCourseStudents(@PathVariable String shortcut) {
         // Implementation for fetching course students goes here
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{shortcut}/pending-registrations")
-    public String GetPendingRegistrations(@RequestParam String param) {
-        return new String();
     }
 
     @GetMapping("/{courseId}/students")
@@ -241,6 +233,95 @@ public class CourseController {
             @RequestBody @Valid CourseDetailsUpdateDTO dto,
             Authentication authentication) {
         courseService.UpdateCourseDetails(shortcut, dto, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Returns all pending registrations for a course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param authentication The authentication object of the current user.
+     * @return A DTO containing the pending registration requests.
+     */
+    @GetMapping("/{shortcut}/requests")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PendingRequestsListDTO> GetPendingRegistrations(@PathVariable String shortcut,
+            Authentication authentication) {
+        PendingRequestsListDTO pendingRequests = courseService.GetPendingRegistrations(shortcut,
+                authentication.getName());
+        return ResponseEntity.ok(pendingRequests);
+    }
+
+    /**
+     * Approves a student's registration request for a course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param username       The username of the student whose request is to be
+     *                       approved.
+     * @param authentication The authentication object of the current user.
+     * @return A ResponseEntity indicating the result of the operation.
+     */
+    @PostMapping("/{shortcut}/requests/{username}/approve")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> ApproveRegistrationRequest(
+            @PathVariable String shortcut,
+            @PathVariable String username,
+            Authentication authentication) {
+        courseService.ApproveRegistrationRequest(shortcut, username, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Rejects a student's registration request for a course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param username       The username of the student whose request is to be
+     *                       rejected.
+     * @param authentication The authentication object of the current user.
+     * @return A ResponseEntity indicating the result of the operation.
+     */
+    @PostMapping("/{shortcut}/requests/{username}/reject")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> RejectRegistrationRequest(
+            @PathVariable String shortcut,
+            @PathVariable String username,
+            Authentication authentication) {
+        courseService.RejectRegistrationRequest(shortcut, username, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Removes a teacher from a course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param username       The username of the teacher to be removed.
+     * @param authentication The authentication object of the current user.
+     * @return A ResponseEntity indicating the result of the operation.
+     */
+    @DeleteMapping("/{shortcut}/teachers/{username}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> RemoveTeacherFromCourse(
+            @PathVariable String shortcut,
+            @PathVariable String username,
+            Authentication authentication) {
+        courseService.RemoveTeacherFromCourse(shortcut, username, authentication.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Adds a teacher to a course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param username       The username of the teacher to be added.
+     * @param authentication The authentication object of the current user.
+     */
+    @PostMapping("/{shortcut}/teachers/{username}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> AddTeacherToCourse(
+            @PathVariable String shortcut,
+            @PathVariable String username,
+            Authentication authentication) {
+        courseService.AddTeacherToCourse(shortcut, username, authentication.getName());
         return ResponseEntity.ok().build();
     }
 }

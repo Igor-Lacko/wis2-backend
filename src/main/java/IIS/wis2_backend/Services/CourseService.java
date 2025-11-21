@@ -13,6 +13,7 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.PendingRequestsListDTO;
 import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
@@ -20,12 +21,12 @@ import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
 import IIS.wis2_backend.DTO.Response.User.UserShortened;
+import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
-import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.CourseRoleType;
@@ -39,6 +40,7 @@ import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
+import IIS.wis2_backend.Repositories.Relational.StudentCourseRepository;
 import IIS.wis2_backend.Repositories.Relational.StudentTermRepository;
 import jakarta.transaction.Transactional;
 
@@ -63,17 +65,24 @@ public class CourseService {
 	private final StudentTermRepository studentTermRepository;
 
 	/**
+	 * StudentCourse repository.
+	 */
+	private final StudentCourseRepository studentCourseRepository;
+
+	/**
 	 * Constructor for CourseService.
 	 * 
-	 * @param courseRepository      the course repository
-	 * @param userRepository        the user repository
-	 * @param studentTermRepository the student term repository
+	 * @param courseRepository        the course repository
+	 * @param userRepository          the user repository
+	 * @param studentTermRepository   the student term repository
+	 * @param studentCourseRepository the student course repository
 	 */
 	public CourseService(CourseRepository courseRepository, UserRepository userRepository,
-			StudentTermRepository studentTermRepository) {
+			StudentTermRepository studentTermRepository, StudentCourseRepository studentCourseRepository) {
 		this.courseRepository = courseRepository;
 		this.userRepository = userRepository;
 		this.studentTermRepository = studentTermRepository;
+		this.studentCourseRepository = studentCourseRepository;
 	}
 
 	/**
@@ -189,6 +198,32 @@ public class CourseService {
 						course.getShortcut(),
 						course.getCompletedBy().toString()))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Returns the pending registrations for a course.
+	 * 
+	 * @param shortcut The course shortcut.
+	 * @param username The username of the requester. Has to match the supervisor of
+	 *                 the course.
+	 * @return A DTO containing the pending registration requests.
+	 */
+	public PendingRequestsListDTO GetPendingRegistrations(String shortcut, String username) {
+		if (!courseRepository.existsBySupervisor_UsernameAndShortcut(username, shortcut)) {
+			throw new UnauthorizedException("User is not the supervisor of this course!");
+		}
+
+		List<VerySmallUserDTO> pendingRequests = studentCourseRepository
+				.findByCourseShortcutAndStatus(shortcut, RequestStatus.PENDING).stream()
+				.map(sc -> new VerySmallUserDTO(
+						sc.getStudent().getUsername(),
+						sc.getStudent().getFirstName(),
+						sc.getStudent().getLastName()))
+				.collect(Collectors.toList());
+
+		long enrolledCount = courseRepository.getEnrolledCountByCourseShortcut(shortcut);
+
+		return new PendingRequestsListDTO(enrolledCount, pendingRequests);
 	}
 
 	/**
@@ -318,8 +353,8 @@ public class CourseService {
 		}
 
 		// Teacher projection and DTO
-		List<TeacherForCourseProjection> teacherProjections = userRepository
-				.findByTaughtCourses_Id(course.getId());
+		List<Wis2User> teacherProjections = userRepository
+				.findAllByTaughtCourses_Id(course.getId());
 		Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
 				.map(t -> new TeacherDTOForCourse(t.getUsername(), t.getFirstName(), t.getLastName()))
 				.collect(Collectors.toSet());
@@ -353,10 +388,10 @@ public class CourseService {
 	 */
 	private FullCourseDTO CourseToFullDTO(Course course) {
 		// Fetch supervisor and teacher projections
-		TeacherForCourseProjection supervisorProjection = userRepository
-				.findFirstBySupervisedCourses_Id(course.getId());
-		List<TeacherForCourseProjection> teacherProjections = userRepository
-				.findByTaughtCourses_Id(course.getId());
+		Wis2User supervisorProjection = userRepository
+				.findTopBySupervisedCourses_Id(course.getId());
+		List<Wis2User> teacherProjections = userRepository
+				.findAllByTaughtCourses_Id(course.getId());
 
 		// Map to DTOs
 		TeacherDTOForCourse supervisor = new TeacherDTOForCourse(
@@ -426,6 +461,65 @@ public class CourseService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Approves a student's registration request for a course.
+	 * 
+	 * @param courseShortcut     The shortcut of the course.
+	 * @param studentUsername    The username of the student whose request is to be
+	 *                           approved.
+	 * @param supervisorUsername The username of the supervisor approving the
+	 *                           request.
+	 */
+	@Transactional
+	public void ApproveRegistrationRequest(String courseShortcut, String studentUsername,
+			String supervisorUsername) {
+		Course course = courseRepository.findByShortcut(courseShortcut)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+			throw new UnauthorizedException("User is not the supervisor of this course!");
+		}
+
+		StudentCourse studentCourse = studentCourseRepository
+				.findByCourseShortcutAndStatusAndStudentUsername(courseShortcut, RequestStatus.PENDING, studentUsername)
+				.orElseThrow(() -> new NotFoundException("Registration request not found"));
+
+		// Check if approving this student would exceed capacity
+		long approvedCount = courseRepository.getEnrolledCountByCourseShortcut(courseShortcut);
+		if (approvedCount >= course.getCapacity()) {
+			throw new IllegalArgumentException(
+					"Approving this student would exceed course capacity! Increase capacity first.");
+		}
+
+		studentCourse.setStatus(RequestStatus.APPROVED);
+	}
+
+	/**
+	 * Rejects a student's registration request for a course.
+	 * 
+	 * @param courseShortcut     The shortcut of the course.
+	 * @param studentUsername    The username of the student whose request is to be
+	 *                           rejected.
+	 * @param supervisorUsername The username of the supervisor rejecting the
+	 *                           request.
+	 */
+	@Transactional
+	public void RejectRegistrationRequest(String courseShortcut, String studentUsername,
+			String supervisorUsername) {
+		Course course = courseRepository.findByShortcut(courseShortcut)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+			throw new UnauthorizedException("User is not the supervisor of this course!");
+		}
+
+		StudentCourse studentCourse = studentCourseRepository
+				.findByCourseShortcutAndStatusAndStudentUsername(courseShortcut, RequestStatus.PENDING, studentUsername)
+				.orElseThrow(() -> new NotFoundException("Registration request not found"));
+
+		studentCourse.setStatus(RequestStatus.REJECTED);
+	}
+
 	@Transactional
 	public List<StudentGradeDTO> getStudentsInCourse(Long courseId) {
 		Course course = courseRepository.findById(courseId)
@@ -474,7 +568,8 @@ public class CourseService {
 
 		if (!course.getSupervisor().getUsername().equals(username)
 				&& !userRepository.existsByUsernameAndTaughtCourses_Shortcut(username, shortcut)
-				&& !userRepository.existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(username, shortcut, RequestStatus.APPROVED)) {
+				&& !userRepository.existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(username,
+						shortcut, RequestStatus.APPROVED)) {
 			throw new UnauthorizedException("User is not authorized to view terms of this course!");
 		}
 
@@ -489,6 +584,37 @@ public class CourseService {
 						term.getMaxPoints(),
 						term.getDate()))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Removes a teacher from a course.
+	 * 
+	 * @param courseShortcut     The course shortcut.
+	 * @param teacherUsername    The username of the teacher to be removed.
+	 * @param supervisorUsername The username of the supervisor performing the
+	 *                           removal.
+	 */
+	@Transactional
+	public void RemoveTeacherFromCourse(String courseShortcut, String teacherUsername, String supervisorUsername) {
+		Course course = courseRepository.findByShortcut(courseShortcut)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+			throw new UnauthorizedException("User is not the supervisor of this course!");
+		}
+
+		Wis2User teacher = userRepository.findByUsername(teacherUsername)
+				.orElseThrow(() -> new NotFoundException("Teacher not found"));
+
+		if (!course.getTeachers().contains(teacher)) {
+			throw new NotFoundException("Teacher is not assigned to this course!");
+		}
+
+		course.getTeachers().remove(teacher);
+
+		// Remove all this-course related things from the teacher's schedule
+		Schedule teacherSchedule = teacher.getSchedule();
+		teacherSchedule.getItems().removeIf(item -> item.getCourseShortcut().equals(course.getShortcut()));
 	}
 
 	private String getTermType(Term term) {
@@ -581,5 +707,39 @@ public class CourseService {
 		}
 
 		courseRepository.save(course);
+	}
+
+	/**
+	 * Adds a teacher to a course.
+	 * 
+	 * @param courseShortcut     The course shortcut.
+	 * @param teacherUsername    The username of the teacher to be added.
+	 * @param supervisorUsername The username of the supervisor performing the addition.
+	 */
+	@Transactional
+	public void AddTeacherToCourse(String courseShortcut, String teacherUsername, String supervisorUsername) {
+		Course course = courseRepository.findByShortcut(courseShortcut)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+			throw new UnauthorizedException("User is not the supervisor of this course!");
+		}
+
+		Wis2User teacher = userRepository.findByUsername(teacherUsername)
+				.orElseThrow(() -> new NotFoundException("Teacher not found"));
+
+		// I love BE comparing bruh 
+		if (course.getTeachers().stream()
+				.anyMatch(t -> t.getUsername().equals(teacherUsername))) {
+			throw new AlreadySetException("Teacher is already assigned to this course!");
+		}
+
+		course.getTeachers().add(teacher);
+
+		// Add all course schedule items to the teacher's schedule
+		Schedule teacherSchedule = teacher.getSchedule();
+		course.getSchedule().getItems().forEach(item -> {
+			teacherSchedule.getItems().add(item);
+		});
 	}
 }

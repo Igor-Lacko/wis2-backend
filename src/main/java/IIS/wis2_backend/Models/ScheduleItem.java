@@ -37,10 +37,16 @@ public class ScheduleItem implements Comparable<ScheduleItem> {
     private TermType type;
 
     /**
-     * Always concerns a course.
+     * Always concerns a course (this is for DTO's).
      */
     @Column(nullable = false)
     private String courseName;
+
+    /**
+     * (This is for easier fetching when deleting schedule items.)
+     */
+    @Column(nullable = false)
+    private String courseShortcut;
 
     /**
      * Schedule item date.

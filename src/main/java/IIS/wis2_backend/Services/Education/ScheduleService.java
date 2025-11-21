@@ -142,7 +142,7 @@ public class ScheduleService {
      */
     public void CreateScheduleForTerm(Term term, TermType type) {
         Set<Wis2User> students = userRepository.findByStudentTerms_Term_Id(term.getId());
-        List<Wis2User> teachers = userRepository.findByTaughtCourses_Id(term.getCourse().getId());
+        List<Wis2User> teachers = userRepository.findAllByTaughtCourses_Id(term.getCourse().getId());
         Course course = term.getCourse();
 
         LocalDateTime startDate = term.getDate();
@@ -152,6 +152,7 @@ public class ScheduleService {
         ScheduleItem scheduleItem = ScheduleItem.builder()
                 .term(term)
                 .courseName(course.getName())
+                .courseShortcut(course.getShortcut())
                 .startDate(startDate)
                 .endDate(endDate)
                 .type(type)

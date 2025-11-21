@@ -17,12 +17,15 @@ import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
+import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Services.UserService;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 /**
  * Controller for user-related requests.
@@ -151,5 +154,18 @@ public class UserController {
     public ResponseEntity<Void> promoteUser(@PathVariable Long id) {
         userService.promoteUser(id);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Finds users matching the given query in their username, first name, or last name.
+     * 
+     * @param query The search query.
+     * @return A list of users matching the query.
+     */
+    @GetMapping("/by-name")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<VerySmallUserDTO>> FindUsersMatchingQuery(@RequestParam String query) {
+        List<VerySmallUserDTO> users = userService.GetUsersByNamePart(query);
+        return ResponseEntity.ok(users);
     }
 }

@@ -7,7 +7,6 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
 import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Models.User.Wis2User;
 
@@ -95,16 +94,16 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * @param courseId ID of the course.
      * @return The supervising teacher of the course.
      */
-    TeacherForCourseProjection findFirstBySupervisedCourses_Id(Long courseId);
+    Wis2User findTopBySupervisedCourses_Id(Long courseId);
 
     /**
-     * Find teachers teaching a specific course. (genericcc)
+     * Find teachers teaching a specific course.
      * 
      * @param courseId ID of the course.
      * 
      * @return List of teachers teaching the course.
      */
-    <T> List<T> findByTaughtCourses_Id(Long courseId);
+    List<Wis2User> findAllByTaughtCourses_Id(Long courseId);
 
     /**
      * Checks if the user teaches the course with the given shortcut.

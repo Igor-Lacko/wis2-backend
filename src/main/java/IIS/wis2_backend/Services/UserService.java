@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Services;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ import IIS.wis2_backend.DTO.Response.NestedDTOs.OverviewCourseDTO;
 import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
+import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
@@ -43,8 +45,8 @@ public class UserService {
     /**
      * Constructor for UserService.
      * 
-     * @param userRepository    User repository.
-     * @param courseRepository  Course repository.
+     * @param userRepository   User repository.
+     * @param courseRepository Course repository.
      */
     public UserService(UserRepository userRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
@@ -120,13 +122,22 @@ public class UserService {
      */
     public UserCoursesDTO GetUserCourses(String username) {
         return UserCoursesDTO.builder()
-                .supervisedCourses(courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
+                .supervisedCourses(courseRepository
+                        .findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED,
+                                OverviewCourseProjection.class)
+                        .stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .teachingCourses(courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
+                .teachingCourses(courseRepository
+                        .findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED,
+                                OverviewCourseProjection.class)
+                        .stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .enrolledCourses(courseRepository.findCoursesByStudentUsernameAndStatus(username, RequestStatus.APPROVED, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
+                .enrolledCourses(courseRepository
+                        .findCoursesByStudentUsernameAndStatus(username, RequestStatus.APPROVED, RequestStatus.APPROVED,
+                                OverviewCourseProjection.class)
+                        .stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
                 .build();
@@ -171,7 +182,8 @@ public class UserService {
      */
     private TeacherDTO TeacherToDTO(Wis2User teacher) {
         // Fetch supervised courses
-        Set<CourseDTOForTeacher> supervisedCourses = courseRepository.findBySupervisor_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
+        Set<CourseDTOForTeacher> supervisedCourses = courseRepository
+                .findBySupervisor_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
                 .stream()
                 .map(proj -> new CourseDTOForTeacher(
                         proj.getId(),
@@ -180,7 +192,8 @@ public class UserService {
                 .collect(Collectors.toSet());
 
         // And taught courses!
-        Set<CourseDTOForTeacher> taughtCourses = courseRepository.findByTeachers_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
+        Set<CourseDTOForTeacher> taughtCourses = courseRepository
+                .findByTeachers_IdAndStatus(teacher.getId(), RequestStatus.APPROVED)
                 .stream()
                 .map(proj -> new CourseDTOForTeacher(
                         proj.getId(),
@@ -191,9 +204,9 @@ public class UserService {
         // Also map office
         OfficeDTOForTeacher officeDTO = null;
         if (teacher.getOffice() != null) {
-             officeDTO = new OfficeDTOForTeacher(
-                teacher.getOffice().getId(),
-                teacher.getOffice().getShortcut());
+            officeDTO = new OfficeDTOForTeacher(
+                    teacher.getOffice().getId(),
+                    teacher.getOffice().getShortcut());
         }
 
         return TeacherDTO.builder()
@@ -229,6 +242,7 @@ public class UserService {
 
     /**
      * Get all users.
+     * 
      * @return List of all users.
      */
     public java.util.List<UserDTO> getAllUsers() {
@@ -247,6 +261,7 @@ public class UserService {
 
     /**
      * Delete a user by ID.
+     * 
      * @param id User ID.
      */
     public void deleteUser(Long id) {
@@ -258,6 +273,7 @@ public class UserService {
 
     /**
      * Promote a user to ADMIN.
+     * 
      * @param id User ID.
      */
     public void promoteUser(Long id) {
@@ -302,5 +318,22 @@ public class UserService {
         }
 
         return UserToDTO(userRepository.save(user));
+    }
+
+    /**
+     * Returns all users whose first or last name contains the given string (case
+     * insensitive).
+     * 
+     * @param namePart The string to search for in first or last names.
+     * @return List of UserDTOs matching the search criteria.
+     */
+    public List<VerySmallUserDTO> GetUsersByNamePart(String namePart) {
+        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(namePart, namePart)
+                .stream()
+                .map(user -> new VerySmallUserDTO(
+                        user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName()))
+                .collect(Collectors.toList());
     }
 }

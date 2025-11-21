@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.DTO.Response.Projections.CourseForTeacherProjection;
@@ -87,7 +88,8 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     List<CourseForTeacherProjection> findByTeachers_IdAndStatus(Long teacherId, RequestStatus status);
 
     /**
-     * Generic method to find courses by supervisor's username and status with a dynamic projection.
+     * Generic method to find courses by supervisor's username and status with a
+     * dynamic projection.
      * 
      * @param username Username of the supervisor.
      * @param status   Status of the course.
@@ -97,7 +99,8 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     <T> List<T> findBySupervisor_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
 
     /**
-     * Generic method to find courses by teacher's username and status with a dynamic projection.
+     * Generic method to find courses by teacher's username and status with a
+     * dynamic projection.
      * 
      * @param username Username of the teacher.
      * @param status   Status of the course.
@@ -107,16 +110,18 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     <T> List<T> findByTeachers_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
 
     /**
-     * Generic method to find courses in which {username} is enrolled with the given status with a dynamic projection.
+     * Generic method to find courses in which {username} is enrolled with the given
+     * status with a dynamic projection.
      * 
-     * @param username Username of the student.
+     * @param username         Username of the student.
      * @param enrollmentStatus Status of the enrollment.
-     * @param courseStatus   Status of the course.
-     * @param type     The class type of the projection.
+     * @param courseStatus     Status of the course.
+     * @param type             The class type of the projection.
      * @return List of projected courses.
      */
     @Query("SELECT DISTINCT c FROM Course c JOIN c.studentCourses sc WHERE sc.student.username = :username AND sc.status = :enrollmentStatus AND c.status = :courseStatus")
-    <T> List<T> findCoursesByStudentUsernameAndStatus(String username, RequestStatus enrollmentStatus, RequestStatus courseStatus, Class<T> type);
+    <T> List<T> findCoursesByStudentUsernameAndStatus(@Param("username") String username, @Param("enrollmentStatus") RequestStatus enrollmentStatus,
+            @Param("courseStatus") RequestStatus courseStatus, Class<T> type);
 
     /**
      * Returns all courses with the given status.
@@ -133,4 +138,22 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return Count of courses with the given status.
      */
     long countByStatus(RequestStatus status);
+
+    /**
+     * Returns the count of enrolled students for a course with the given shortcut.
+     * 
+     * @param shortcut Shortcut of the course.
+     * @return Count of enrolled students.
+     */
+    @Query("SELECT COUNT(sc) FROM StudentCourse sc WHERE sc.course.shortcut = :shortcut AND sc.status = 'APPROVED'")
+    long getEnrolledCountByCourseShortcut(@Param("shortcut") String shortcut);
+
+    /**
+     * Returns true if the user with the given username is the supervisor of the course.
+     * 
+     * @param username Username of the user.
+     * @param shortcut Shortcut of the course.
+     * @return true if the user is the supervisor, false otherwise.
+     */
+    Boolean existsBySupervisor_UsernameAndShortcut(String username, String shortcut);
 }
