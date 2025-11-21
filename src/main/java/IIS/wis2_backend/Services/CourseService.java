@@ -14,6 +14,7 @@ import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.PendingRequestsListDTO;
+import IIS.wis2_backend.DTO.Response.Course.RegisteredCourseListItemDTO;
 import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
@@ -753,5 +754,83 @@ public class CourseService {
 						teacher.getFirstName(),
 						teacher.getLastName()))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Returns registered course DTO's depending on the user's role.
+	 * 
+	 * @param username The username of the user.
+	 */
+	@Transactional
+	public List<RegisteredCourseListItemDTO> GetRegisteredCourseDTOs(String username) {
+		if (!userRepository.existsByUsername(username)) {
+			throw new NotFoundException("User not found: " + username);
+		}
+
+		return courseRepository.findAll()
+				.stream()
+				.map(c -> {
+					String shortcut = c.getShortcut();
+					boolean isSupervisor = courseRepository
+							.existsBySupervisor_UsernameAndShortcut(username, shortcut);
+					boolean isTeacher = courseRepository
+							.existsByTeachers_UsernameAndShortcut(username, shortcut);
+					boolean isStudent = courseRepository
+							.existsByStudentCourses_Student_UsernameAndShortcut(username, shortcut);
+
+					return RegisteredCourseListItemDTO.builder()
+							.id(c.getId())
+							.name(c.getName())
+							.price(c.getPrice())
+							.shortcut(c.getShortcut())
+							.completedBy(c.getCompletedBy())
+							.isSupervisor(isSupervisor)
+							.isTeacher(isTeacher)
+							.isStudent(isStudent)
+							.build();
+				})
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Enrolls a student in a course.
+	 * 
+	 * @param courseShortcut  The shortcut of the course.
+	 * @param studentUsername The username of the student.
+	 * @return A message indicating the result of the enrollment.
+	 */
+	@Transactional
+	public String EnrollInCourse(String courseShortcut, String studentUsername) {
+		Course course = courseRepository.findByShortcut(courseShortcut)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		// Check if student is already associated with the course
+		if (courseRepository.existsBySupervisor_UsernameAndShortcut(studentUsername, courseShortcut)) {
+			throw new AlreadySetException("User is the supervisor of this course!");
+		} else if (courseRepository.existsByTeachers_UsernameAndShortcut(studentUsername, courseShortcut)) {
+			throw new AlreadySetException("User is a teacher of this course!");
+		} else if (courseRepository.existsByStudentCourses_Student_UsernameAndShortcut(studentUsername,
+				courseShortcut)) {
+			throw new AlreadySetException("User is already enrolled or has a pending request for this course!");
+		}
+
+		// Check capacity first
+		long approvedCount = courseRepository.getEnrolledCountByCourseShortcut(courseShortcut);
+		if (approvedCount >= course.getCapacity()) {
+			throw new IllegalArgumentException(
+					"Course capacity reached! Cannot enroll. Contact the course supervisor.");
+		}
+
+		// Autoregister
+		RequestStatus status = course.getAutoregister() ? RequestStatus.APPROVED : RequestStatus.PENDING;
+		studentCourseRepository.save(StudentCourse.builder()
+				.course(course)
+				.student(userRepository.findByUsername(studentUsername)
+						.orElseThrow(() -> new NotFoundException("Student not found")))
+				.status(status)
+				.build());
+
+		return status.equals(RequestStatus.APPROVED) ? "Enrolled successfully!"
+				: "Enrollment request submitted successfully!";
 	}
 }

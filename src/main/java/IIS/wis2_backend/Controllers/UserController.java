@@ -76,11 +76,11 @@ public class UserController {
     /**
      * Getter for a public profile by user id.
      * 
-     * @param id User id.
+     * @param username Username of the user.
      */
-    @GetMapping("/public/{id}")
-    public TeacherDTO GetPublicProfile(@PathVariable long id) {
-        return userService.GetTeacherPublicProfile(id);
+    @GetMapping("/public/{username}")
+    public TeacherDTO GetPublicProfile(@PathVariable String username) {
+        return userService.GetTeacherPublicProfile(username);
     }
 
     /**

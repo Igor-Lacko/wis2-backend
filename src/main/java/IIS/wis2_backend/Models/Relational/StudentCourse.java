@@ -42,7 +42,8 @@ public class StudentCourse {
      * Number of points the student has earned in this course.
      */
     @Column(nullable = false)
-    private Integer points;
+    @Builder.Default
+    private Integer points = 0;
 
     /**
      * If the student has earned the unit credit for this course. Can be nullable (exam-only courses).

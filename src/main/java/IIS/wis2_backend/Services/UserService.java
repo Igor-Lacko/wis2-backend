@@ -54,14 +54,19 @@ public class UserService {
     }
 
     /**
-     * Returns a public profile of a teacher by their user id.
+     * Returns a public profile of a teacher by their username.
      * 
-     * @param userId The id of the user (teacher).
+     * @param username The username of the user (teacher).
      * @return The public profile of the teacher.
      */
-    public TeacherDTO GetTeacherPublicProfile(long userId) {
-        Wis2User teacher = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException("Teacher with this ID does not exist!"));
+    public TeacherDTO GetTeacherPublicProfile(String username) {
+        Wis2User teacher = userRepository.findByUsername(username).orElseThrow(
+                () -> new NotFoundException("Teacher with this username does not exist!"));
+
+        // Check if the user is a teacher
+        if (teacher.getTaughtCourses().isEmpty() && teacher.getSupervisedCourses().isEmpty()) {
+            throw new NotFoundException("User with this username is not a teacher!");
+        }
 
         return TeacherToDTO(teacher);
     }

@@ -175,6 +175,7 @@ public class MockDBService {
 					.teachers(teachers)
 					.capacity(100)
 					.autoregister(true)
+					.status(RequestStatus.APPROVED)
 					.build();
 
 			// Create an empty schedule for the course

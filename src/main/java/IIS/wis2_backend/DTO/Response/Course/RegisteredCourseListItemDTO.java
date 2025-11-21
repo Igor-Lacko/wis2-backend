@@ -1,28 +1,29 @@
 package IIS.wis2_backend.DTO.Response.Course;
 
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import IIS.wis2_backend.Enum.CourseEndType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 /**
- * DTO representation of a Course intended for supervisor view.
+ * DTO representing a registered course list item.
  */
-@Data
 @AllArgsConstructor
-public class SupervisorCourseDTO {
+@Data
+@Builder
+public class RegisteredCourseListItemDTO {
+    @NotNull
+    private Long id;
+
     @NotNull
     @NotEmpty
     private String name;
 
     @NotNull
     private Double price;
-
-    @NotNull
-    @NotEmpty
-    private String description;
 
     @NotNull
     @NotEmpty
@@ -33,8 +34,14 @@ public class SupervisorCourseDTO {
     private CourseEndType completedBy;
 
     @NotNull
-    private Integer capacity;
+    @JsonProperty("isSupervisor")
+    private boolean isSupervisor;
 
     @NotNull
-    private boolean autoregister;
+    @JsonProperty("isTeacher")
+    private boolean isTeacher;
+
+    @NotNull
+    @JsonProperty("isStudent")
+    private boolean isStudent;
 }

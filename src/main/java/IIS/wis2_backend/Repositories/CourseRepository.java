@@ -156,4 +156,22 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return true if the user is the supervisor, false otherwise.
      */
     Boolean existsBySupervisor_UsernameAndShortcut(String username, String shortcut);
+
+    /**
+     * Returns true if the user with the given username teaches the course.
+     * 
+     * @param username Username of the user.
+     * @param shortcut Shortcut of the course.
+     * @return true if the user teaches the course, false otherwise.
+     */
+    Boolean existsByTeachers_UsernameAndShortcut(String username, String shortcut);
+
+    /**
+     * Returns true if the user with the given username is enrolled in the course.
+     * 
+     * @param username Username of the user.
+     * @param shortcut Shortcut of the course.
+     * @return true if the user is enrolled in the course, false otherwise.
+     */
+    Boolean existsByStudentCourses_Student_UsernameAndShortcut(String username, String shortcut);
 }

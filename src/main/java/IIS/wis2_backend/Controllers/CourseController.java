@@ -21,6 +21,7 @@ import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.PendingRequestsListDTO;
+import IIS.wis2_backend.DTO.Response.Course.RegisteredCourseListItemDTO;
 import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
@@ -34,6 +35,7 @@ import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller for course access.
@@ -337,5 +339,32 @@ public class CourseController {
     public ResponseEntity<List<VerySmallUserDTO>> GetCourseTeachers(@PathVariable String shortcut) {
         List<VerySmallUserDTO> teachers = courseService.GetCourseTeachers(shortcut);
         return ResponseEntity.ok(teachers);
+    }
+
+    /**
+     * Gets courses not associated with a specific user.
+     * 
+     * @param username The username of the user.
+     * @return List of lightweight course DTOs.
+     */
+    @GetMapping("/registered-view")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<RegisteredCourseListItemDTO>> GetRegisteredCourseDTOs(Authentication authentication) {
+        List<RegisteredCourseListItemDTO> courses = courseService.GetRegisteredCourseDTOs(authentication.getName());
+        return ResponseEntity.ok(courses);
+    }
+
+    /**
+     * Tries to enroll the authenticated user in the specified course.
+     * 
+     * @param shortcut       The course shortcut.
+     * @param authentication The authentication object of the current user.
+     * @return A ResponseEntity indicating the result of the operation.
+     */
+    @PostMapping("/{shortcut}/enroll")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> EnrollInCourse(@PathVariable String shortcut, Authentication authentication) {
+        String result = courseService.EnrollInCourse(shortcut, authentication.getName());
+        return ResponseEntity.ok(result);
     }
 }
