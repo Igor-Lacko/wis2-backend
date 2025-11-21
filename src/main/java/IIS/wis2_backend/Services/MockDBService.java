@@ -149,6 +149,7 @@ public class MockDBService {
 						.user(student)
 						.items(new HashSet<>())
 						.build();
+				student.setSchedule(schedule);
 				userRepository.save(student);
 			}
 		}

@@ -27,7 +27,6 @@ import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
-import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.CourseRoleType;
 import IIS.wis2_backend.Enum.RequestStatus;
@@ -352,19 +351,11 @@ public class CourseService {
 			throw new UnauthorizedException("User is not the supervisor of this course!");
 		}
 
-		// Teacher projection and DTO
-		List<Wis2User> teacherProjections = userRepository
-				.findAllByTaughtCourses_Id(course.getId());
-		Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
-				.map(t -> new TeacherDTOForCourse(t.getUsername(), t.getFirstName(), t.getLastName()))
-				.collect(Collectors.toSet());
-
 		return new SupervisorCourseDTO(
 				course.getName(),
 				course.getPrice(),
 				course.getDescription(),
 				course.getShortcut(),
-				teachers,
 				course.getCompletedBy(),
 				course.getCapacity(),
 				course.getAutoregister());
@@ -714,7 +705,8 @@ public class CourseService {
 	 * 
 	 * @param courseShortcut     The course shortcut.
 	 * @param teacherUsername    The username of the teacher to be added.
-	 * @param supervisorUsername The username of the supervisor performing the addition.
+	 * @param supervisorUsername The username of the supervisor performing the
+	 *                           addition.
 	 */
 	@Transactional
 	public void AddTeacherToCourse(String courseShortcut, String teacherUsername, String supervisorUsername) {
@@ -728,7 +720,7 @@ public class CourseService {
 		Wis2User teacher = userRepository.findByUsername(teacherUsername)
 				.orElseThrow(() -> new NotFoundException("Teacher not found"));
 
-		// I love BE comparing bruh 
+		// I love BE comparing bruh
 		if (course.getTeachers().stream()
 				.anyMatch(t -> t.getUsername().equals(teacherUsername))) {
 			throw new AlreadySetException("Teacher is already assigned to this course!");
@@ -741,5 +733,25 @@ public class CourseService {
 		course.getSchedule().getItems().forEach(item -> {
 			teacherSchedule.getItems().add(item);
 		});
+	}
+
+	/**
+	 * Gets the list of teachers for a specific course.
+	 * 
+	 * @param shortcut The shortcut of the course.
+	 * @return List of VerySmallUserDTO representing the teachers of the course.
+	 */
+	@Transactional
+	public List<VerySmallUserDTO> GetCourseTeachers(String shortcut) {
+		Course course = courseRepository.findByShortcut(shortcut)
+				.orElseThrow(() -> new NotFoundException(
+						"The course with this shortcut doesn't exist!"));
+
+		return course.getTeachers().stream()
+				.map(teacher -> new VerySmallUserDTO(
+						teacher.getUsername(),
+						teacher.getFirstName(),
+						teacher.getLastName()))
+				.collect(Collectors.toList());
 	}
 }

@@ -25,6 +25,7 @@ import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
+import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
 import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Request.Course.TermPointsUpdateDTO;
 import IIS.wis2_backend.DTO.Request.Course.GradeUpdateDTO;
@@ -323,5 +324,18 @@ public class CourseController {
             Authentication authentication) {
         courseService.AddTeacherToCourse(shortcut, username, authentication.getName());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Gets all teachers of a course.
+     * 
+     * @param shortcut The course shortcut.
+     * @return List of very small user DTOs representing the teachers.
+     */
+    @GetMapping("/{shortcut}/teachers")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<VerySmallUserDTO>> GetCourseTeachers(@PathVariable String shortcut) {
+        List<VerySmallUserDTO> teachers = courseService.GetCourseTeachers(shortcut);
+        return ResponseEntity.ok(teachers);
     }
 }

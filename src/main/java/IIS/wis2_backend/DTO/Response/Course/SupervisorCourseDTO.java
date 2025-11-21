@@ -31,9 +31,6 @@ public class SupervisorCourseDTO {
     private String shortcut;
 
     @NotNull
-    private Set<TeacherDTOForCourse> teachers;
-
-    @NotNull
     @NotEmpty
     private CourseEndType completedBy;
 
