@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
@@ -17,6 +18,7 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
@@ -28,6 +30,7 @@ import IIS.wis2_backend.Services.CourseService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Controller for course access.
@@ -149,6 +152,40 @@ public class CourseController {
         List<LightweightCourseDTO> courses = courseService.GetCoursesByRole(username, CourseRoleType.STUDENT);
         return ResponseEntity.ok(courses);
     }
+
+    /**
+     * Returns the supervisor view/DTO for a course.
+     * 
+     * @param shortcut The course shortcut.
+     * @return The supervisor DTO for the course.
+     */
+    @GetMapping("/{shortcut}/supervisor-details")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<SupervisorCourseDTO> GetSupervisorCourseView(@PathVariable String shortcut,
+            Authentication authentication) {
+        SupervisorCourseDTO courseDTO = courseService.GetSupervisorView(shortcut, authentication.getName());
+        return ResponseEntity.ok(courseDTO);
+    }
+
+    @GetMapping("/{shortcut}/terms")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> GetCourseTerms(@PathVariable String shortcut) {
+        // Implementation for fetching course terms goes here
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{shortcut}/students")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> GetCourseStudents(@PathVariable String shortcut) {
+        // Implementation for fetching course students goes here
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{shortcut}/pending-registrations")
+    public String GetPendingRegistrations(@RequestParam String param) {
+        return new String();
+    }
+
 
     @GetMapping("/{courseId}/students")
     public ResponseEntity<List<StudentGradeDTO>> getStudentsInCourse(@PathVariable Long courseId) {

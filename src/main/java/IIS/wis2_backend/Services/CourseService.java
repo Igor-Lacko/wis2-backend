@@ -11,6 +11,7 @@ import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
+import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
@@ -29,6 +30,7 @@ import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
@@ -115,6 +117,7 @@ public class CourseService {
         return filteredCourses.stream()
                 // Convert to DTO
                 .map(c -> new LightweightCourseDTO(
+                        c.getId(),
                         c.getName(),
                         c.getPrice(),
                         c.getShortcut(),
@@ -172,6 +175,7 @@ public class CourseService {
     public List<LightweightCourseDTO> getPendingCourses() {
         return courseRepository.findByStatus(IIS.wis2_backend.Enum.RequestStatus.PENDING).stream()
                 .map(course -> new LightweightCourseDTO(
+                        course.getId(),
                         course.getName(),
                         course.getPrice(),
                         course.getShortcut(),
@@ -251,22 +255,63 @@ public class CourseService {
     public List<LightweightCourseDTO> GetCoursesByRole(String username, CourseRoleType role) {
         switch (role) {
             case SUPERVISOR:
-                return courseRepository.findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
+                return courseRepository
+                        .findBySupervisor_UsernameAndStatus(username, RequestStatus.APPROVED,
+                                LightweightCourseProjection.class)
+                        .stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
 
             case TEACHER:
-                return courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
+                return courseRepository
+                        .findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED,
+                                LightweightCourseProjection.class)
+                        .stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
 
             case STUDENT:
-                return courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED, LightweightCourseProjection.class).stream()
+                return courseRepository
+                        .findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED,
+                                LightweightCourseProjection.class)
+                        .stream()
                         .map(this::LightweightProjectionToDTO)
                         .collect(Collectors.toList());
         }
 
         throw new IllegalArgumentException("Invalid role specified!");
+    }
+
+    /**
+     * Returns the SupervisorCourseDTO for a given course.
+     * 
+     * @param shortcut           The course shortcut.
+     * @param supervisorUsername The username of the supervisor requesting the view.
+     * @return The SupervisorCourseDTO.
+     */
+    public SupervisorCourseDTO GetSupervisorView(String shortcut, String supervisorUsername) {
+        Course course = courseRepository.findByShortcut(shortcut)
+                .orElseThrow(() -> new NotFoundException("The course with this shortcut doesn't exist!"));
+
+        if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+            throw new UnauthorizedException("User is not the supervisor of this course!");
+        }
+
+        // Teacher projection and DTO
+        List<TeacherForCourseProjection> teacherProjections = userRepository.findByTaughtCourses_Id(course.getId());
+        Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
+                .map(t -> new TeacherDTOForCourse(t.getUsername(), t.getFirstName(), t.getLastName()))
+                .collect(Collectors.toSet());
+
+        return new SupervisorCourseDTO(
+                course.getName(),
+                course.getPrice(),
+                course.getDescription(),
+                course.getShortcut(),
+                teachers,
+                course.getCompletedBy(),
+                course.getCapacity(),
+                course.getAutoregister());
     }
 
     /**
@@ -293,12 +338,12 @@ public class CourseService {
 
         // Map to DTOs
         TeacherDTOForCourse supervisor = new TeacherDTOForCourse(
-                supervisorProjection.getId(),
+                supervisorProjection.getUsername(),
                 supervisorProjection.getFirstName(),
                 supervisorProjection.getLastName());
 
         Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
-                .map(t -> new TeacherDTOForCourse(t.getId(), t.getFirstName(), t.getLastName()))
+                .map(t -> new TeacherDTOForCourse(t.getUsername(), t.getFirstName(), t.getLastName()))
                 .collect(Collectors.toSet());
 
         return new FullCourseDTO(
@@ -320,6 +365,7 @@ public class CourseService {
      */
     private LightweightCourseDTO CourseToLightweightDTO(Course course) {
         return new LightweightCourseDTO(
+                course.getId(),
                 course.getName(),
                 course.getPrice(),
                 course.getShortcut(),
@@ -335,6 +381,7 @@ public class CourseService {
      */
     private LightweightCourseDTO LightweightProjectionToDTO(LightweightCourseProjection projection) {
         return new LightweightCourseDTO(
+                projection.getId(),
                 projection.getName(),
                 projection.getPrice(),
                 projection.getShortcut(),

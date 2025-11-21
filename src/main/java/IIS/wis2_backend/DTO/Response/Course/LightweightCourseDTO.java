@@ -13,6 +13,10 @@ import lombok.Data;
 public class LightweightCourseDTO {
     @NotNull
     @NotEmpty
+    private Long id;
+
+    @NotNull
+    @NotEmpty
     private String name;
 
     @NotNull
