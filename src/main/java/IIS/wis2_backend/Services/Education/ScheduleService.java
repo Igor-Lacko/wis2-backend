@@ -1,6 +1,5 @@
 package IIS.wis2_backend.Services.Education;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -143,8 +142,8 @@ public class ScheduleService {
      */
     public void CreateScheduleForTerm(Term term, TermType type) {
         Set<Wis2User> students = userRepository.findByStudentTerms_Term_Id(term.getId());
+        List<Wis2User> teachers = userRepository.findByTaughtCourses_Id(term.getCourse().getId());
         Course course = term.getCourse();
-        Wis2User supervisor = term.getSupervisor();
 
         LocalDateTime startDate = term.getDate();
         LocalDateTime endDate = startDate.plusMinutes(term.getDuration());
@@ -170,10 +169,12 @@ public class ScheduleService {
             scheduleRepository.save(s);
         }
 
-        Schedule supSchedule = supervisor.getSchedule();
-        if (supSchedule != null) {
-            supSchedule.getItems().add(scheduleItem);
-            scheduleRepository.save(supSchedule);
+        for (Wis2User teacher : teachers) {
+            Schedule s = teacher.getSchedule();
+            if (s == null)
+                continue;
+            s.getItems().add(scheduleItem);
+            scheduleRepository.save(s);
         }
 
         Schedule courseSchedule = course.getSchedule();

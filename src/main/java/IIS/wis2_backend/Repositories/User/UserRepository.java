@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
+import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Models.User.Wis2User;
 
 /**
@@ -75,9 +76,10 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * Finds all students in a given course by using StudentCourse relationship.
      * 
      * @param courseId the ID of the course
+     * @param status the status of the enrollment
      * @return list of students enrolled in the course
      */
-    Set<Wis2User> findByStudentCourses_Course_Id(Long courseId);
+    Set<Wis2User> findByStudentCourses_Course_IdAndStudentCourses_Status(Long courseId, RequestStatus status);
 
     /**
      * Finds all student registered for a given term by using StudentTerm relationship.
@@ -96,11 +98,30 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
     TeacherForCourseProjection findFirstBySupervisedCourses_Id(Long courseId);
 
     /**
-     * Find teachers teaching a specific course.
+     * Find teachers teaching a specific course. (genericcc)
      * 
      * @param courseId ID of the course.
      * 
      * @return List of teachers teaching the course.
      */
-    List<TeacherForCourseProjection> findByTaughtCourses_Id(Long courseId);
+    <T> List<T> findByTaughtCourses_Id(Long courseId);
+
+    /**
+     * Checks if the user teaches the course with the given shortcut.
+     * 
+     * @param username Username of the user.
+     * @param shortcut Shortcut of the course.
+     * @return true if the user teaches the course, false otherwise.
+     */
+    boolean existsByUsernameAndTaughtCourses_Shortcut(String username, String shortcut);
+
+    /**
+     * Checks if the user studies the course with the given shortcut.
+     * 
+     * @param username Username of the user.
+     * @param shortcut Shortcut of the course.
+     * @param status Status of the enrollment.
+     * @return true if the user studies the course, false otherwise.
+     */
+    boolean existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(String username, String shortcut, RequestStatus status);
 }

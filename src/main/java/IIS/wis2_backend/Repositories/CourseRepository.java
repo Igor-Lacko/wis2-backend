@@ -35,6 +35,15 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     Optional<Course> findByShortcut(String shortcut);
 
     /**
+     * Retrieves a course by its shortcut and status.
+     * 
+     * @param shortcut Shortcut of the course.
+     * @param status   Status of the course.
+     * @return Course with the given shortcut and status.
+     */
+    Optional<Course> findByShortcutAndStatus(String shortcut, RequestStatus status);
+
+    /**
      * Finds the maximum course price.
      * 
      * @return Maximum course price.
@@ -101,11 +110,13 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * Generic method to find courses in which {username} is enrolled with the given status with a dynamic projection.
      * 
      * @param username Username of the student.
-     * @param status   Status of the course.
+     * @param enrollmentStatus Status of the enrollment.
+     * @param courseStatus   Status of the course.
      * @param type     The class type of the projection.
      * @return List of projected courses.
      */
-    <T> List<T> findDistinctByStudentCourses_Student_UsernameAndStatus(String username, RequestStatus status, Class<T> type);
+    @Query("SELECT DISTINCT c FROM Course c JOIN c.studentCourses sc WHERE sc.student.username = :username AND sc.status = :enrollmentStatus AND c.status = :courseStatus")
+    <T> List<T> findCoursesByStudentUsernameAndStatus(String username, RequestStatus enrollmentStatus, RequestStatus courseStatus, Class<T> type);
 
     /**
      * Returns all courses with the given status.

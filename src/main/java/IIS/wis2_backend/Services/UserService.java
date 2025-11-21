@@ -126,7 +126,7 @@ public class UserService {
                 .teachingCourses(courseRepository.findByTeachers_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
-                .enrolledCourses(courseRepository.findDistinctByStudentCourses_Student_UsernameAndStatus(username, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
+                .enrolledCourses(courseRepository.findCoursesByStudentUsernameAndStatus(username, RequestStatus.APPROVED, RequestStatus.APPROVED, OverviewCourseProjection.class).stream()
                         .map(this::OverviewProjectionToDTO)
                         .collect(Collectors.toList()))
                 .build();

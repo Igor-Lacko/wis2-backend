@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Models.Relational;
 
+import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.User.Wis2User;
 import jakarta.persistence.*;
@@ -62,11 +63,20 @@ public class StudentCourse {
      * If the student has completed the course.
      */
     @Column(nullable = false)
-    private Boolean completed;
+    @Builder.Default
+    private Boolean completed = false;
 
     /**
      * If the student has failed the course. Separate from !completed, can be due to different factors.
      */
     @Column(nullable = false)
-    private Boolean failed;
+    @Builder.Default
+    private Boolean failed = false;
+
+    /**
+     * Status of the student's request to join the course.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private RequestStatus status = RequestStatus.PENDING;
 }

@@ -11,6 +11,7 @@ import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.TermType;
+import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
@@ -104,14 +105,13 @@ public class TermService {
      */
     public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto) {
         // Get needed entities
-        Wis2User supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
-        Term term = CreateNonExamTermFromDTO(dto, supervisor, room);
+        Term term = CreateNonExamTermFromDTO(dto, room);
         TermType type = dto.getType();
 
         scheduleService.CreateScheduleForTerm(term, type);
-        RegisterTerm(term, dto.getType(), Optional.empty());
+        RegisterTerm(term, Optional.empty());
         
         // Save based on type
         if (type == TermType.MIDTERM_EXAM) {
@@ -122,7 +122,7 @@ public class TermService {
             lectureRepository.save((Lecture) term);
         }
 
-        return ConvertToLightweightDTO(term);
+        return ConvertToLightweightDTO(term, type);
     }
 
     /**
@@ -134,7 +134,7 @@ public class TermService {
      * @param room the room
      * @return the created term
      */
-    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Wis2User supervisor, Room room) {
+    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Room room) {
         TermType type = dto.getType();
         if (type == TermType.MIDTERM_EXAM) {
             return MidtermExam.builder()
@@ -144,8 +144,8 @@ public class TermService {
                     .duration(dto.getDuration())
                     .description(dto.getDescription())
                     .name(dto.getName())
-                    .supervisor(supervisor)
                     .room(room)
+                    .termType(type)
                     .build();
         } else if (type == TermType.LAB) {
             return Lab.builder()
@@ -155,8 +155,8 @@ public class TermService {
                     .duration(dto.getDuration())
                     .description(dto.getDescription())
                     .name(dto.getName())
-                    .supervisor(supervisor)
                     .room(room)
+                    .termType(type)
                     .build();
         } else if (type == TermType.LECTURE) {
             return Lecture.builder()
@@ -166,8 +166,8 @@ public class TermService {
                     .duration(dto.getDuration())
                     .description(dto.getDescription())
                     .name(dto.getName())
-                    .supervisor(supervisor)
                     .room(room)
+                    .termType(type)
                     .build();
         } else {
             throw new IllegalArgumentException("Unsupported term type for non-exam term creation: " + type.name());
@@ -176,7 +176,6 @@ public class TermService {
 
     public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
         // Again, needed entities
-        Wis2User supervisor = GetSupervisor(dto.getSupervisorUsername());
         Room room = GetRoom(dto.getRoomShortcut());
 
         // Create final exam
@@ -187,16 +186,16 @@ public class TermService {
                 .duration(dto.getDuration())
                 .description(dto.getDescription())
                 .name(dto.getName())
-                .supervisor(supervisor)
                 .room(room)
+                .termType(TermType.EXAM)
                 .attempt(dto.getNofAttempt())
                 .build();
 
-        RegisterTerm(exam, TermType.EXAM, Optional.of(dto.getNofAttempt()));
+        RegisterTerm(exam, Optional.of(dto.getNofAttempt()));
         scheduleService.CreateScheduleForTerm(exam, TermType.EXAM);
         examRepository.save(exam);
 
-        return ConvertToLightweightDTO(exam);
+        return ConvertToLightweightDTO(exam, TermType.EXAM);
     }
 
     /**
@@ -208,8 +207,8 @@ public class TermService {
      * 
      * @param term the term to register
      */
-    private void RegisterTerm(Term term, TermType type, Optional<Integer> whichAttempt) {
-        if (type == TermType.MIDTERM_EXAM) {
+    private void RegisterTerm(Term term, Optional<Integer> whichAttempt) {
+        if (term.getTermType() == TermType.MIDTERM_EXAM) {
             RegisterForAll(term);
         }
 
@@ -224,7 +223,7 @@ public class TermService {
 
         // Register each student who is eligible to take the exam
         for (StudentCourse sc : studentCourses) {
-            if (CanRegisterForFinalExam(sc, endType, attempt)) {
+            if (sc.getStatus() == RequestStatus.APPROVED && CanRegisterForFinalExam(sc, endType, attempt)) {
                 StudentTerm studentTerm = StudentTerm.builder()
                         .student(sc.getStudent())
                         .term(term)
@@ -246,11 +245,13 @@ public class TermService {
         Set<StudentCourse> studentCourses = course.getStudentCourses();
         Set<StudentTerm> students = midterm.getStudentTerms();
         for (StudentCourse sc : studentCourses) {
-            StudentTerm studentTerm = StudentTerm.builder()
-                    .student(sc.getStudent())
-                    .term(midterm)
-                    .build();
-            students.add(studentTerm);
+            if (sc.getStatus() == RequestStatus.APPROVED) {
+                StudentTerm studentTerm = StudentTerm.builder()
+                        .student(sc.getStudent())
+                        .term(midterm)
+                        .build();
+                students.add(studentTerm);
+            }
         }
 
         midterm.setStudentTerms(students);
@@ -306,8 +307,8 @@ public class TermService {
      * @param term the term entity
      * @return the lightweight term DTO
      */
-    private LightweightTermDTO ConvertToLightweightDTO(Term term) {
+    private LightweightTermDTO ConvertToLightweightDTO(Term term, TermType type) {
         return new LightweightTermDTO(
-                term.getName(), term.getDate(), term.getDuration(), term.getRoom().getShortcut());
+                term.getId(), term.getName(), term.getDate(), term.getDuration(), term.getRoom().getShortcut(), type);
     }
 }

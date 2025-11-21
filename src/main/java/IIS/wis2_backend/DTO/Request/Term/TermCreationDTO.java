@@ -42,9 +42,6 @@ public class TermCreationDTO {
     private String courseShortcut;
 
     @NotBlank
-    private String supervisorUsername;
-
-    @NotBlank
     private String roomShortcut;
 
     @NotNull

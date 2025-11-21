@@ -24,6 +24,8 @@ import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
+import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
+import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Request.Course.TermPointsUpdateDTO;
 import IIS.wis2_backend.DTO.Request.Course.GradeUpdateDTO;
@@ -169,11 +171,20 @@ public class CourseController {
         return ResponseEntity.ok(courseDTO);
     }
 
+    /**
+     * Returns the terms for a specific course.
+     * 
+     * @param shortcut The course shortcut.
+     * @return List of lightweight term DTOs.
+     */
     @GetMapping("/{shortcut}/terms")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> GetCourseTerms(@PathVariable String shortcut) {
-        // Implementation for fetching course terms goes here
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<TermListDTO>> GetCourseTerms(
+        @PathVariable String shortcut,
+        Authentication authentication
+    ) {
+        List<TermListDTO> terms = courseService.GetCourseTerms(shortcut, authentication.getName());
+        return ResponseEntity.ok(terms);
     }
 
     @GetMapping("/{shortcut}/students")
@@ -188,14 +199,14 @@ public class CourseController {
         return new String();
     }
 
-
     @GetMapping("/{courseId}/students")
     public ResponseEntity<List<StudentGradeDTO>> getStudentsInCourse(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseService.getStudentsInCourse(courseId));
     }
 
     @PostMapping("/{courseId}/students/{studentId}/grade")
-    public ResponseEntity<Void> updateStudentGrade(@PathVariable Long courseId, @PathVariable Long studentId, @RequestBody GradeUpdateDTO gradeDTO) {
+    public ResponseEntity<Void> updateStudentGrade(@PathVariable Long courseId, @PathVariable Long studentId,
+            @RequestBody GradeUpdateDTO gradeDTO) {
         courseService.updateStudentGrade(courseId, studentId, gradeDTO.getGrade());
         return ResponseEntity.ok().build();
     }
@@ -217,18 +228,18 @@ public class CourseController {
 
     /**
      * Updates the details of a specific course.
-     * @param shortcut The shortcut of the course to be updated.
-     * @param dto     The DTO containing updated course details.
+     * 
+     * @param shortcut       The shortcut of the course to be updated.
+     * @param dto            The DTO containing updated course details.
      * @param authentication The authentication object of the current user.
      * @return A ResponseEntity indicating the result of the operation.
      */
     @PatchMapping("/{shortcut}/details")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> UpdateCourseDetails(
-        @PathVariable String shortcut,
-        @RequestBody @Valid CourseDetailsUpdateDTO dto,
-        Authentication authentication
-    ) {
+            @PathVariable String shortcut,
+            @RequestBody @Valid CourseDetailsUpdateDTO dto,
+            Authentication authentication) {
         courseService.UpdateCourseDetails(shortcut, dto, authentication.getName());
         return ResponseEntity.ok().build();
     }

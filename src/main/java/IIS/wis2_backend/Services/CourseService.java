@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Services;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,9 +16,9 @@ import IIS.wis2_backend.DTO.Response.Course.LightweightCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
-import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
 import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermGradeDTO;
+import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
 import IIS.wis2_backend.DTO.Response.User.UserShortened;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
@@ -25,6 +26,7 @@ import IIS.wis2_backend.Models.Term.Term;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.TeacherDTOForCourse;
 import IIS.wis2_backend.DTO.Response.Projections.LightweightCourseProjection;
 import IIS.wis2_backend.DTO.Response.Projections.TeacherForCourseProjection;
+import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.CourseRoleType;
 import IIS.wis2_backend.Enum.RequestStatus;
@@ -33,6 +35,7 @@ import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Models.Course;
+import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
@@ -207,6 +210,9 @@ public class CourseService {
 							+ " already exists :(((");
 		}
 
+		Set<Wis2User> teachers = new HashSet<>();
+		teachers.add(supervisor);
+
 		// Create course
 		Course course = Course.builder()
 				.name(courseCreationDTO.name())
@@ -216,13 +222,19 @@ public class CourseService {
 				.capacity(courseCreationDTO.capacity())
 				.autoregister(courseCreationDTO.autoregister())
 				.supervisor(supervisor)
+				.teachers(teachers)
 				.status(RequestStatus.PENDING)
+				.build();
+
+		Schedule schedule = Schedule.builder()
+				.course(course)
 				.build();
 
 		if (course == null) {
 			throw new InternalException("Course creation failed!");
 		}
 
+		course.setSchedule(schedule);
 		courseRepository.save(course);
 		return CourseToLightweightDTO(course);
 	}
@@ -278,8 +290,8 @@ public class CourseService {
 
 			case STUDENT:
 				return courseRepository
-						.findDistinctByStudentCourses_Student_UsernameAndStatus(username,
-								RequestStatus.APPROVED,
+						.findCoursesByStudentUsernameAndStatus(username,
+								RequestStatus.APPROVED, RequestStatus.APPROVED,
 								LightweightCourseProjection.class)
 						.stream()
 						.map(this::LightweightProjectionToDTO)
@@ -420,6 +432,7 @@ public class CourseService {
 				.orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
 
 		return course.getStudentCourses().stream()
+				.filter(sc -> sc.getStatus() == RequestStatus.APPROVED)
 				.map(sc -> StudentGradeDTO.builder()
 						.student(UserShortened.builder()
 								.id(sc.getStudent().getId())
@@ -438,7 +451,7 @@ public class CourseService {
 				.orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
 
 		StudentCourse studentCourse = course.getStudentCourses().stream()
-				.filter(sc -> sc.getStudent().getId().equals(studentId))
+				.filter(sc -> sc.getStudent().getId().equals(studentId) && sc.getStatus() == RequestStatus.APPROVED)
 				.findFirst()
 				.orElseThrow(() -> new NotFoundException("Student not found in course"));
 
@@ -446,19 +459,35 @@ public class CourseService {
 		courseRepository.save(course);
 	}
 
+	/**
+	 * Returns the terms of a specific course.
+	 * 
+	 * @param shortcut the course shortcut
+	 * @param username the username of the user requesting the terms. has to be
+	 *                 teacher or supervisor
+	 * @return List of term DTOs for the course
+	 */
 	@Transactional
-	public List<TermListDTO> getCourseTerms(Long courseId) {
-		Course course = courseRepository.findById(courseId)
+	public List<TermListDTO> GetCourseTerms(String shortcut, String username) {
+		Course course = courseRepository.findByShortcutAndStatus(shortcut, RequestStatus.APPROVED)
 				.orElseThrow(() -> new NotFoundException("Course not found"));
 
+		if (!course.getSupervisor().getUsername().equals(username)
+				&& !userRepository.existsByUsernameAndTaughtCourses_Shortcut(username, shortcut)
+				&& !userRepository.existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(username, shortcut, RequestStatus.APPROVED)) {
+			throw new UnauthorizedException("User is not authorized to view terms of this course!");
+		}
+
 		return course.getTerms().stream()
-				.map(term -> TermListDTO.builder()
-						.id(term.getId())
-						.name(term.getName())
-						.type(getTermType(term))
-						.maxPoints(term.getMaxPoints())
-						.date(term.getDate())
-						.build())
+				.map(term -> new TermListDTO(
+						term.getId(),
+						term.getName(),
+						term.getTermType(),
+						term.getDuration(),
+						term.getRoom().getShortcut(),
+						term.getMinPoints(),
+						term.getMaxPoints(),
+						term.getDate()))
 				.collect(Collectors.toList());
 	}
 
@@ -478,6 +507,7 @@ public class CourseService {
 				.orElseThrow(() -> new NotFoundException("Course not found"));
 
 		return course.getStudentCourses().stream()
+				.filter(sc -> sc.getStatus() == RequestStatus.APPROVED)
 				.map(sc -> {
 					Wis2User student = sc.getStudent();
 					List<TermGradeDTO> termGrades = course.getTerms().stream()

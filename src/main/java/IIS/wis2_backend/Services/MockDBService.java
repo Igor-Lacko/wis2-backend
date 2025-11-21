@@ -243,7 +243,6 @@ public class MockDBService {
 						.description("Final exam for ISA - mock entry " + i)
 						.autoRegistration(true)
 						.courseShortcut(courseShortcut)
-						.supervisorUsername(supervisorUsername)
 						.roomShortcut(i % 2 == 0 ? "LAB_A" : "LEC_1")
 						.type(TermType.EXAM)
 						.nofAttempt(1)
@@ -265,7 +264,6 @@ public class MockDBService {
 						.description("Mock term " + i)
 						.autoRegistration(true)
 						.courseShortcut(courseShortcut)
-						.supervisorUsername(supervisorUsername)
 						.roomShortcut(i % 3 == 1 ? "LAB_B" : "LEC_2")
 						.type(i % 3 == 0 ? TermType.MIDTERM_EXAM : (i % 3 == 1 ? TermType.LAB : TermType.LECTURE))
 						.build();
@@ -647,6 +645,7 @@ public class MockDBService {
 								.points(0)
 								.completed(false)
 								.failed(false)
+								.status(RequestStatus.APPROVED)
 								.build();
 						course.getStudentCourses().add(sc);
 					}
@@ -670,7 +669,6 @@ public class MockDBService {
 					.description("Special assignment deadline " + i)
 					.autoRegistration(true)
 					.courseShortcut(courseShortcut)
-					.supervisorUsername(teacher.getUsername())
 					.roomShortcut("LAB_A") // Assuming LAB_A exists from InsertMockTermsForISA
 					.type(TermType.LAB)
 					.build();

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
@@ -70,13 +71,6 @@ public abstract class Term {
     private Set<StudentTerm> studentTerms = new HashSet<StudentTerm>();
 
     /**
-     * Teacher for this term.
-     */
-    @ManyToOne
-    @JoinColumn(nullable = false, name = "teacher_id")
-    private Wis2User supervisor;
-
-    /**
      * Room or rooms where the term takes place.
      */
     @ManyToOne
@@ -97,4 +91,12 @@ public abstract class Term {
      */
     @Builder.Default
     private Boolean autoregistered = false;
+
+    /**
+     * Term type for convenience.
+     */
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TermType termType = TermType.EXAM;
 }
