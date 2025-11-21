@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 import IIS.wis2_backend.DTO.Request.Course.CourseCreationDTO;
+import IIS.wis2_backend.DTO.Request.Course.CourseDetailsUpdateDTO;
 import IIS.wis2_backend.DTO.Request.ModelAttributes.CourseFilter;
 import IIS.wis2_backend.DTO.Response.Course.CourseStatistics;
 import IIS.wis2_backend.DTO.Response.Course.FullCourseDTO;
@@ -198,11 +200,6 @@ public class CourseController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{courseId}/terms")
-    public ResponseEntity<List<TermListDTO>> getCourseTerms(@PathVariable Long courseId) {
-        return ResponseEntity.ok(courseService.getCourseTerms(courseId));
-    }
-
     @GetMapping("/{courseId}/gradebook")
     public ResponseEntity<List<GradebookEntryDTO>> getCourseGradebook(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseService.getCourseGradebook(courseId));
@@ -215,6 +212,24 @@ public class CourseController {
             @PathVariable Long studentId,
             @RequestBody TermPointsUpdateDTO dto) {
         courseService.updateStudentTermPoints(courseId, termId, studentId, dto.getPoints());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Updates the details of a specific course.
+     * @param shortcut The shortcut of the course to be updated.
+     * @param dto     The DTO containing updated course details.
+     * @param authentication The authentication object of the current user.
+     * @return A ResponseEntity indicating the result of the operation.
+     */
+    @PatchMapping("/{shortcut}/details")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> UpdateCourseDetails(
+        @PathVariable String shortcut,
+        @RequestBody @Valid CourseDetailsUpdateDTO dto,
+        Authentication authentication
+    ) {
+        courseService.UpdateCourseDetails(shortcut, dto, authentication.getName());
         return ResponseEntity.ok().build();
     }
 }

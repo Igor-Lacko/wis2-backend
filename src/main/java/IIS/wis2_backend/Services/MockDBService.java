@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -108,13 +107,18 @@ public class MockDBService {
 					.username(firstName.toLowerCase() + "." + lastName.toLowerCase())
 					.birthday(Date.valueOf("1980-01-01"))
 					.email(email)
-					.password("pwd")
+					.password(passwordEncoder.encode("pwd"))
 					.activated(true)
 					.role(IIS.wis2_backend.Enum.Roles.USER)
 					.office(teacherOffice)
 					.build();
 
 			if (teacher != null) {
+				Schedule schedule = Schedule.builder()
+						.user(teacher)
+						.items(new HashSet<>())
+						.build();
+				scheduleRepository.save(schedule);
 				userRepository.save(teacher);
 			}
 		}
@@ -134,13 +138,17 @@ public class MockDBService {
 					.lastName(lastName)
 					.username(firstName.toLowerCase() + "." + lastName.toLowerCase())
 					.birthday(Date.valueOf("2000-01-01"))
-					.password("pwd")
+					.password(passwordEncoder.encode("pwd"))
 					.email(email)
 					.activated(true)
 					.role(Roles.USER)
 					.build();
 
 			if (student != null) {
+				Schedule schedule = Schedule.builder()
+						.user(student)
+						.items(new HashSet<>())
+						.build();
 				userRepository.save(student);
 			}
 		}
