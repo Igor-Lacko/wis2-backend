@@ -10,11 +10,10 @@ import jakarta.validation.constraints.Size;
  * DTO for creating a course.
  */
 public record CourseCreationDTO(
-    @NotBlank @Size(min = 5, max = 100) String name,
-    @NotBlank @Size(min = 3, max = 10) String shortcut,
-    @NotNull @DecimalMin("1") Integer capacity,
-    @NotNull @DecimalMin("0.0") Double price,
-    @NotNull CourseEndType type,
-    @NotNull Boolean autoregister
-) {
+		@NotBlank @Size(min = 5, max = 100) String name,
+		@NotBlank @Size(min = 3, max = 10) String shortcut,
+		@NotNull @DecimalMin("1") Integer capacity,
+		@NotNull @DecimalMin("0.0") Double price,
+		@NotNull CourseEndType type,
+		@NotNull Boolean autoregister) {
 }

@@ -5,6 +5,7 @@ import java.sql.Date;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import lombok.Data;
 
 
@@ -32,5 +33,6 @@ public class RegisterDTO {
     private String password;
 
     @NotNull
+    @Past
     private Date birthday;
 }
