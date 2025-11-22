@@ -264,6 +264,24 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+        /**
+         * Returns all teachers.
+         */
+        public List<VerySmallUserDTO> getAllTeachers() {
+                return userRepository.findAllByRole(Roles.TEACHER).stream()
+                                .map(this::toVerySmallUserDTO)
+                                .collect(Collectors.toList());
+        }
+
+        /**
+         * Returns all teachers who do not have an assigned office.
+         */
+        public List<VerySmallUserDTO> getTeachersWithoutOffice() {
+                return userRepository.findAllByRoleAndOfficeIsNull(Roles.TEACHER).stream()
+                                .map(this::toVerySmallUserDTO)
+                                .collect(Collectors.toList());
+        }
+
     /**
      * Delete a user by ID.
      * 
@@ -335,10 +353,15 @@ public class UserService {
     public List<VerySmallUserDTO> GetUsersByNamePart(String namePart) {
         return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(namePart, namePart)
                 .stream()
-                .map(user -> new VerySmallUserDTO(
-                        user.getUsername(),
-                        user.getFirstName(),
-                        user.getLastName()))
+                .map(this::toVerySmallUserDTO)
                 .collect(Collectors.toList());
+    }
+
+    private VerySmallUserDTO toVerySmallUserDTO(Wis2User user) {
+        return new VerySmallUserDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName());
     }
 }

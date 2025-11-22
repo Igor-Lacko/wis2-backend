@@ -142,6 +142,18 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @GetMapping("/teachers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<VerySmallUserDTO>> getAllTeachers() {
+        return ResponseEntity.ok(userService.getAllTeachers());
+    }
+
+    @GetMapping("/teachers/without-office")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<VerySmallUserDTO>> getTeachersWithoutOffice() {
+        return ResponseEntity.ok(userService.getTeachersWithoutOffice());
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {

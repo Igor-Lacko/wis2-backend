@@ -216,6 +216,7 @@ public class CourseService {
 		List<VerySmallUserDTO> pendingRequests = studentCourseRepository
 				.findByCourseShortcutAndStatus(shortcut, RequestStatus.PENDING).stream()
 				.map(sc -> new VerySmallUserDTO(
+						sc.getStudent().getId(),
 						sc.getStudent().getUsername(),
 						sc.getStudent().getFirstName(),
 						sc.getStudent().getLastName()))
@@ -750,6 +751,7 @@ public class CourseService {
 
 		return course.getTeachers().stream()
 				.map(teacher -> new VerySmallUserDTO(
+						teacher.getId(),
 						teacher.getUsername(),
 						teacher.getFirstName(),
 						teacher.getLastName()))

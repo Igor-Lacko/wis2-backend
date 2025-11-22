@@ -110,13 +110,20 @@ public class MockDBService {
 					.email(email)
 					.password(passwordEncoder.encode("pwd"))
 					.activated(true)
-					.role(IIS.wis2_backend.Enum.Roles.USER)
+					.role(Roles.TEACHER)
 					.office(teacherOffice)
 					.schedule(schedule)
 					.build();
 
 			schedule.setUser(teacher);
 			userRepository.save(teacher);
+		} else {
+			Wis2User teacher = userRepository.findByEmail(email).orElse(null);
+			if (teacher != null) {
+				teacher.setRole(Roles.TEACHER);
+				teacher.setOffice(teacherOffice);
+				userRepository.save(teacher);
+			}
 		}
 	}
 
@@ -301,6 +308,11 @@ public class MockDBService {
 		InsertMockTeacherIfNotExists("Monica", "Green", "monica.green@example.com", "D4.78");
 		InsertMockTeacherIfNotExists("Robert", "Baker", "robert.baker@example.com", "E5.90");
 		InsertMockTeacherIfNotExists("Veronica", "Hall", "veronica.hall@example.com", "A1.12");
+		InsertMockTeacherIfNotExists("Helena", "Novak", "helena.novak@example.com", "B2.34");
+		InsertMockTeacherIfNotExists("Matej", "Urban", "matej.urban@example.com", "C3.56");
+		InsertMockTeacherIfNotExists("Silvia", "Kral", "silvia.kral@example.com", "D4.78");
+		InsertMockTeacherIfNotExists("Victor", "Stone", "victor.stone@example.com", "E5.90");
+		InsertMockTeacherIfNotExists("Nina", "Sharp", "nina.sharp@example.com", "A1.12");
 	}
 
 	/**

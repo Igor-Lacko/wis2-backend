@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.Enum.RequestStatus;
+import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.User.Wis2User;
 
 /**
@@ -89,6 +90,14 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
     Set<Wis2User> findByStudentTerms_Term_Id(Long termId);
 
     /**
+     * Finds all users currently assigned to the given office.
+     *
+     * @param officeId the office identifier
+     * @return list of users occupying the office
+     */
+    List<Wis2User> findAllByOffice_Id(Long officeId);
+
+    /**
      * Find the course's supervising teacher.
      * 
      * @param courseId ID of the course.
@@ -123,4 +132,20 @@ public interface UserRepository extends JpaRepository<Wis2User, Long> {
      * @return true if the user studies the course, false otherwise.
      */
     boolean existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(String username, String shortcut, RequestStatus status);
+
+    /**
+     * Returns all users with the provided role.
+     *
+     * @param role target role
+     * @return list of matching users
+     */
+    List<Wis2User> findAllByRole(Roles role);
+
+    /**
+     * Returns all users with the provided role who do not have an assigned office.
+     *
+     * @param role target role
+     * @return list of matching users without offices
+     */
+    List<Wis2User> findAllByRoleAndOfficeIsNull(Roles role);
 }
