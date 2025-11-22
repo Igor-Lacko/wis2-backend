@@ -41,7 +41,6 @@ public class Wis2BackendApplication {
 						.build();
 				admin.setSchedule(schedule);
 
-				scheduleRepository.save(schedule);
 				userRepository.save(admin);
 			}
 		};

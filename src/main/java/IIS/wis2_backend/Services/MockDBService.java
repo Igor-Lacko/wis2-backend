@@ -1,6 +1,7 @@
 package IIS.wis2_backend.Services;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.Enum.*;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
@@ -190,8 +192,6 @@ public class MockDBService {
 				return;
 			}
 
-			scheduleRepository.save(schedule);
-
 			course.setSchedule(schedule);
 			courseRepository.save(course);
 		}
@@ -256,6 +256,7 @@ public class MockDBService {
 		InsertMockCourses();
 		// create special teacher with courses and students
 		InsertSpecialTeacher();
+		InsertFrontendTestScenario();
 	}
 
 	/**
@@ -531,7 +532,6 @@ public class MockDBService {
 					.course(course)
 					.items(new HashSet<>())
 					.build();
-			scheduleRepository.save(schedule);
 			course.setSchedule(schedule);
 			courseRepository.save(course);
 		}
@@ -582,6 +582,95 @@ public class MockDBService {
 		}
 		if (course != null) {
 			courseRepository.save(course);
+		}
+	}
+
+	/**
+	 * Inserts a scenario for frontend testing.
+	 */
+	public void InsertFrontendTestScenario() {
+		// 1. Create Users
+		String supervisorEmail = "frontend.supervisor@example.com";
+		String teacherEmail = "frontend.teacher@example.com";
+		String student1Email = "frontend.student1@example.com";
+		String student2Email = "frontend.student2@example.com";
+
+		InsertMockTeacherIfNotExists("Frontend", "Supervisor", supervisorEmail, "A1.12");
+		InsertMockTeacherIfNotExists("Frontend", "Teacher", teacherEmail, "B2.34");
+		InsertMockStudentIfNotExists("Frontend", "Student1", student1Email);
+		InsertMockStudentIfNotExists("Frontend", "Student2", student2Email);
+
+		Wis2User supervisor = userRepository.findByEmail(supervisorEmail).orElseThrow();
+		Wis2User teacher = userRepository.findByEmail(teacherEmail).orElseThrow();
+		Wis2User student1 = userRepository.findByEmail(student1Email).orElseThrow();
+		Wis2User student2 = userRepository.findByEmail(student2Email).orElseThrow();
+
+		// 2. Create Course
+		String courseShortcut = "FEC";
+		Set<Wis2User> teachers = new HashSet<>();
+		teachers.add(teacher);
+
+		InsertMockCourseIfNotExists("Frontend Development", 5000.0, courseShortcut, CourseEndType.EXAM, supervisor,
+				teachers);
+
+		// Add description
+		Course course = courseRepository.findByShortcut(courseShortcut).orElseThrow();
+		course.setDescription("This course covers everything about Frontend Development using React and TypeScript.");
+		courseRepository.save(course);
+
+		// 3. Enroll Students
+		enrollStudentDirectly(course, student1);
+		enrollStudentDirectly(course, student2);
+
+		// 4. Create Terms
+		// Lecture
+		createTerm(courseShortcut, "Intro to React", TermType.LECTURE, "LEC_1",
+				LocalDateTime.now().plusDays(2).withHour(10).withMinute(0), supervisor.getUsername());
+
+		// Lab
+		createTerm(courseShortcut, "React Hooks", TermType.LAB, "LAB_A",
+				LocalDateTime.now().plusDays(3).withHour(14).withMinute(0), supervisor.getUsername());
+
+		// Midterm
+		createTerm(courseShortcut, "Midterm Exam", TermType.MIDTERM_EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(5).withHour(9).withMinute(0), supervisor.getUsername());
+	}
+
+	private void enrollStudentDirectly(Course course, Wis2User student) {
+		boolean enrolled = course.getStudentCourses().stream()
+				.anyMatch(sc -> sc.getStudent().getId().equals(student.getId()));
+		if (!enrolled) {
+			StudentCourse sc = StudentCourse.builder()
+					.student(student)
+					.course(course)
+					.points(0)
+					.completed(false)
+					.failed(false)
+					.status(RequestStatus.APPROVED)
+					.build();
+			course.getStudentCourses().add(sc);
+			courseRepository.save(course);
+		}
+	}
+
+	private void createTerm(String courseShortcut, String name, TermType type, String room, LocalDateTime date,
+			String supervisorUsername) {
+		TermCreationDTO dto = TermCreationDTO.builder()
+				.name(name)
+				.description("Description for " + name)
+				.minPoints(0)
+				.maxPoints(type == TermType.MIDTERM_EXAM ? 50 : 0)
+				.startDate(date)
+				.duration(90)
+				.autoregister(true)
+				.roomShortcut(room)
+				.type(type)
+				.build();
+		try {
+			termService.CreateNonExamTerm(courseShortcut, dto, supervisorUsername);
+		} catch (Exception e) {
+			// Ignore if already exists or overlaps (mock data)
+			System.out.println("Failed to create term " + name + ": " + e.getMessage());
 		}
 	}
 
