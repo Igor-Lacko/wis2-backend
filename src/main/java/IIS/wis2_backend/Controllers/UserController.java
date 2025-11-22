@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PatchMapping;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
+import IIS.wis2_backend.DTO.Response.User.PendingRequestDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
 import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
@@ -179,5 +181,17 @@ public class UserController {
     public ResponseEntity<List<VerySmallUserDTO>> FindUsersMatchingQuery(@RequestParam String query) {
         List<VerySmallUserDTO> users = userService.GetUsersByNamePart(query);
         return ResponseEntity.ok(users);
+    }
+
+    /**
+     * Returns all pending requests for a user.
+     * 
+     * @param authentication Authentication object containing user details.
+     */
+    @GetMapping("/pending-requests")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<PendingRequestDTO>> GetPendingRequests(Authentication authentication) {
+        List<PendingRequestDTO> pendingRequests = userService.GetPendingRequests(authentication.getName());
+        return ResponseEntity.ok(pendingRequests);
     }
 }
