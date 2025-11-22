@@ -23,4 +23,9 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, Lo
      * The same, but also for a specific student username.
      */
     Optional<StudentCourse> findByCourseShortcutAndStatusAndStudentUsername(String shortcut, RequestStatus status, String username);
+
+    /**
+     * Fetches all StudentCourse entries for a given course ID.
+     */
+    List<StudentCourse> findAllByCourseId(Long courseId);
 }
