@@ -5,21 +5,25 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO;
 import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
+import IIS.wis2_backend.Exceptions.ExceptionTypes.UnauthorizedException;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Room;
+import IIS.wis2_backend.Models.Room.StudyRoom;
 import IIS.wis2_backend.Models.Term.*;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.Room.RoomRepository;
+import IIS.wis2_backend.Repositories.Room.StudyRoomRepository;
+import IIS.wis2_backend.Repositories.CourseRepository;
 import IIS.wis2_backend.Repositories.Education.Term.ExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.LabRepository;
 import IIS.wis2_backend.Repositories.Education.Term.LectureRepository;
@@ -31,6 +35,7 @@ import IIS.wis2_backend.Repositories.User.UserRepository;
  * Service for managing terms.
  */
 @Service
+@Transactional
 public class TermService {
     /**
      * Term repository (generic read/delete/update).
@@ -65,7 +70,12 @@ public class TermService {
     /**
      * To fetch rooms.
      */
-    private final RoomRepository roomRepository;
+    private final StudyRoomRepository studyRoomRepository;
+
+    /**
+     * To fetch courses.
+     */
+    private final CourseRepository courseRepository;
 
     /**
      * Schedule service to update schedules of everyone affiliated with a term.
@@ -82,45 +92,73 @@ public class TermService {
      * @param scheduleService        the schedule service
      * @param userRepository         the user repository
      * @param roomRepository         the room repository
+     * @param labRepository          the lab repository
+     * @param lectureRepository      the lecture repository
+     * @param courseRepository       the course repository
      */
     public TermService(TermRepository termRepository, ExamRepository examRepository,
             MidtermExamRepository midtermExamRepository, ScheduleService scheduleService,
-            UserRepository userRepository, RoomRepository roomRepository, LabRepository labRepository,
-            LectureRepository lectureRepository) {
+            UserRepository userRepository, StudyRoomRepository studyRoomRepository, LabRepository labRepository,
+            LectureRepository lectureRepository, CourseRepository courseRepository) {
         this.termRepository = termRepository;
         this.examRepository = examRepository;
         this.midtermExamRepository = midtermExamRepository;
         this.scheduleService = scheduleService;
         this.userRepository = userRepository;
-        this.roomRepository = roomRepository;
+        this.studyRoomRepository = studyRoomRepository;
         this.labRepository = labRepository;
         this.lectureRepository = lectureRepository;
+        this.courseRepository = courseRepository;
     }
 
     /**
      * Creates a midterm exam based on the provided DTO.
      * 
-     * @param dto  the term creation DTO
+     * @param dto the term creation DTO
      * @return the created lightweight term DTO
      */
-    public LightweightTermDTO CreateNonExamTerm(TermCreationDTO dto) {
-        // Get needed entities
-        Room room = GetRoom(dto.getRoomShortcut());
+    public LightweightTermDTO CreateNonExamTerm(String shortcut, TermCreationDTO dto, String supervisorUsername) {
+        Course course = courseRepository.findByShortcut(shortcut)
+                .orElseThrow(() -> new NotFoundException("Course not found with shortcut: " + shortcut));
 
-        Term term = CreateNonExamTermFromDTO(dto, room);
+        if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+            throw new UnauthorizedException("Supervisor username does not match course supervisor.");
+        }
+
+        // Get needed entities
+        StudyRoom room = GetRoom(dto.getRoomShortcut());
+
+        // Check if the room is free
+        if (!studyRoomRepository.isAvaliableBetween(dto.getRoomShortcut(), dto.getStartDate(),
+                dto.getStartDate().plusMinutes(dto.getDuration()))) {
+            throw new UnauthorizedException("Room is not available in the given time interval.");
+        }
+
+        Term term = CreateNonExamTermFromDTO(dto, room, course);
         TermType type = dto.getType();
 
-        scheduleService.CreateScheduleForTerm(term, type);
-        RegisterTerm(term, Optional.empty());
-        
-        // Save based on type
+        // Save based on type to get ID
         if (type == TermType.MIDTERM_EXAM) {
-            midtermExamRepository.save((MidtermExam) term);
+            term = midtermExamRepository.save((MidtermExam) term);
         } else if (type == TermType.LAB) {
-            labRepository.save((Lab) term);
+            term = labRepository.save((Lab) term);
         } else if (type == TermType.LECTURE) {
-            lectureRepository.save((Lecture) term);
+            term = lectureRepository.save((Lecture) term);
         }
+
+        if (dto.getAutoregister()) {
+            RegisterTerm(term);
+            // Save again to persist students
+            if (type == TermType.MIDTERM_EXAM) {
+                term = midtermExamRepository.save((MidtermExam) term);
+            } else if (type == TermType.LAB) {
+                term = labRepository.save((Lab) term);
+            } else if (type == TermType.LECTURE) {
+                term = lectureRepository.save((Lecture) term);
+            }
+        }
+
+        scheduleService.CreateScheduleForTerm(term, type);
 
         return ConvertToLightweightDTO(term, type);
     }
@@ -129,44 +167,50 @@ public class TermService {
      * Bloated convenience method to create non-exam terms (lectures, labs,
      * midterms).
      * 
-     * @param dto  the term creation DTO
+     * @param dto        the term creation DTO
      * @param supervisor the supervisor teacher
-     * @param room the room
+     * @param room       the room
      * @return the created term
      */
-    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, Room room) {
+    private Term CreateNonExamTermFromDTO(TermCreationDTO dto, StudyRoom room, Course course) {
         TermType type = dto.getType();
         if (type == TermType.MIDTERM_EXAM) {
             return MidtermExam.builder()
                     .minPoints(dto.getMinPoints())
                     .maxPoints(dto.getMaxPoints())
-                    .date(dto.getDate())
+                    .date(dto.getStartDate())
                     .duration(dto.getDuration())
+                    .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
                     .description(dto.getDescription())
                     .name(dto.getName())
                     .room(room)
+                    .course(course)
                     .termType(type)
                     .build();
         } else if (type == TermType.LAB) {
             return Lab.builder()
                     .minPoints(dto.getMinPoints())
                     .maxPoints(dto.getMaxPoints())
-                    .date(dto.getDate())
+                    .date(dto.getStartDate())
                     .duration(dto.getDuration())
+                    .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
                     .description(dto.getDescription())
                     .name(dto.getName())
                     .room(room)
+                    .course(course)
                     .termType(type)
                     .build();
         } else if (type == TermType.LECTURE) {
             return Lecture.builder()
                     .minPoints(dto.getMinPoints())
                     .maxPoints(dto.getMaxPoints())
-                    .date(dto.getDate())
+                    .date(dto.getStartDate())
                     .duration(dto.getDuration())
+                    .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
                     .description(dto.getDescription())
                     .name(dto.getName())
                     .room(room)
+                    .course(course)
                     .termType(type)
                     .build();
         } else {
@@ -174,26 +218,38 @@ public class TermService {
         }
     }
 
-    public LightweightTermDTO CreateFinalExam(ExamCreationDTO dto) {
+    public LightweightTermDTO CreateFinalExam(String shortcut, TermCreationDTO dto, String supervisorUsername) {
+        Course course = courseRepository.findByShortcut(shortcut)
+                .orElseThrow(() -> new NotFoundException("Course not found with shortcut: " + shortcut));
+
+        if (!course.getSupervisor().getUsername().equals(supervisorUsername)) {
+            throw new UnauthorizedException("Supervisor username does not match course supervisor.");
+        }
+
         // Again, needed entities
-        Room room = GetRoom(dto.getRoomShortcut());
+        StudyRoom room = GetRoom(dto.getRoomShortcut());
 
         // Create final exam
         Exam exam = Exam.builder()
                 .minPoints(dto.getMinPoints())
                 .maxPoints(dto.getMaxPoints())
-                .date(dto.getDate())
+                .date(dto.getStartDate())
                 .duration(dto.getDuration())
+                .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
                 .description(dto.getDescription())
                 .name(dto.getName())
                 .room(room)
+                .course(course)
                 .termType(TermType.EXAM)
-                .attempt(dto.getNofAttempt())
                 .build();
 
-        RegisterTerm(exam, Optional.of(dto.getNofAttempt()));
+        exam = examRepository.save(exam);
+
+        if (dto.getAutoregister()) {
+            RegisterTerm(exam);
+            exam = examRepository.save(exam);
+        }
         scheduleService.CreateScheduleForTerm(exam, TermType.EXAM);
-        examRepository.save(exam);
 
         return ConvertToLightweightDTO(exam, TermType.EXAM);
     }
@@ -207,14 +263,10 @@ public class TermService {
      * 
      * @param term the term to register
      */
-    private void RegisterTerm(Term term, Optional<Integer> whichAttempt) {
+    private void RegisterTerm(Term term) {
         if (term.getTermType() == TermType.MIDTERM_EXAM) {
             RegisterForAll(term);
         }
-
-        // Check based on the course end type and register accordingly
-        Integer attempt = whichAttempt
-                .orElseThrow(() -> new IllegalArgumentException("Attempt number is required for final exams."));
 
         Course course = term.getCourse();
         CourseEndType endType = course.getCompletedBy();
@@ -223,7 +275,7 @@ public class TermService {
 
         // Register each student who is eligible to take the exam
         for (StudentCourse sc : studentCourses) {
-            if (sc.getStatus() == RequestStatus.APPROVED && CanRegisterForFinalExam(sc, endType, attempt)) {
+            if (sc.getStatus() == RequestStatus.APPROVED && CanRegisterForFinalExam(sc, endType)) {
                 StudentTerm studentTerm = StudentTerm.builder()
                         .student(sc.getStudent())
                         .term(term)
@@ -264,7 +316,7 @@ public class TermService {
      * @param endType the course end type
      * @return true if can register, false otherwise
      */
-    private boolean CanRegisterForFinalExam(StudentCourse student, CourseEndType endType, Integer whichAttempt) {
+    private boolean CanRegisterForFinalExam(StudentCourse student, CourseEndType endType) {
         // Exam only
         if (endType == CourseEndType.EXAM) {
             return !student.getCompleted();
@@ -296,8 +348,8 @@ public class TermService {
      * @param roomShortcut the room shortcut
      * @return the fetched room
      */
-    private Room GetRoom(String roomShortcut) {
-        return roomRepository.findByShortcut(roomShortcut)
+    private StudyRoom GetRoom(String roomShortcut) {
+        return studyRoomRepository.findMaybeByShortcut(roomShortcut)
                 .orElseThrow(() -> new NotFoundException("Room not found with shortcut: " + roomShortcut));
     }
 

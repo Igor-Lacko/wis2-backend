@@ -6,6 +6,7 @@ import IIS.wis2_backend.Enum.TermType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.experimental.SuperBuilder;
@@ -19,15 +20,18 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class TermCreationDTO {
     @NotNull
+    @DecimalMin("0")
     private Integer minPoints;
 
     @NotNull
+    @DecimalMin("0")
     private Integer maxPoints;
 
     @NotNull
-    private LocalDateTime date;
+    private LocalDateTime startDate;
 
     @NotNull
+    @DecimalMin("0")
     private Integer duration;
 
     private String description;
@@ -36,10 +40,7 @@ public class TermCreationDTO {
     private String name;
 
     @NotNull
-    private Boolean autoRegistration;
-
-    @NotBlank
-    private String courseShortcut;
+    private Boolean autoregister;
 
     @NotBlank
     private String roomShortcut;

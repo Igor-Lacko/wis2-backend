@@ -10,14 +10,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
-import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Enum.*;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
-import IIS.wis2_backend.Models.Room.LabRoom;
-import IIS.wis2_backend.Models.Room.LectureRoom;
+import IIS.wis2_backend.Models.Room.StudyRoom;
 import IIS.wis2_backend.Models.Room.Office;
 import IIS.wis2_backend.Models.User.Wis2User;
 import IIS.wis2_backend.Repositories.CourseRepository;
@@ -101,6 +98,10 @@ public class MockDBService {
 		Office teacherOffice = officeRepository.findByShortcut(office);
 
 		if (!userRepository.existsByEmail(email)) {
+			Schedule schedule = Schedule.builder()
+					.items(new HashSet<>())
+					.build();
+
 			Wis2User teacher = Wis2User.builder()
 					.firstName(firstName)
 					.lastName(lastName)
@@ -111,16 +112,11 @@ public class MockDBService {
 					.activated(true)
 					.role(IIS.wis2_backend.Enum.Roles.USER)
 					.office(teacherOffice)
+					.schedule(schedule)
 					.build();
 
-			if (teacher != null) {
-				Schedule schedule = Schedule.builder()
-						.user(teacher)
-						.items(new HashSet<>())
-						.build();
-				scheduleRepository.save(schedule);
-				userRepository.save(teacher);
-			}
+			schedule.setUser(teacher);
+			userRepository.save(teacher);
 		}
 	}
 
@@ -133,6 +129,10 @@ public class MockDBService {
 	 */
 	private void InsertMockStudentIfNotExists(String firstName, String lastName, String email) {
 		if (!userRepository.existsByEmail(email)) {
+			Schedule schedule = Schedule.builder()
+					.items(new HashSet<>())
+					.build();
+
 			Wis2User student = Wis2User.builder()
 					.firstName(firstName)
 					.lastName(lastName)
@@ -142,16 +142,11 @@ public class MockDBService {
 					.email(email)
 					.activated(true)
 					.role(Roles.USER)
+					.schedule(schedule)
 					.build();
 
-			if (student != null) {
-				Schedule schedule = Schedule.builder()
-						.user(student)
-						.items(new HashSet<>())
-						.build();
-				student.setSchedule(schedule);
-				userRepository.save(student);
-			}
+			schedule.setUser(student);
+			userRepository.save(student);
 		}
 	}
 
@@ -196,97 +191,7 @@ public class MockDBService {
 		}
 	}
 
-	/**
-	 * Inserts mock terms for ISA.
-	 */
-	public void InsertMockTermsForISA() {
-		// Ensure some rooms exist for terms
-		InsertRoomIfNotExists("LAB_A", "Main", "1", true, true);
-		InsertRoomIfNotExists("LAB_B", "Main", "2", true, true);
-		InsertRoomIfNotExists("LEC_1", "Main", "1", false, null);
-		InsertRoomIfNotExists("LEC_2", "Annex", "1", false, null);
 
-		// find the ISA course
-		Course isa = courseRepository.findAll().stream()
-				.filter(c -> "ISA".equals(c.getShortcut()))
-				.findFirst()
-				.orElse(null);
-
-		if (isa == null) {
-			return;
-		}
-
-		String courseShortcut = isa.getShortcut();
-		String supervisorUsername = isa.getSupervisor() != null ? isa.getSupervisor().getUsername() : null;
-		if (supervisorUsername == null) {
-			// nothing we can do without a supervisor
-			return;
-		}
-
-		java.time.LocalDateTime base = java.time.LocalDateTime.now().plusDays(7);
-
-		// Create ~20 terms across several weeks and types
-		for (int i = 0; i < 20; i++) {
-			java.time.LocalDateTime date = base.plusWeeks(i / 3).withHour(9 + (i % 5)).withMinute(0).withSecond(0)
-					.withNano(0);
-			System.out.println("Creating mock term at " + date.toString());
-
-			// Alternate types: every 6th is final exam, others are midterms, labs or
-			// lectures
-			if (i % 6 == 5) {
-				// final exam
-				IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO exam = IIS.wis2_backend.DTO.Request.Term.ExamCreationDTO
-						.builder()
-						.name("ISA Final Exam " + (i / 6 + 1))
-						.minPoints(0)
-						.maxPoints(100)
-						.date(date)
-						.duration(120)
-						.description("Final exam for ISA - mock entry " + i)
-						.autoRegistration(true)
-						.courseShortcut(courseShortcut)
-						.roomShortcut(i % 2 == 0 ? "LAB_A" : "LEC_1")
-						.type(TermType.EXAM)
-						.nofAttempt(1)
-						.build();
-
-				try {
-					termService.CreateFinalExam(exam);
-				} catch (Exception ex) {
-					// ignore failures in mock seeding
-				}
-			} else {
-				// non-exam term (midterm, lab, lecture)
-				TermCreationDTO dto = TermCreationDTO.builder()
-						.name((i % 3 == 0 ? "ISA Midterm " : (i % 3 == 1 ? "ISA Lab " : "ISA Lecture ")) + (i + 1))
-						.minPoints(0)
-						.maxPoints(100)
-						.date(date)
-						.duration(i % 3 == 0 ? 90 : 60)
-						.description("Mock term " + i)
-						.autoRegistration(true)
-						.courseShortcut(courseShortcut)
-						.roomShortcut(i % 3 == 1 ? "LAB_B" : "LEC_2")
-						.type(i % 3 == 0 ? TermType.MIDTERM_EXAM : (i % 3 == 1 ? TermType.LAB : TermType.LECTURE))
-						.build();
-
-				try {
-					if (i % 3 == 0) {
-						// midterm
-						termService.CreateNonExamTerm(dto);
-					} else if (i % 3 == 1) {
-						// lab
-						termService.CreateNonExamTerm(dto);
-					} else {
-						// lecture
-						termService.CreateNonExamTerm(dto);
-					}
-				} catch (Exception ex) {
-					// swallow exceptions during mock seeding
-				}
-			}
-		}
-	}
 
 	/**
 	 * Inserts an office into the mock db if it doesn't exist yet.
@@ -325,24 +230,12 @@ public class MockDBService {
 			return;
 		}
 
-		if (isLab) {
-			LabRoom lab = LabRoom
-					.builder()
-					.shortcut(shortcut)
-					.building(building)
-					.floor(floor)
-					.capacity(30)
-					.pcSupport(pcSupport == null ? Boolean.FALSE : pcSupport)
-					.build();
-			roomRepository.save(lab);
-		} else {
-			LectureRoom lec = new LectureRoom();
-			lec.setShortcut(shortcut);
-			lec.setBuilding(building);
-			lec.setFloor(floor);
-			lec.setCapacity(100);
-			roomRepository.save(lec);
-		}
+		StudyRoom lec = new StudyRoom();
+		lec.setShortcut(shortcut);
+		lec.setBuilding(building);
+		lec.setFloor(floor);
+		lec.setCapacity(100);
+		roomRepository.save(lec);
 	}
 
 	/**
@@ -352,11 +245,10 @@ public class MockDBService {
 	@EventListener(ApplicationReadyEvent.class)
 	public void InitializeMockDB() {
 		InsertMockOffices();
+		InsertMockStudyRooms();
 		InsertMockStudents();
 		InsertMockTeachers();
 		InsertMockCourses();
-		// create mock terms/schedule for ISA
-		InsertMockTermsForISA();
 		// create special teacher with courses and students
 		InsertSpecialTeacher();
 	}
@@ -370,6 +262,16 @@ public class MockDBService {
 		InsertOfficeIfNotExists("C3.56");
 		InsertOfficeIfNotExists("D4.78");
 		InsertOfficeIfNotExists("E5.90");
+	}
+
+	/**
+	 * Insert study rooms needed for terms.
+	 */
+	public void InsertMockStudyRooms() {
+		InsertRoomIfNotExists("LAB_A", "Main", "1", true, true);
+		InsertRoomIfNotExists("LAB_B", "Main", "2", true, true);
+		InsertRoomIfNotExists("LEC_1", "Main", "1", false, null);
+		InsertRoomIfNotExists("LEC_2", "Annex", "1", false, null);
 	}
 
 	/**
@@ -573,6 +475,10 @@ public class MockDBService {
 		// Create Teacher
 		String teacherEmail = "special.teacher@example.com";
 		if (!userRepository.existsByEmail(teacherEmail)) {
+			Schedule schedule = Schedule.builder()
+					.items(new HashSet<>())
+					.build();
+
 			Wis2User teacher = Wis2User.builder()
 					.firstName("Special")
 					.lastName("Teacher")
@@ -582,7 +488,10 @@ public class MockDBService {
 					.birthday(Date.valueOf("1985-05-05"))
 					.activated(true)
 					.role(Roles.TEACHER)
+					.schedule(schedule)
 					.build();
+
+			schedule.setUser(teacher);
 			userRepository.save(teacher);
 		}
 
@@ -622,6 +531,10 @@ public class MockDBService {
 		for (int i = 1; i <= 5; i++) {
 			String studentEmail = "special.student" + i + "@example.com";
 			if (!userRepository.existsByEmail(studentEmail)) {
+				Schedule schedule = Schedule.builder()
+						.items(new HashSet<>())
+						.build();
+
 				Wis2User student = Wis2User.builder()
 						.firstName("Special")
 						.lastName("Student" + i)
@@ -631,7 +544,10 @@ public class MockDBService {
 						.birthday(Date.valueOf("2005-01-01"))
 						.activated(true)
 						.role(Roles.USER)
+						.schedule(schedule)
 						.build();
+
+				schedule.setUser(student);
 				userRepository.save(student);
 			}
 
@@ -656,29 +572,6 @@ public class MockDBService {
 		}
 		if (course != null) {
 			courseRepository.save(course);
-		}
-
-		// Create Terms (Deadlines)
-		java.time.LocalDateTime base = java.time.LocalDateTime.now().plusDays(3);
-		for (int i = 0; i < 5; i++) {
-			java.time.LocalDateTime date = base.plusWeeks(i);
-			TermCreationDTO dto = TermCreationDTO.builder()
-					.name("Special Assignment " + (i + 1))
-					.minPoints(0)
-					.maxPoints(20)
-					.date(date)
-					.duration(60)
-					.description("Special assignment deadline " + i)
-					.autoRegistration(true)
-					.courseShortcut(courseShortcut)
-					.roomShortcut("LAB_A") // Assuming LAB_A exists from InsertMockTermsForISA
-					.type(TermType.LAB)
-					.build();
-			try {
-				termService.CreateNonExamTerm(dto);
-			} catch (Exception ex) {
-				// ignore
-			}
 		}
 	}
 

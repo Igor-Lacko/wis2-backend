@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 
 /**
- * Model representing a lecture room.
+ * Model representing a lecture/school room.
  */
 @Entity
 @NoArgsConstructor
-public class LectureRoom extends Room {
+public class StudyRoom extends Room {
 }

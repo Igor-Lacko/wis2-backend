@@ -11,11 +11,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @SuperBuilder
 public class Exam extends Term {
-    /**
-     * Which exam attempt it is.
-     */
-    Integer attempt;
 }

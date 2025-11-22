@@ -7,8 +7,7 @@ import java.util.Set;
 import IIS.wis2_backend.Enum.TermType;
 import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
-import IIS.wis2_backend.Models.Room.Room;
-import IIS.wis2_backend.Models.User.Wis2User;
+import IIS.wis2_backend.Models.Room.StudyRoom;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -47,6 +46,12 @@ public abstract class Term {
     private LocalDateTime date;
 
     /**
+     * Term end date.
+     */
+    @Column(nullable = false)
+    private LocalDateTime endDate;
+
+    /**
      * Term duration in minutes.
      */
     @Column(nullable = false)
@@ -66,7 +71,7 @@ public abstract class Term {
     /**
      * Registered students for this term.
      */
-    @OneToMany
+    @OneToMany(mappedBy = "term", cascade = CascadeType.ALL)
     @Builder.Default
     private Set<StudentTerm> studentTerms = new HashSet<StudentTerm>();
 
@@ -75,7 +80,7 @@ public abstract class Term {
      */
     @ManyToOne
     @JoinColumn(nullable = false, name = "room_id")
-    private Room room;
+    private StudyRoom room;
 
     /**
      * Course this term belongs to.
