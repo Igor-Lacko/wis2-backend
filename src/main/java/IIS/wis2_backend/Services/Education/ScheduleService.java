@@ -125,10 +125,9 @@ public class ScheduleService {
      */
     private ScheduleItemDTO ScheduleItemToDTO(ScheduleItem item) {
         return new ScheduleItemDTO(
-                item.getId(),
                 item.getStartDate(),
                 item.getEndDate(),
-                item.getCourseName(),
+                item.getCourseShortcut(),
                 item.getType());
     }
 

@@ -194,10 +194,8 @@ public class MockDBService {
 
 			course.setSchedule(schedule);
 			courseRepository.save(course);
-
 		}
 	}
-
 
 
 	/**

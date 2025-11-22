@@ -7,7 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import IIS.wis2_backend.Enum.Roles;
+import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.Wis2User;
+import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 @SpringBootApplication
@@ -18,7 +20,8 @@ public class Wis2BackendApplication {
 	}
 
 	@Bean
-	public CommandLineRunner insertAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public CommandLineRunner insertAdmin(UserRepository userRepository, ScheduleRepository scheduleRepository,
+			PasswordEncoder passwordEncoder) {
 		return args -> {
 			if (!userRepository.existsByUsername("admin")) {
 				Wis2User admin = Wis2User.builder()
@@ -31,6 +34,14 @@ public class Wis2BackendApplication {
 						.role(Roles.ADMIN)
 						.activated(true)
 						.build();
+
+				Schedule schedule = Schedule
+						.builder()
+						.user(admin)
+						.build();
+				admin.setSchedule(schedule);
+
+				scheduleRepository.save(schedule);
 				userRepository.save(admin);
 			}
 		};
