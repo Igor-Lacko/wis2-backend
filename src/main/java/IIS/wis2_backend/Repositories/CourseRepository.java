@@ -120,7 +120,8 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return List of projected courses.
      */
     @Query("SELECT DISTINCT c FROM Course c JOIN c.studentCourses sc WHERE sc.student.username = :username AND sc.status = :enrollmentStatus AND c.status = :courseStatus")
-    <T> List<T> findCoursesByStudentUsernameAndStatus(@Param("username") String username, @Param("enrollmentStatus") RequestStatus enrollmentStatus,
+    <T> List<T> findCoursesByStudentUsernameAndStatus(@Param("username") String username,
+            @Param("enrollmentStatus") RequestStatus enrollmentStatus,
             @Param("courseStatus") RequestStatus courseStatus, Class<T> type);
 
     /**
@@ -149,7 +150,8 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     long getEnrolledCountByCourseShortcut(@Param("shortcut") String shortcut);
 
     /**
-     * Returns true if the user with the given username is the supervisor of the course.
+     * Returns true if the user with the given username is the supervisor of the
+     * course.
      * 
      * @param username Username of the user.
      * @param shortcut Shortcut of the course.
@@ -174,4 +176,25 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
      * @return true if the user is enrolled in the course, false otherwise.
      */
     Boolean existsByStudentCourses_Student_UsernameAndShortcut(String username, String shortcut);
+
+    /**
+     * Returns only the shortcuts of courses supervised by the given user with the
+     * given status.
+     * 
+     * @param username Username of the supervisor.
+     * @param status   Status of the course.
+     * @return List of course shortcuts.
+     */
+    @Query("SELECT c.shortcut FROM Course c WHERE c.supervisor.username = :username AND c.status = :status")
+    List<String> findShortcutsBySupervisor_UsernameAndStatus(@Param("username") String username,
+            @Param("status") RequestStatus status);
+
+    /**
+     * Returns all course shortcuts the user wants to register to.
+     * 
+     * @param username Username of the user.
+     * @return List of course shortcuts.
+     */
+    @Query("SELECT c.shortcut from Course c JOIN c.studentCourses sc WHERE sc.student.username = :username AND sc.status = 'PENDING'")
+    List<String> findPendingCourseShortcutsByUsername(@Param("username") String username);
 }
