@@ -44,4 +44,8 @@ public class RegisteredCourseListItemDTO {
     @NotNull
     @JsonProperty("isStudent")
     private boolean isStudent;
+
+    // TODO
+    @JsonProperty("hasRequested")
+    private Boolean hasRequested;
 }

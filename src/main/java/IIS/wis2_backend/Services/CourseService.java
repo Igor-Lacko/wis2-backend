@@ -387,10 +387,10 @@ public class CourseService {
 				.findAllByTaughtCourses_Id(course.getId());
 
 		// Map to DTOs
-		TeacherDTOForCourse supervisor = new TeacherDTOForCourse(
+		TeacherDTOForCourse supervisor = supervisorProjection != null ? new TeacherDTOForCourse(
 				supervisorProjection.getUsername(),
 				supervisorProjection.getFirstName(),
-				supervisorProjection.getLastName());
+				supervisorProjection.getLastName()) : null;
 
 		Set<TeacherDTOForCourse> teachers = teacherProjections.stream()
 				.map(t -> new TeacherDTOForCourse(t.getUsername(), t.getFirstName(), t.getLastName()))
@@ -790,6 +790,9 @@ public class CourseService {
 							.existsByTeachers_UsernameAndShortcut(username, shortcut);
 					boolean isStudent = courseRepository
 							.existsByStudentCourses_Student_UsernameAndShortcut(username, shortcut);
+					boolean hasRequested = userRepository
+							.existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(username,
+									shortcut, RequestStatus.PENDING);
 
 					return RegisteredCourseListItemDTO.builder()
 							.id(c.getId())
@@ -800,6 +803,7 @@ public class CourseService {
 							.isSupervisor(isSupervisor)
 							.isTeacher(isTeacher)
 							.isStudent(isStudent)
+							.hasRequested(hasRequested)
 							.build();
 				})
 				.collect(Collectors.toList());

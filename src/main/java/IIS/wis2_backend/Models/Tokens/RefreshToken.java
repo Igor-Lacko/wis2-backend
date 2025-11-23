@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -40,6 +41,7 @@ public class RefreshToken {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Wis2User user;
 
     /**

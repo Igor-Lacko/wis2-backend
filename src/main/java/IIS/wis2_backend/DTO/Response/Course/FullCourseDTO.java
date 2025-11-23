@@ -33,7 +33,6 @@ public class FullCourseDTO {
     @NotEmpty
     private String shortcut;
 
-    @NotNull
     private TeacherDTOForCourse supervisor;
 
     @NotNull

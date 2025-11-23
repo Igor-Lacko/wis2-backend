@@ -62,7 +62,7 @@ public class Course {
      * Course supervisor/"garant"
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "supervisor_id")
+    @JoinColumn(nullable = true, name = "supervisor_id")
     private Wis2User supervisor;
 
     /**

@@ -76,7 +76,7 @@ public abstract class Term {
     private Set<StudentTerm> studentTerms = new HashSet<StudentTerm>();
 
     /**
-     * Room or rooms where the term takes place.
+     * Room where the term takes place.
      */
     @ManyToOne
     @JoinColumn(nullable = false, name = "room_id")

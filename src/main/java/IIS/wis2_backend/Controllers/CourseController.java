@@ -27,6 +27,7 @@ import IIS.wis2_backend.DTO.Response.Course.SupervisorCourseDTO;
 import IIS.wis2_backend.DTO.Response.Course.CourseShortened;
 import IIS.wis2_backend.DTO.Response.Course.StudentGradeDTO;
 import IIS.wis2_backend.DTO.Response.Course.TermListDTO;
+import IIS.wis2_backend.DTO.Response.Term.FullTermDTO;
 import IIS.wis2_backend.DTO.Response.User.VerySmallUserDTO;
 import IIS.wis2_backend.DTO.Response.Course.GradebookEntryDTO;
 import IIS.wis2_backend.DTO.Request.Course.TermPointsUpdateDTO;
@@ -38,6 +39,7 @@ import IIS.wis2_backend.Services.Education.TermService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+
 
 /**
  * Controller for course access.
@@ -433,4 +435,18 @@ public class CourseController {
 		termService.UnregisterStudentFromTerm(termId, authentication.getName());
 		return ResponseEntity.ok().build();
 	}
+
+	/**
+	 * Gets full details of a term by its ID.
+	 * 
+	 * @param termId The ID of the term.
+	 * @return A ResponseEntity containing the full term DTO.
+	 */
+	@GetMapping("/terms/{termId}")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<FullTermDTO> GetTerm(@PathVariable Long termId, Authentication authentication) {
+		FullTermDTO term = termService.GetFullTermDTO(termId, authentication.getName());
+		return ResponseEntity.ok(term);
+	}
+	
 }

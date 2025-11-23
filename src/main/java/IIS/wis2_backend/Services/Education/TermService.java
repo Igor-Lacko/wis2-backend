@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import IIS.wis2_backend.DTO.Request.Term.TermCreationDTO;
+import IIS.wis2_backend.DTO.Response.Term.FullTermDTO;
 import IIS.wis2_backend.DTO.Response.Term.LightweightTermDTO;
 import IIS.wis2_backend.Enum.CourseEndType;
 import IIS.wis2_backend.Enum.TermType;
@@ -374,74 +375,123 @@ public class TermService {
     }
 
     /**
-	 * Registers a student to a specific term.
-	 * 
-	 * @param termId   The ID of the term.
-	 * @param username The username of the student.
-	 */
-	@Transactional
-	public void RegisterStudentToTerm(Long termId, String username) {
-		Term term = termRepository.findById(termId)
-				.orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
+     * Registers a student to a specific term.
+     * 
+     * @param termId   The ID of the term.
+     * @param username The username of the student.
+     */
+    @Transactional
+    public void RegisterStudentToTerm(Long termId, String username) {
+        Term term = termRepository.findById(termId)
+                .orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
 
-		Wis2User student = userRepository.findByUsername(username)
-				.orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+        Wis2User student = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
 
-		Course course = term.getCourse();
+        Course course = term.getCourse();
 
-		// Check if student is enrolled in the course
-		StudentCourse studentCourse = course.getStudentCourses().stream()
-				.filter(sc -> sc.getStudent().getId().equals(student.getId())
-						&& sc.getStatus() == RequestStatus.APPROVED)
-				.findFirst()
-				.orElseThrow(() -> new UnauthorizedException("Student is not enrolled in the course!"));
+        // Check if student is enrolled in the course
+        StudentCourse studentCourse = course.getStudentCourses().stream()
+                .filter(sc -> sc.getStudent().getId().equals(student.getId())
+                        && sc.getStatus() == RequestStatus.APPROVED)
+                .findFirst()
+                .orElseThrow(() -> new UnauthorizedException("Student is not enrolled in the course!"));
 
-		// Check if already registered
-		if (term.getStudentTerms().stream()
-				.anyMatch(st -> st.getStudent().getId().equals(student.getId()))) {
-			throw new IllegalArgumentException("Student is already registered for this term!");
-		}
+        // Check if already registered
+        if (term.getStudentTerms().stream()
+                .anyMatch(st -> st.getStudent().getId().equals(student.getId()))) {
+            throw new IllegalArgumentException("Student is already registered for this term!");
+        }
 
-		// Check capacity (room capacity)
-		int currentRegistrations = term.getStudentTerms().size();
-		if (currentRegistrations >= term.getRoom().getCapacity()) {
-			throw new IllegalArgumentException("Term is full!");
-		}
+        // Check capacity (room capacity)
+        int currentRegistrations = term.getStudentTerms().size();
+        if (currentRegistrations >= term.getRoom().getCapacity()) {
+            throw new IllegalArgumentException("Term is full!");
+        }
 
-		// Register - create and persist the StudentTerm entity
-		StudentTerm studentTerm = StudentTerm.builder()
-				.student(student)
-				.term(term)
-				.build();
+        // Register - create and persist the StudentTerm entity
+        StudentTerm studentTerm = StudentTerm.builder()
+                .student(student)
+                .term(term)
+                .build();
 
-		studentTerm = studentTermRepository.save(studentTerm);
+        studentTerm = studentTermRepository.save(studentTerm);
 
-		// Update schedule
-		scheduleService.AddTermToUserSchedule(term, student);
-	}
+        // Update schedule
+        scheduleService.AddTermToUserSchedule(term, student);
+    }
 
-	/**
-	 * Unregisters a student from a specific term.
-	 * 
-	 * @param termId   The ID of the term.
-	 * @param username The username of the student.
-	 */
-	@Transactional
-	public void UnregisterStudentFromTerm(Long termId, String username) {
-		Term term = termRepository.findById(termId)
-				.orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
+    /**
+     * Unregisters a student from a specific term.
+     * 
+     * @param termId   The ID of the term.
+     * @param username The username of the student.
+     */
+    @Transactional
+    public void UnregisterStudentFromTerm(Long termId, String username) {
+        Term term = termRepository.findById(termId)
+                .orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
 
-		Wis2User student = userRepository.findByUsername(username)
-				.orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+        Wis2User student = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
 
-		// Verify student is registered
-		studentTermRepository.findByTermIdAndStudentId(termId, student.getId())
-				.orElseThrow(() -> new IllegalArgumentException("Student is not registered for this term!"));
+        // Verify student is registered
+        studentTermRepository.findByTermIdAndStudentId(termId, student.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Student is not registered for this term!"));
 
-		// Update schedule first (before deleting the entity)
-		scheduleService.RemoveTermFromUserSchedule(term, student);
+        // Update schedule first (before deleting the entity)
+        scheduleService.RemoveTermFromUserSchedule(term, student);
 
-		// Delete the StudentTerm entity using custom query
-		studentTermRepository.deleteByTermIdAndStudentId(termId, student.getId());
-	}
+        // Delete the StudentTerm entity using custom query
+        studentTermRepository.deleteByTermIdAndStudentId(termId, student.getId());
+    }
+
+    /**
+     * Returns a full term DTO for viewing.
+     * 
+     * @param termId            the term ID
+     * @param requesterUsername the username of the requester. must be a
+     *                          supervisor/teacher/student of the course
+     * @return the full term DTO
+     */
+    @Transactional(readOnly = true)
+    public FullTermDTO GetFullTermDTO(Long termId, String requesterUsername) {
+        Term term = termRepository.findById(termId)
+                .orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
+
+        String courseShortcut = term.getCourse().getShortcut();
+
+        boolean isSupervisor = courseRepository
+                .existsBySupervisor_UsernameAndShortcut(requesterUsername, courseShortcut);
+
+        if (!isSupervisor) {
+            boolean isTeacher = userRepository
+                    .existsByUsernameAndTaughtCourses_Shortcut(requesterUsername, courseShortcut);
+
+            if (!isTeacher) {
+                boolean isStudent = userRepository
+                        .existsByUsernameAndStudentCourses_Course_ShortcutAndStudentCourses_Status(requesterUsername,
+                                courseShortcut, RequestStatus.APPROVED);
+
+                if (!isStudent) {
+                    throw new UnauthorizedException("User is not authorized to view this term.");
+                }
+            }
+        }
+
+        FullTermDTO dto = FullTermDTO
+                .builder()
+                .name(term.getName())
+                .description(term.getDescription())
+                .startTime(term.getDate())
+                .endTime(term.getEndDate())
+                .roomShortcut(term.getRoom().getShortcut())
+                .courseName(term.getCourse().getName())
+                .nofEnrolled(term.getStudentTerms().size())
+                .minPoints(term.getMinPoints())
+                .maxPoints(term.getMaxPoints())
+                .build();
+
+        return dto;
+    }
 }

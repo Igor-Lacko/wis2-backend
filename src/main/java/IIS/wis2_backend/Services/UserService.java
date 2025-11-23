@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -301,10 +302,28 @@ public class UserService {
 	 * @param id User ID.
 	 */
 	public void deleteUser(Long id) {
-		if (!userRepository.existsById(id)) {
-			throw new NotFoundException("User not found");
+		Wis2User user = userRepository.findById(id)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+
+		// Remove from supervised courses
+		var supervised = new ArrayList<>(user.getSupervisedCourses());
+		if (!supervised.isEmpty()) {
+			for (var course : supervised) {
+				course.setSupervisor(null);
+				courseRepository.save(course);
+			}
 		}
-		userRepository.deleteById(id);
+
+		// Remove from taught courses
+		var taught = new ArrayList<>(user.getTaughtCourses());
+		if (!taught.isEmpty()) {
+			for (var course : taught) {
+				course.getTeachers().remove(user);
+				courseRepository.save(course);
+			}
+		}
+
+		userRepository.delete(user);
 	}
 
 	/**
