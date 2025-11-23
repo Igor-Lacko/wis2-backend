@@ -623,27 +623,30 @@ public class MockDBService {
 		enrollStudentDirectly(course, student2);
 
 		// 4. Create Terms
-		// Lecture
+		// Total points must add up to 100: Lab(20) + Midterm(30) + Final Exam(50) = 100
+		
+		// Lecture - No points (informational only)
 		createTerm(courseShortcut, "Intro to React", TermType.LECTURE, "LEC_1",
 				LocalDateTime.now().plusDays(2).withHour(10).withMinute(0), supervisor.getUsername());
 
-		// Lab
-		createTerm(courseShortcut, "React Hooks", TermType.LAB, "LAB_A",
-				LocalDateTime.now().plusDays(3).withHour(14).withMinute(0), supervisor.getUsername());
+		// Lab - 20 points, auto-registered
+		createTermWithPoints(courseShortcut, "React Hooks Lab", TermType.LAB, "LAB_A",
+				LocalDateTime.now().plusDays(3).withHour(14).withMinute(0), supervisor.getUsername(), 20, true);
 
-		// Midterm
-		createTerm(courseShortcut, "Midterm Exam", TermType.MIDTERM_EXAM, "LEC_1",
-				LocalDateTime.now().plusDays(5).withHour(9).withMinute(0), supervisor.getUsername());
+		// Midterm - 30 points, auto-registered
+		createTermWithPoints(courseShortcut, "Midterm Exam", TermType.MIDTERM_EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(5).withHour(9).withMinute(0), supervisor.getUsername(), 30, true);
 
-		// Final Exam - NOT auto-registered (students need to register manually)
-		createManualTerm(courseShortcut, "Final Exam - Slot 1", TermType.EXAM, "LEC_1",
-				LocalDateTime.now().plusDays(10).withHour(9).withMinute(0), supervisor.getUsername());
+		// Final Exam - 50 points, NOT auto-registered (students need to register manually)
+		// Multiple exam slots but students can only register for one
+		createTermWithPoints(courseShortcut, "Final Exam - Slot 1", TermType.EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(10).withHour(9).withMinute(0), supervisor.getUsername(), 50, false);
 
-		createManualTerm(courseShortcut, "Final Exam - Slot 2", TermType.EXAM, "LEC_2",
-				LocalDateTime.now().plusDays(10).withHour(14).withMinute(0), supervisor.getUsername());
+		createTermWithPoints(courseShortcut, "Final Exam - Slot 2", TermType.EXAM, "LEC_2",
+				LocalDateTime.now().plusDays(10).withHour(14).withMinute(0), supervisor.getUsername(), 50, false);
 
-		createManualTerm(courseShortcut, "Final Exam - Slot 3", TermType.EXAM, "LEC_1",
-				LocalDateTime.now().plusDays(12).withHour(10).withMinute(0), supervisor.getUsername());
+		createTermWithPoints(courseShortcut, "Final Exam - Slot 3", TermType.EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(12).withHour(10).withMinute(0), supervisor.getUsername(), 50, false);
 	}
 
 	private void enrollStudentDirectly(Course course, Wis2User student) {
@@ -669,7 +672,7 @@ public class MockDBService {
 				.name(name)
 				.description("Description for " + name)
 				.minPoints(0)
-				.maxPoints(type == TermType.MIDTERM_EXAM ? 50 : 0)
+				.maxPoints(0) // Lectures have no points
 				.startDate(date)
 				.duration(90)
 				.autoregister(true)
@@ -688,16 +691,16 @@ public class MockDBService {
 		}
 	}
 
-	private void createManualTerm(String courseShortcut, String name, TermType type, String room, LocalDateTime date,
-			String supervisorUsername) {
+	private void createTermWithPoints(String courseShortcut, String name, TermType type, String room,
+			LocalDateTime date, String supervisorUsername, int maxPoints, boolean autoregister) {
 		TermCreationDTO dto = TermCreationDTO.builder()
 				.name(name)
-				.description("Students must register for this term manually")
+				.description(autoregister ? "Auto-registered for all students" : "Students must register manually")
 				.minPoints(0)
-				.maxPoints(type == TermType.EXAM ? 100 : 50)
+				.maxPoints(maxPoints)
 				.startDate(date)
-				.duration(120)
-				.autoregister(false)
+				.duration(type == TermType.EXAM ? 120 : 90)
+				.autoregister(autoregister)
 				.roomShortcut(room)
 				.type(type)
 				.build();
@@ -709,9 +712,11 @@ public class MockDBService {
 			}
 		} catch (Exception e) {
 			// Ignore if already exists or overlaps (mock data)
-			System.out.println("Failed to create manual term " + name + ": " + e.getMessage());
+			System.out.println("Failed to create term " + name + ": " + e.getMessage());
 		}
 	}
+
+
 
 	/**
 	 * Clear the mock database.

@@ -15,7 +15,8 @@ import lombok.NoArgsConstructor;
 public class GradebookEntryDTO {
     private UserShortened student;
     private List<TermGradeDTO> termGrades;
-    private Integer points;
+    private Integer totalPoints; // Sum of all term points
+    private Integer points; // Legacy field - kept for backward compatibility
     private Boolean unitCredit;
     private Boolean examPassed;
     private Double finalGrade;

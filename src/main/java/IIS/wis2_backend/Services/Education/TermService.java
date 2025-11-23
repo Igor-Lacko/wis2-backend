@@ -135,6 +135,9 @@ public class TermService {
             throw new UnauthorizedException("Supervisor username does not match course supervisor.");
         }
 
+        // Validate total max points won't exceed 100
+        validateTotalMaxPoints(course, dto.getMaxPoints(), dto.getType());
+
         // Get needed entities
         StudyRoom room = GetRoom(dto.getRoomShortcut());
 
@@ -236,6 +239,9 @@ public class TermService {
             throw new UnauthorizedException("Supervisor username does not match course supervisor.");
         }
 
+        // Validate total max points won't exceed 100
+        validateTotalMaxPoints(course, dto.getMaxPoints(), TermType.EXAM);
+
         // Again, needed entities
         StudyRoom room = GetRoom(dto.getRoomShortcut());
 
@@ -265,36 +271,42 @@ public class TermService {
     }
 
     /**
-     * Registers the given term to:
-     * 1. All students who have this course (midterm, final without unit-credit)
-     * 2. All students who have this course and have unit-credit (final with
-     * unit-credit)
-     * 3. All students who can go to the exam and failed the prior attempt.
+     * Registers students to a term based on term type and course requirements.
+     * - MIDTERM_EXAM: Auto-registers all approved students
+     * - LAB/LECTURE: Auto-registers all approved students
+     * - EXAM: Auto-registers only eligible students (based on course end type)
      * 
      * @param term the term to register
      */
     private void RegisterTerm(Term term) {
-        if (term.getTermType() == TermType.MIDTERM_EXAM) {
+        TermType termType = term.getTermType();
+        
+        // For midterms, labs, and lectures - register all approved students
+        if (termType == TermType.MIDTERM_EXAM || termType == TermType.LAB || termType == TermType.LECTURE) {
             RegisterForAll(term);
+            return;
         }
+        
+        // For final exams - only register eligible students
+        if (termType == TermType.EXAM) {
+            Course course = term.getCourse();
+            CourseEndType endType = course.getCompletedBy();
+            Set<StudentCourse> studentCourses = course.getStudentCourses();
+            Set<StudentTerm> students = new HashSet<StudentTerm>();
 
-        Course course = term.getCourse();
-        CourseEndType endType = course.getCompletedBy();
-        Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<StudentTerm> students = new HashSet<StudentTerm>();
-
-        // Register each student who is eligible to take the exam
-        for (StudentCourse sc : studentCourses) {
-            if (sc.getStatus() == RequestStatus.APPROVED && CanRegisterForFinalExam(sc, endType)) {
-                StudentTerm studentTerm = StudentTerm.builder()
-                        .student(sc.getStudent())
-                        .term(term)
-                        .build();
-                students.add(studentTerm);
+            // Register each student who is eligible to take the exam
+            for (StudentCourse sc : studentCourses) {
+                if (sc.getStatus() == RequestStatus.APPROVED && CanRegisterForFinalExam(sc, endType)) {
+                    StudentTerm studentTerm = StudentTerm.builder()
+                            .student(sc.getStudent())
+                            .term(term)
+                            .build();
+                    students.add(studentTerm);
+                }
             }
-        }
 
-        term.setStudentTerms(students);
+            term.setStudentTerms(students);
+        }
     }
 
     /**
@@ -350,6 +362,36 @@ public class TermService {
     private Wis2User GetSupervisor(String supervisorUsername) {
         return userRepository.findByUsername(supervisorUsername)
                 .orElseThrow(() -> new NotFoundException("Teacher not found with username: " + supervisorUsername));
+    }
+
+    /**
+     * Validates that adding a new term with the given maxPoints won't exceed 100 total.
+     * Only checks graded terms (MIDTERM_EXAM, LAB, EXAM).
+     * 
+     * @param course the course
+     * @param newMaxPoints the maxPoints for the new term
+     * @param termType the type of term being created
+     * @throws IllegalArgumentException if total would exceed 100
+     */
+    private void validateTotalMaxPoints(Course course, Integer newMaxPoints, TermType termType) {
+        // Only validate graded terms
+        if (termType == TermType.LECTURE || newMaxPoints == null || newMaxPoints == 0) {
+            return;
+        }
+        
+        // Calculate current total of max points for graded terms
+        int currentTotal = course.getTerms().stream()
+                .filter(t -> t.getMaxPoints() != null && t.getTermType() != TermType.LECTURE)
+                .mapToInt(Term::getMaxPoints)
+                .sum();
+        
+        int newTotal = currentTotal + newMaxPoints;
+        
+        if (newTotal > 100) {
+            throw new IllegalArgumentException(
+                String.format("Adding this term would exceed 100 total points. Current total: %d, new term: %d, would be: %d",
+                    currentTotal, newMaxPoints, newTotal));
+        }
     }
 
     /**
@@ -479,6 +521,13 @@ public class TermService {
             }
         }
 
+        // Check if the requester is registered for this term
+        Wis2User requester = userRepository.findByUsername(requesterUsername)
+                .orElseThrow(() -> new NotFoundException("User not found: " + requesterUsername));
+        
+        boolean isRegistered = term.getStudentTerms().stream()
+                .anyMatch(st -> st.getStudent().getId().equals(requester.getId()));
+
         FullTermDTO dto = FullTermDTO
                 .builder()
                 .name(term.getName())
@@ -488,8 +537,11 @@ public class TermService {
                 .roomShortcut(term.getRoom().getShortcut())
                 .courseName(term.getCourse().getName())
                 .nofEnrolled(term.getStudentTerms().size())
+                .autoregister(term.getAutoregistered())
+                .termType(term.getTermType())
                 .minPoints(term.getMinPoints())
                 .maxPoints(term.getMaxPoints())
+                .isRegistered(isRegistered)
                 .build();
 
         return dto;

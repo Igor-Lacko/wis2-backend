@@ -42,4 +42,6 @@ public class FullTermDTO {
     private Integer minPoints;
 
     private Integer maxPoints;
+
+    private Boolean isRegistered;
 }

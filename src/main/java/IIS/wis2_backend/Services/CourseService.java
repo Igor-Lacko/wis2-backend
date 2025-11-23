@@ -574,6 +574,7 @@ public class CourseService {
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		return course.getTerms().stream()
+				.sorted((t1, t2) -> t1.getDate().compareTo(t2.getDate())) // Sort by date
 				.map(term -> {
 					boolean isRegistered = term.getStudentTerms().stream()
 							.anyMatch(st -> st.getStudent().getId().equals(user.getId()));
@@ -644,20 +645,31 @@ public class CourseService {
 				.filter(sc -> sc.getStatus() == RequestStatus.APPROVED)
 				.map(sc -> {
 					Wis2User student = sc.getStudent();
+					
+					// Calculate term grades with enrollment status
 					List<TermGradeDTO> termGrades = course.getTerms().stream()
 							.map(term -> {
-								return term.getStudentTerms().stream()
-										.filter(st -> st.getStudent().getId()
-												.equals(student.getId()))
+								// Find if student is enrolled in this term
+								StudentTerm studentTerm = term.getStudentTerms().stream()
+										.filter(st -> st.getStudent().getId().equals(student.getId()))
 										.findFirst()
-										.map(st -> TermGradeDTO.builder()
-												.termId(term.getId())
-												.points(st.getPoints())
-												.build())
 										.orElse(null);
+								
+								return TermGradeDTO.builder()
+										.termId(term.getId())
+										.termName(term.getName())
+										.points(studentTerm != null ? studentTerm.getPoints() : null)
+										.maxPoints(term.getMaxPoints())
+										.enrolled(studentTerm != null)
+										.build();
 							})
-							.filter(java.util.Objects::nonNull)
 							.collect(Collectors.toList());
+					
+					// Calculate total points from enrolled terms
+					Integer totalPoints = termGrades.stream()
+							.filter(tg -> tg.getEnrolled() && tg.getPoints() != null)
+							.mapToInt(TermGradeDTO::getPoints)
+							.sum();
 
 					return GradebookEntryDTO.builder()
 							.student(UserShortened.builder()
@@ -667,6 +679,7 @@ public class CourseService {
 									.lastName(student.getLastName())
 									.build())
 							.termGrades(termGrades)
+							.totalPoints(totalPoints)
 							.points(sc.getPoints())
 							.unitCredit(sc.getUnitCredit())
 							.examPassed(sc.getExamPassed())
