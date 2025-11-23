@@ -233,6 +233,42 @@ public class CourseController {
 	}
 
 	/**
+	 * Grants unit credit (zápočet) to a student in a course.
+	 * 
+	 * @param courseId       The ID of the course.
+	 * @param studentId      The ID of the student.
+	 * @param authentication The authentication object of the current user.
+	 * @return A ResponseEntity indicating the result of the operation.
+	 */
+	@PostMapping("/{courseId}/students/{studentId}/credit")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<Void> grantCredit(
+			@PathVariable Long courseId,
+			@PathVariable Long studentId,
+			Authentication authentication) {
+		courseService.grantCredit(courseId, studentId, authentication.getName());
+		return ResponseEntity.ok().build();
+	}
+
+	/**
+	 * Grants exam pass and calculates final grade for a student in a course.
+	 * 
+	 * @param courseId       The ID of the course.
+	 * @param studentId      The ID of the student.
+	 * @param authentication The authentication object of the current user.
+	 * @return A ResponseEntity indicating the result of the operation.
+	 */
+	@PostMapping("/{courseId}/students/{studentId}/exam")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<Void> grantExam(
+			@PathVariable Long courseId,
+			@PathVariable Long studentId,
+			Authentication authentication) {
+		courseService.grantExam(courseId, studentId, authentication.getName());
+		return ResponseEntity.ok().build();
+	}
+
+	/**
 	 * Updates the details of a specific course.
 	 * 
 	 * @param shortcut       The shortcut of the course to be updated.

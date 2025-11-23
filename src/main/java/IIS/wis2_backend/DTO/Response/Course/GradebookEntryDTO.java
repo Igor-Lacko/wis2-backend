@@ -15,5 +15,9 @@ import lombok.NoArgsConstructor;
 public class GradebookEntryDTO {
     private UserShortened student;
     private List<TermGradeDTO> termGrades;
+    private Integer points;
+    private Boolean unitCredit;
+    private Boolean examPassed;
     private Double finalGrade;
+    private Boolean completed;
 }

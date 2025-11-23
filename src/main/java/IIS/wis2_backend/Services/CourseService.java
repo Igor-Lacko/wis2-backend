@@ -528,6 +528,10 @@ public class CourseService {
 								.lastName(sc.getStudent().getLastName())
 								.build())
 						.grade(sc.getFinalGrade())
+						.points(sc.getPoints())
+						.unitCredit(sc.getUnitCredit())
+						.examPassed(sc.getExamPassed())
+						.completed(sc.getCompleted())
 						.build())
 				.collect(Collectors.toList());
 	}
@@ -663,7 +667,11 @@ public class CourseService {
 									.lastName(student.getLastName())
 									.build())
 							.termGrades(termGrades)
+							.points(sc.getPoints())
+							.unitCredit(sc.getUnitCredit())
+							.examPassed(sc.getExamPassed())
 							.finalGrade(sc.getFinalGrade())
+							.completed(sc.getCompleted())
 							.build();
 				})
 				.collect(Collectors.toList());
@@ -849,5 +857,126 @@ public class CourseService {
 
 		return status.equals(RequestStatus.APPROVED) ? "Enrolled successfully!"
 				: "Enrollment request submitted successfully!";
+	}
+
+	/**
+	 * Grants unit credit (zápočet) to a student in a course.
+	 * 
+	 * @param courseId        The ID of the course.
+	 * @param studentId       The ID of the student.
+	 * @param teacherUsername The username of the teacher granting the credit.
+	 */
+	@Transactional
+	public void grantCredit(Long courseId, Long studentId, String teacherUsername) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
+
+		// Verify teacher authorization
+		if (!course.getSupervisor().getUsername().equals(teacherUsername)
+				&& !course.getTeachers().stream()
+						.anyMatch(t -> t.getUsername().equals(teacherUsername))) {
+			throw new UnauthorizedException("User is not authorized to grant credit in this course!");
+		}
+
+		// Find student-course relationship
+		StudentCourse studentCourse = course.getStudentCourses().stream()
+				.filter(sc -> sc.getStudent().getId().equals(studentId) && sc.getStatus() == RequestStatus.APPROVED)
+				.findFirst()
+				.orElseThrow(() -> new NotFoundException("Student not found in course"));
+
+		// Check if credit already granted
+		if (Boolean.TRUE.equals(studentCourse.getUnitCredit())) {
+			throw new AlreadySetException("Unit credit already granted to this student!");
+		}
+
+		// Grant credit
+		studentCourse.setUnitCredit(true);
+
+		// If course is UNIT_CREDIT only, mark as completed
+		if (course.getCompletedBy() == CourseEndType.UNIT_CREDIT) {
+			studentCourse.setCompleted(true);
+		}
+
+		courseRepository.save(course);
+	}
+
+	/**
+	 * Grants exam pass and calculates final grade for a student in a course.
+	 * 
+	 * @param courseId        The ID of the course.
+	 * @param studentId       The ID of the student.
+	 * @param teacherUsername The username of the teacher granting the exam.
+	 */
+	@Transactional
+	public void grantExam(Long courseId, Long studentId, String teacherUsername) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new NotFoundException("Course not found: " + courseId));
+
+		// Verify teacher authorization
+		if (!course.getSupervisor().getUsername().equals(teacherUsername)
+				&& !course.getTeachers().stream()
+						.anyMatch(t -> t.getUsername().equals(teacherUsername))) {
+			throw new UnauthorizedException("User is not authorized to grant exam in this course!");
+		}
+
+		// Find student-course relationship
+		StudentCourse studentCourse = course.getStudentCourses().stream()
+				.filter(sc -> sc.getStudent().getId().equals(studentId) && sc.getStatus() == RequestStatus.APPROVED)
+				.findFirst()
+				.orElseThrow(() -> new NotFoundException("Student not found in course"));
+
+		// Check if exam already granted
+		if (Boolean.TRUE.equals(studentCourse.getExamPassed())) {
+			throw new AlreadySetException("Exam already granted to this student!");
+		}
+
+		// For UNIT_CREDIT_EXAM, student must have credit first
+		if (course.getCompletedBy() == CourseEndType.UNIT_CREDIT_EXAM) {
+			if (!Boolean.TRUE.equals(studentCourse.getUnitCredit())) {
+				throw new IllegalArgumentException("Student must have unit credit before granting exam!");
+			}
+		}
+
+		// Validate points
+		Integer points = studentCourse.getPoints();
+		if (points == null || points < 0 || points > 100) {
+			throw new IllegalArgumentException("Invalid points! Points must be between 0 and 100.");
+		}
+
+		// Set exam as passed
+		studentCourse.setExamPassed(true);
+
+		// Calculate final grade (only if not UNIT_CREDIT)
+		if (course.getCompletedBy() != CourseEndType.UNIT_CREDIT) {
+			double finalGrade = calculateFinalGrade(points);
+			studentCourse.setFinalGrade(finalGrade);
+		}
+
+		// Mark as completed
+		studentCourse.setCompleted(true);
+
+		courseRepository.save(course);
+	}
+
+	/**
+	 * Calculates final grade based on points.
+	 * 
+	 * @param points The points earned (0-100).
+	 * @return The final grade (1.0-4.0, or 5.0 for fail).
+	 */
+	private double calculateFinalGrade(int points) {
+		if (points >= 90) {
+			return 1.0;
+		} else if (points >= 80) {
+			return 1.5;
+		} else if (points >= 70) {
+			return 2.0;
+		} else if (points >= 60) {
+			return 2.5;
+		} else if (points >= 50) {
+			return 3.0;
+		} else {
+			return 4.0; // Fail
+		}
 	}
 }

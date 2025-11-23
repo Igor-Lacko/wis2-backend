@@ -13,4 +13,8 @@ import lombok.Builder;
 public class StudentGradeDTO {
     private UserShortened student;
     private Double grade;
+    private Integer points;
+    private Boolean unitCredit;
+    private Boolean examPassed;
+    private Boolean completed;
 }
