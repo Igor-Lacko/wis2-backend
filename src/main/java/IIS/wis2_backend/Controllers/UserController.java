@@ -1,8 +1,6 @@
 package IIS.wis2_backend.Controllers;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,32 +47,6 @@ public class UserController {
      */
     public UserController(UserService userService) {
         this.userService = userService;
-    }
-
-    /**
-     * Logout a user by id.
-     * 
-     * @param id
-     * @return
-     */
-    @GetMapping("/logout")
-    public ResponseEntity<Integer> Logout() {
-        // Invalidate jwt token and http cookie
-        try {
-            // Create an expired cookie for the same name so the client will remove it
-            ResponseCookie expiredCookie = ResponseCookie.from("JWT", "")
-                    .httpOnly(true)
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
-                    .body(0);
-        } catch (Exception e) {
-            // Something went wrong while creating the cookie
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(-1);
-        }
     }
 
     /**

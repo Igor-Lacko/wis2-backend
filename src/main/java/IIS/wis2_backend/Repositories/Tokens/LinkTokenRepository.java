@@ -1,4 +1,4 @@
-package IIS.wis2_backend.Repositories;
+package IIS.wis2_backend.Repositories.Tokens;
 
 import java.util.Optional;
 
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import IIS.wis2_backend.Enum.LinkTokenType;
-import IIS.wis2_backend.Models.LinkToken;
+import IIS.wis2_backend.Models.Tokens.LinkToken;
 
 /**
  * Repository for activation and password reset tokens.

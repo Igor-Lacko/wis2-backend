@@ -1,6 +1,8 @@
 package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringExclude;
@@ -11,6 +13,7 @@ import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.Relational.StudentCourse;
 import IIS.wis2_backend.Models.Relational.StudentTerm;
 import IIS.wis2_backend.Models.Room.Office;
+import IIS.wis2_backend.Models.Tokens.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -94,6 +97,13 @@ public class Wis2User {
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
+    /**
+     * User refresh token.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
+
     // --- Student Fields ---
 
     /**
@@ -137,9 +147,4 @@ public class Wis2User {
     @ToStringExclude
     @EqualsAndHashCode.Exclude
     private Set<Course> taughtCourses;
-
-    /**
-     * TODO: ak sa nam bude chciet byt fancy 
-     * Last login
-     */
 }

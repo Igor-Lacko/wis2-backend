@@ -4,15 +4,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import IIS.wis2_backend.Enum.Roles;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.Wis2User;
-import IIS.wis2_backend.Repositories.Education.Schedule.ScheduleRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 @SpringBootApplication
+@EnableScheduling
 public class Wis2BackendApplication {
 
 	public static void main(String[] args) {
@@ -20,10 +21,13 @@ public class Wis2BackendApplication {
 	}
 
 	@Bean
-	public CommandLineRunner insertAdmin(UserRepository userRepository, ScheduleRepository scheduleRepository,
+	public CommandLineRunner insertAdmin(UserRepository userRepository,
 			PasswordEncoder passwordEncoder) {
 		return args -> {
 			if (!userRepository.existsByUsername("admin")) {
+				Schedule schedule = Schedule.builder()
+						.build();
+
 				Wis2User admin = Wis2User.builder()
 						.username("admin")
 						.firstName("Admin")
@@ -32,15 +36,11 @@ public class Wis2BackendApplication {
 						.password(passwordEncoder.encode("admin"))
 						.birthday(java.sql.Date.valueOf("2000-01-01"))
 						.role(Roles.ADMIN)
+						.schedule(schedule)
 						.activated(true)
 						.build();
 
-				Schedule schedule = Schedule
-						.builder()
-						.user(admin)
-						.build();
-				admin.setSchedule(schedule);
-
+				schedule.setUser(admin);
 				userRepository.save(admin);
 			}
 		};

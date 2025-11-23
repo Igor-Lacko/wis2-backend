@@ -1,4 +1,4 @@
-package IIS.wis2_backend.Models;
+package IIS.wis2_backend.Models.Tokens;
 
 import java.time.Instant;
 

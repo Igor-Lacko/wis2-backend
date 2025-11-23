@@ -31,6 +31,8 @@ public class AuthConfig {
     public static final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
             "/auth/register",
+            "/auth/logout",
+            "/auth/refresh",
             "/activate",
             "/courses",
             "/courses/statistics",

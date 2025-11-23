@@ -2,8 +2,11 @@ package IIS.wis2_backend.Controllers;
 
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,15 +66,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<SuccesfulLoginDTO> Login(@Valid @RequestBody LoginDTO loginDTO) {
         // Authenticate user
-        String token = authService.LoginUser(loginDTO);
-
-        // Create cookie from token
-        ResponseCookie cookie = ResponseCookie.from("JWT", token)
-            .httpOnly(true)
-            .sameSite("Lax")
-            .path("/")
-            .maxAge(24 * 60 * 60)
-            .build();
+        Pair<ResponseCookie, ResponseCookie> tokens = authService.LoginUser(loginDTO);
+        ResponseCookie jwtCookie = tokens.getFirst();
+        ResponseCookie refreshCookie = tokens.getSecond();
 
         // Return these to the client
         String username = loginDTO.getUsername();
@@ -80,7 +77,53 @@ public class AuthController {
         String role = idAndRole.getSecond();
 
         return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(new SuccesfulLoginDTO(id, username, role));
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new SuccesfulLoginDTO(id, username, role));
+    }
+
+    /**
+     * Endpoint to refresh JWT token.
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> RefreshToken(@CookieValue(name = "REFRESH", required = false) String refreshToken) {
+        Pair<ResponseCookie, ResponseCookie> tokens = authService.RefreshJWTToken(refreshToken);
+        ResponseCookie jwtCookie = tokens.getFirst();
+        ResponseCookie refreshCookie = tokens.getSecond();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .build();
+    }
+
+    /**
+     * Endpoint to logout a user.
+     * 
+     * @param refreshToken The refresh token cookie.
+     * @return ResponseEntity with status OK.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> Logout(@CookieValue(name = "REFRESH", required = false) String refreshToken) {
+        authService.Logout(refreshToken);
+
+        // Clearing cookies
+        ResponseCookie jwtCookie = ResponseCookie.from("JWT", "")
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", "")
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .build();
     }
 }

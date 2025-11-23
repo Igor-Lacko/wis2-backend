@@ -7,9 +7,9 @@ import IIS.wis2_backend.Enum.LinkTokenType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.AlreadySetException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.LinkExpiredException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
-import IIS.wis2_backend.Models.LinkToken;
+import IIS.wis2_backend.Models.Tokens.LinkToken;
 import IIS.wis2_backend.Models.User.Wis2User;
-import IIS.wis2_backend.Repositories.LinkTokenRepository;
+import IIS.wis2_backend.Repositories.Tokens.LinkTokenRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 import IIS.wis2_backend.Utils.LinkTokenUtils;
 
