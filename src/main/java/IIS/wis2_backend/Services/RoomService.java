@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -236,5 +237,30 @@ public class RoomService {
             uniqueIds.add(userId);
         }
         return List.copyOf(uniqueIds);
+    }
+
+    /**
+     * Requests a new room.
+     * 
+     * @param request The room creation request details.
+     */
+    public void RequestNewRoom(CreateRoomRequest request, String requesterUsername) {
+        // Check if shortcut is already taken
+        roomRepository.findByShortcut(request.getShortcut()).ifPresent(room -> {
+            throw new AlreadySetException("Room with this shortcut already exists");
+        });
+
+        Wis2User requester = userRepository.findByUsername(requesterUsername)
+                .orElseThrow(() -> new NotFoundException("Requester user not found"));
+
+        RoomRequest roomRequest  = RoomRequest.builder()
+            .roomName(request.getShortcut())
+            .building(request.getBuilding())
+            .floor(request.getFloor())
+            .capacity(request.getCapacity())
+            .requesterId(requester.getId())
+            .build();
+
+        roomRequestRepository.save(roomRequest);
     }
 }
