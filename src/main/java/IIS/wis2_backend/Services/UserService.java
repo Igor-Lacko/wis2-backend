@@ -9,6 +9,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
+import IIS.wis2_backend.DTO.Request.Room.OfficeShortcutDTO;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
@@ -276,25 +277,25 @@ public class UserService {
 				.collect(Collectors.toList());
 	}
 
-    	/**
-         * Returns all teachers.
-         */
-        public List<VerySmallUserDTO> getAllTeachers() {
-                return userRepository.findAllByRole(Roles.TEACHER).stream()
-                                .map(this::toVerySmallUserDTO)
-                                .collect(Collectors.toList());
-        }
+	/**
+	 * Returns all teachers.
+	 */
+	public List<VerySmallUserDTO> getAllTeachers() {
+		return userRepository.findAllByRole(Roles.TEACHER).stream()
+				.map(this::toVerySmallUserDTO)
+				.collect(Collectors.toList());
+	}
 
-        /**
-         * Returns all teachers who do not have an assigned office.
-         */
-        public List<VerySmallUserDTO> getTeachersWithoutOffice() {
-                return userRepository.findAllByRoleAndOfficeIsNull(Roles.TEACHER).stream()
-                                .map(this::toVerySmallUserDTO)
-                                .collect(Collectors.toList());
-        }
+	/**
+	 * Returns all teachers who do not have an assigned office.
+	 */
+	public List<VerySmallUserDTO> getTeachersWithoutOffice() {
+		return userRepository.findAllByRoleAndOfficeIsNull(Roles.TEACHER).stream()
+				.map(this::toVerySmallUserDTO)
+				.collect(Collectors.toList());
+	}
 
-    /**
+	/**
 	 * Delete a user by ID.
 	 * 
 	 * @param id User ID.
@@ -356,27 +357,27 @@ public class UserService {
 		return UserToDTO(userRepository.save(user));
 	}
 
-    /**
-     * Returns all users whose first or last name contains the given string (case
-     * insensitive).
-     * 
-     * @param namePart The string to search for in first or last names.
-     * @return List of UserDTOs matching the search criteria.
-     */
-    public List<VerySmallUserDTO> GetUsersByNamePart(String namePart) {
-        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(namePart, namePart)
-                .stream()
-                .map(this::toVerySmallUserDTO)
-                .collect(Collectors.toList());
-    }
+	/**
+	 * Returns all users whose first or last name contains the given string (case
+	 * insensitive).
+	 * 
+	 * @param namePart The string to search for in first or last names.
+	 * @return List of UserDTOs matching the search criteria.
+	 */
+	public List<VerySmallUserDTO> GetUsersByNamePart(String namePart) {
+		return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(namePart, namePart)
+				.stream()
+				.map(this::toVerySmallUserDTO)
+				.collect(Collectors.toList());
+	}
 
-    private VerySmallUserDTO toVerySmallUserDTO(Wis2User user) {
-        return new VerySmallUserDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getFirstName(),
-                user.getLastName());
-    }
+	private VerySmallUserDTO toVerySmallUserDTO(Wis2User user) {
+		return new VerySmallUserDTO(
+				user.getId(),
+				user.getUsername(),
+				user.getFirstName(),
+				user.getLastName());
+	}
 
 	/**
 	 * Returns all pending requests for a user.
@@ -432,5 +433,16 @@ public class UserService {
 				.stream()
 				.map(roomName -> new PendingRequestDTO(roomName, PendingRequestType.ROOM_CREATION))
 				.collect(Collectors.toList());
+	}
+
+	public OfficeShortcutDTO GetOfficeShortcut(String username) {
+		Wis2User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+
+		if (user.getOffice() == null) {
+			return new OfficeShortcutDTO(null);
+		}
+
+		return new OfficeShortcutDTO(user.getOffice().getShortcut());
 	}
 }

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PatchMapping;
+
+import IIS.wis2_backend.DTO.Request.Room.OfficeShortcutDTO;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.User.PendingRequestDTO;
@@ -194,4 +196,17 @@ public class UserController {
         List<PendingRequestDTO> pendingRequests = userService.GetPendingRequests(authentication.getName());
         return ResponseEntity.ok(pendingRequests);
     }
+
+    /**
+     * Returns the user's office's shortcut.
+     * 
+     * @param authentication contains username
+     */
+    @GetMapping("/office-shortcut")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OfficeShortcutDTO> GetUserOfficeShortcut(Authentication authentication) {
+        OfficeShortcutDTO officeShortcut = userService.GetOfficeShortcut(authentication.getName());
+        return ResponseEntity.ok(officeShortcut);
+    }
+    
 }

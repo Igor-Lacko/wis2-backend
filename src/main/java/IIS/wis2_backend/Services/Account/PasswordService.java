@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import IIS.wis2_backend.DTO.Request.Auth.PasswordChangeDTO;
 import IIS.wis2_backend.DTO.Request.Mail.PasswordResetDTO;
 import IIS.wis2_backend.Enum.LinkTokenType;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.DoesntMatchException;
@@ -22,7 +23,7 @@ import IIS.wis2_backend.Utils.LinkTokenUtils;
  * Service for handling password reset functionality.
  */
 @Service
-public class PasswordResetService {
+public class PasswordService {
     /**
      * Base URL for password reset links prepended to /reset-password?token=....
      */
@@ -60,7 +61,7 @@ public class PasswordResetService {
      * 
      * @param passwordResetTokenRepository Repository for password reset tokens.
      */
-    public PasswordResetService(LinkTokenRepository passwordResetTokenRepository, UserRepository userRepository,
+    public PasswordService(LinkTokenRepository passwordResetTokenRepository, UserRepository userRepository,
             MailService mailService, PasswordEncoder passwordEncoder) {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.userRepository = userRepository;
@@ -133,6 +134,20 @@ public class PasswordResetService {
         // Update the user's password
         Wis2User user = passwordResetToken.getUser();
         user.setPassword(passwordEncoder.encode(passwordResetDTO.password()));
+        userRepository.save(user);
+    }
+
+    /**
+     * Changes the password for the given username.
+     * 
+     * @param username The username of the user changing their password.
+     * @param dto      Contains the new password and password confirmation.
+     */
+    public void ChangePassword(String username, PasswordChangeDTO dto) {
+        Wis2User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         userRepository.save(user);
     }
 }
