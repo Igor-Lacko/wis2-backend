@@ -2,6 +2,7 @@ package IIS.wis2_backend.Models.User;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -138,7 +139,8 @@ public class Wis2User {
     @OneToMany(mappedBy = "supervisor", fetch = FetchType.LAZY)
     @ToStringExclude
     @EqualsAndHashCode.Exclude
-    private Set<Course> supervisedCourses;
+    @Builder.Default
+    private Set<Course> supervisedCourses = new HashSet<>();
 
     /**
      * Taught courses.
@@ -146,5 +148,6 @@ public class Wis2User {
     @ManyToMany(mappedBy = "teachers", fetch = FetchType.LAZY)
     @ToStringExclude
     @EqualsAndHashCode.Exclude
-    private Set<Course> taughtCourses;
+    @Builder.Default
+    private Set<Course> taughtCourses = new HashSet<>();
 }

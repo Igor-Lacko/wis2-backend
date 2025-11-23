@@ -17,6 +17,7 @@ import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OverviewCourseDTO;
 import IIS.wis2_backend.DTO.Response.Projections.OverviewCourseProjection;
+import IIS.wis2_backend.DTO.Response.User.AdminUserDTO;
 import IIS.wis2_backend.DTO.Response.User.PendingRequestDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
@@ -264,9 +265,9 @@ public class UserService {
 	 * 
 	 * @return List of all users.
 	 */
-	public java.util.List<UserDTO> getAllUsers() {
+	public java.util.List<AdminUserDTO> getAllUsers() {
 		return userRepository.findAll().stream()
-				.map(user -> UserDTO.builder()
+				.map(user -> AdminUserDTO.builder()
 						.id(user.getId())
 						.username(user.getUsername())
 						.firstName(user.getFirstName())
@@ -274,6 +275,7 @@ public class UserService {
 						.email(user.getEmail())
 						.birthday(user.getBirthday())
 						.telephoneNumber(user.getTelephoneNumber())
+						.activated(user.isActivated())
 						.build())
 				.collect(Collectors.toList());
 	}

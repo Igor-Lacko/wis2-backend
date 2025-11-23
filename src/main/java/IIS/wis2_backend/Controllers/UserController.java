@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import IIS.wis2_backend.DTO.Request.Room.OfficeShortcutDTO;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
+import IIS.wis2_backend.DTO.Response.User.AdminUserDTO;
 import IIS.wis2_backend.DTO.Response.User.PendingRequestDTO;
 import IIS.wis2_backend.DTO.Response.User.TeacherDTO;
 import IIS.wis2_backend.DTO.Response.User.UserDTO;
@@ -114,7 +115,7 @@ public class UserController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
+    public ResponseEntity<List<AdminUserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
