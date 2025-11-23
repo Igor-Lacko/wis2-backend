@@ -82,6 +82,11 @@ public class RoomService {
         Office office = officeRepository.findById(officeId)
                 .orElseThrow(() -> new NotFoundException("Office not found"));
 
+        if (office.getCapacity() != null && request.getUserIds() != null
+                && request.getUserIds().size() > office.getCapacity()) {
+            throw new IllegalArgumentException("Number of assigned users exceeds office capacity");
+        }
+
         List<Long> assignedUserIds = updateOfficeAssignments(office, request.getUserIds());
 
         return OfficeAssignmentDTO.builder()
