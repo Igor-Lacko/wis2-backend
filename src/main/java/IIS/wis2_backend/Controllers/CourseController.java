@@ -401,4 +401,36 @@ public class CourseController {
 
 		return ResponseEntity.ok().build();
 	}
+
+	/**
+	 * Registers the authenticated student to a term.
+	 * 
+	 * @param termId         The ID of the term.
+	 * @param authentication The authentication object of the current user.
+	 * @return A ResponseEntity indicating the result of the operation.
+	 */
+	@PostMapping("/terms/{termId}/register")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<Void> RegisterForTerm(
+			@PathVariable Long termId,
+			Authentication authentication) {
+		termService.RegisterStudentToTerm(termId, authentication.getName());
+		return ResponseEntity.ok().build();
+	}
+
+	/**
+	 * Unregisters the authenticated student from a term.
+	 * 
+	 * @param termId         The ID of the term.
+	 * @param authentication The authentication object of the current user.
+	 * @return A ResponseEntity indicating the result of the operation.
+	 */
+	@DeleteMapping("/terms/{termId}/register")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<Void> UnregisterFromTerm(
+			@PathVariable Long termId,
+			Authentication authentication) {
+		termService.UnregisterStudentFromTerm(termId, authentication.getName());
+		return ResponseEntity.ok().build();
+	}
 }

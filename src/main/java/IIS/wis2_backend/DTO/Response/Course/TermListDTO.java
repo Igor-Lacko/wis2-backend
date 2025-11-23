@@ -21,4 +21,7 @@ public class TermListDTO {
     private Integer minPoints;
     private Integer maxPoints;
     private LocalDateTime date;
+    private Boolean isRegistered;
+    private Integer registeredCount;
+    private Integer capacity;
 }

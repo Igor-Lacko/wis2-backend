@@ -566,16 +566,27 @@ public class CourseService {
 			throw new UnauthorizedException("User is not authorized to view terms of this course!");
 		}
 
+		Wis2User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+
 		return course.getTerms().stream()
-				.map(term -> new TermListDTO(
-						term.getId(),
-						term.getName(),
-						term.getTermType(),
-						term.getDuration(),
-						term.getRoom().getShortcut(),
-						term.getMinPoints(),
-						term.getMaxPoints(),
-						term.getDate()))
+				.map(term -> {
+					boolean isRegistered = term.getStudentTerms().stream()
+							.anyMatch(st -> st.getStudent().getId().equals(user.getId()));
+					
+					return new TermListDTO(
+							term.getId(),
+							term.getName(),
+							term.getTermType(),
+							term.getDuration(),
+							term.getRoom().getShortcut(),
+							term.getMinPoints(),
+							term.getMaxPoints(),
+							term.getDate(),
+							isRegistered,
+							term.getStudentTerms().size(),
+							term.getRoom().getCapacity());
+				})
 				.collect(Collectors.toList());
 	}
 

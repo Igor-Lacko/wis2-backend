@@ -183,4 +183,42 @@ public class ScheduleService {
             scheduleRepository.save(courseSchedule);
         }
     }
+
+    /**
+     * Adds a term to a user's schedule.
+     * 
+     * @param term The term to add.
+     * @param user The user to add it to.
+     */
+    public void AddTermToUserSchedule(Term term, Wis2User user) {
+        ScheduleItem scheduleItem = scheduleItemRepository.findByTerm_Id(term.getId())
+                .orElseThrow(() -> new NotFoundException("Schedule item not found for term"));
+
+        Schedule userSchedule = user.getSchedule();
+        if (userSchedule != null && !userSchedule.getItems().contains(scheduleItem)) {
+            userSchedule.getItems().add(scheduleItem);
+            scheduleRepository.save(userSchedule);
+        }
+    }
+
+    /**
+     * Removes a term from a user's schedule.
+     * 
+     * @param term The term to remove.
+     * @param user The user to remove it from.
+     */
+    public void RemoveTermFromUserSchedule(Term term, Wis2User user) {
+        ScheduleItem scheduleItem = scheduleItemRepository.findByTerm_Id(term.getId())
+                .orElse(null);
+
+        if (scheduleItem == null) {
+            return;
+        }
+
+        Schedule userSchedule = user.getSchedule();
+        if (userSchedule != null) {
+            userSchedule.getItems().remove(scheduleItem);
+            scheduleRepository.save(userSchedule);
+        }
+    }
 }

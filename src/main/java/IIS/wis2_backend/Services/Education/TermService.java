@@ -29,6 +29,7 @@ import IIS.wis2_backend.Repositories.Education.Term.LabRepository;
 import IIS.wis2_backend.Repositories.Education.Term.LectureRepository;
 import IIS.wis2_backend.Repositories.Education.Term.MidtermExamRepository;
 import IIS.wis2_backend.Repositories.Education.Term.TermRepository;
+import IIS.wis2_backend.Repositories.Relational.StudentTermRepository;
 import IIS.wis2_backend.Repositories.User.UserRepository;
 
 /**
@@ -83,6 +84,11 @@ public class TermService {
     private final ScheduleService scheduleService;
 
     /**
+     * Student term repository to manage student-term relationships.
+     */
+    private final StudentTermRepository studentTermRepository;
+
+    /**
      * Constructor for TermService.
      *
      * @param termRepository         the term repository
@@ -95,11 +101,13 @@ public class TermService {
      * @param labRepository          the lab repository
      * @param lectureRepository      the lecture repository
      * @param courseRepository       the course repository
+     * @param studentTermRepository  the student term repository
      */
     public TermService(TermRepository termRepository, ExamRepository examRepository,
             MidtermExamRepository midtermExamRepository, ScheduleService scheduleService,
             UserRepository userRepository, StudyRoomRepository studyRoomRepository, LabRepository labRepository,
-            LectureRepository lectureRepository, CourseRepository courseRepository) {
+            LectureRepository lectureRepository, CourseRepository courseRepository,
+            StudentTermRepository studentTermRepository) {
         this.termRepository = termRepository;
         this.examRepository = examRepository;
         this.midtermExamRepository = midtermExamRepository;
@@ -109,6 +117,7 @@ public class TermService {
         this.labRepository = labRepository;
         this.lectureRepository = lectureRepository;
         this.courseRepository = courseRepository;
+        this.studentTermRepository = studentTermRepository;
     }
 
     /**
@@ -363,4 +372,76 @@ public class TermService {
         return new LightweightTermDTO(
                 term.getId(), term.getName(), term.getDate(), term.getDuration(), term.getRoom().getShortcut(), type);
     }
+
+    /**
+	 * Registers a student to a specific term.
+	 * 
+	 * @param termId   The ID of the term.
+	 * @param username The username of the student.
+	 */
+	@Transactional
+	public void RegisterStudentToTerm(Long termId, String username) {
+		Term term = termRepository.findById(termId)
+				.orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
+
+		Wis2User student = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+
+		Course course = term.getCourse();
+
+		// Check if student is enrolled in the course
+		StudentCourse studentCourse = course.getStudentCourses().stream()
+				.filter(sc -> sc.getStudent().getId().equals(student.getId())
+						&& sc.getStatus() == RequestStatus.APPROVED)
+				.findFirst()
+				.orElseThrow(() -> new UnauthorizedException("Student is not enrolled in the course!"));
+
+		// Check if already registered
+		if (term.getStudentTerms().stream()
+				.anyMatch(st -> st.getStudent().getId().equals(student.getId()))) {
+			throw new IllegalArgumentException("Student is already registered for this term!");
+		}
+
+		// Check capacity (room capacity)
+		int currentRegistrations = term.getStudentTerms().size();
+		if (currentRegistrations >= term.getRoom().getCapacity()) {
+			throw new IllegalArgumentException("Term is full!");
+		}
+
+		// Register - create and persist the StudentTerm entity
+		StudentTerm studentTerm = StudentTerm.builder()
+				.student(student)
+				.term(term)
+				.build();
+
+		studentTerm = studentTermRepository.save(studentTerm);
+
+		// Update schedule
+		scheduleService.AddTermToUserSchedule(term, student);
+	}
+
+	/**
+	 * Unregisters a student from a specific term.
+	 * 
+	 * @param termId   The ID of the term.
+	 * @param username The username of the student.
+	 */
+	@Transactional
+	public void UnregisterStudentFromTerm(Long termId, String username) {
+		Term term = termRepository.findById(termId)
+				.orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
+
+		Wis2User student = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+
+		// Verify student is registered
+		studentTermRepository.findByTermIdAndStudentId(termId, student.getId())
+				.orElseThrow(() -> new IllegalArgumentException("Student is not registered for this term!"));
+
+		// Update schedule first (before deleting the entity)
+		scheduleService.RemoveTermFromUserSchedule(term, student);
+
+		// Delete the StudentTerm entity using custom query
+		studentTermRepository.deleteByTermIdAndStudentId(termId, student.getId());
+	}
 }

@@ -634,6 +634,16 @@ public class MockDBService {
 		// Midterm
 		createTerm(courseShortcut, "Midterm Exam", TermType.MIDTERM_EXAM, "LEC_1",
 				LocalDateTime.now().plusDays(5).withHour(9).withMinute(0), supervisor.getUsername());
+
+		// Final Exam - NOT auto-registered (students need to register manually)
+		createManualTerm(courseShortcut, "Final Exam - Slot 1", TermType.EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(10).withHour(9).withMinute(0), supervisor.getUsername());
+
+		createManualTerm(courseShortcut, "Final Exam - Slot 2", TermType.EXAM, "LEC_2",
+				LocalDateTime.now().plusDays(10).withHour(14).withMinute(0), supervisor.getUsername());
+
+		createManualTerm(courseShortcut, "Final Exam - Slot 3", TermType.EXAM, "LEC_1",
+				LocalDateTime.now().plusDays(12).withHour(10).withMinute(0), supervisor.getUsername());
 	}
 
 	private void enrollStudentDirectly(Course course, Wis2User student) {
@@ -667,10 +677,39 @@ public class MockDBService {
 				.type(type)
 				.build();
 		try {
-			termService.CreateNonExamTerm(courseShortcut, dto, supervisorUsername);
+			if (type == TermType.EXAM) {
+				termService.CreateFinalExam(courseShortcut, dto, supervisorUsername);
+			} else {
+				termService.CreateNonExamTerm(courseShortcut, dto, supervisorUsername);
+			}
 		} catch (Exception e) {
 			// Ignore if already exists or overlaps (mock data)
 			System.out.println("Failed to create term " + name + ": " + e.getMessage());
+		}
+	}
+
+	private void createManualTerm(String courseShortcut, String name, TermType type, String room, LocalDateTime date,
+			String supervisorUsername) {
+		TermCreationDTO dto = TermCreationDTO.builder()
+				.name(name)
+				.description("Students must register for this term manually")
+				.minPoints(0)
+				.maxPoints(type == TermType.EXAM ? 100 : 50)
+				.startDate(date)
+				.duration(120)
+				.autoregister(false)
+				.roomShortcut(room)
+				.type(type)
+				.build();
+		try {
+			if (type == TermType.EXAM) {
+				termService.CreateFinalExam(courseShortcut, dto, supervisorUsername);
+			} else {
+				termService.CreateNonExamTerm(courseShortcut, dto, supervisorUsername);
+			}
+		} catch (Exception e) {
+			// Ignore if already exists or overlaps (mock data)
+			System.out.println("Failed to create manual term " + name + ": " + e.getMessage());
 		}
 	}
 
