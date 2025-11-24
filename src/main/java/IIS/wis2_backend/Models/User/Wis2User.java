@@ -116,12 +116,16 @@ public class Wis2User {
      * Relation to courses.
      */
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<StudentCourse> studentCourses;
 
     /**
      * Relation to terms.
      */
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<StudentTerm> studentTerms;
 
     // --- Teacher Fields ---

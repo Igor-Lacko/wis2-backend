@@ -18,4 +18,11 @@ public interface StudentTermRepository extends JpaRepository<StudentTerm, Long> 
     @Modifying
     @Query("DELETE FROM StudentTerm st WHERE st.term.id = :termId AND st.student.id = :studentId")
     void deleteByTermIdAndStudentId(Long termId, Long studentId);
+
+    /**
+     * Returns the count of students registered for a given term.
+     * 
+     * @param termId the ID of the term
+     */
+    long countByTermId(Long termId);
 }

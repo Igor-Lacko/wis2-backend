@@ -34,6 +34,9 @@ public class FullTermDTO {
     private Integer nofEnrolled;
 
     @NotNull
+    private Integer capacity;
+
+    @NotNull
     private Boolean autoregister;
 
     @NotNull

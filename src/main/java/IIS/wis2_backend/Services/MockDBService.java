@@ -609,6 +609,7 @@ public class MockDBService {
 		String courseShortcut = "FEC";
 		Set<Wis2User> teachers = new HashSet<>();
 		teachers.add(teacher);
+		teachers.add(supervisor);
 
 		InsertMockCourseIfNotExists("Frontend Development", 5000.0, courseShortcut, CourseEndType.EXAM, supervisor,
 				teachers);
@@ -671,8 +672,8 @@ public class MockDBService {
 		TermCreationDTO dto = TermCreationDTO.builder()
 				.name(name)
 				.description("Description for " + name)
-				.minPoints(0)
-				.maxPoints(0) // Lectures have no points
+				.minPoints(type == TermType.LECTURE ? null : 0)
+				.maxPoints(type == TermType.LECTURE ? null : 0)
 				.startDate(date)
 				.duration(90)
 				.autoregister(true)

@@ -71,8 +71,10 @@ public abstract class Term {
     /**
      * Registered students for this term.
      */
-    @OneToMany(mappedBy = "term", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "term", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<StudentTerm> studentTerms = new HashSet<StudentTerm>();
 
     /**

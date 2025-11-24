@@ -187,10 +187,12 @@ public class TermService {
      */
     private Term CreateNonExamTermFromDTO(TermCreationDTO dto, StudyRoom room, Course course) {
         TermType type = dto.getType();
+        Integer minPoints = dto.getType() == TermType.LECTURE ? null : dto.getMinPoints();
+        Integer maxPoints = dto.getType() == TermType.LECTURE ? null : dto.getMaxPoints();
         if (type == TermType.MIDTERM_EXAM) {
             return MidtermExam.builder()
-                    .minPoints(dto.getMinPoints())
-                    .maxPoints(dto.getMaxPoints())
+                    .minPoints(minPoints)
+                    .maxPoints(maxPoints)
                     .date(dto.getStartDate())
                     .duration(dto.getDuration())
                     .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
@@ -202,8 +204,8 @@ public class TermService {
                     .build();
         } else if (type == TermType.LAB) {
             return Lab.builder()
-                    .minPoints(dto.getMinPoints())
-                    .maxPoints(dto.getMaxPoints())
+                    .minPoints(minPoints)
+                    .maxPoints(maxPoints)
                     .date(dto.getStartDate())
                     .duration(dto.getDuration())
                     .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
@@ -215,8 +217,8 @@ public class TermService {
                     .build();
         } else if (type == TermType.LECTURE) {
             return Lecture.builder()
-                    .minPoints(dto.getMinPoints())
-                    .maxPoints(dto.getMaxPoints())
+                    .minPoints(minPoints)
+                    .maxPoints(maxPoints)
                     .date(dto.getStartDate())
                     .duration(dto.getDuration())
                     .endDate(dto.getStartDate().plusMinutes(dto.getDuration()))
@@ -280,16 +282,22 @@ public class TermService {
      */
     private void RegisterTerm(Term term) {
         TermType termType = term.getTermType();
-        
+
+        // Check first if coursestudents > term capacity
+        Course course = term.getCourse();
+        Integer termCapacity = termRepository.getTermCapacityById(term.getId());
+        if (courseRepository.getEnrolledCountByCourseShortcut(course.getShortcut()) > termCapacity) {
+            throw new IllegalArgumentException("Cannot autoregister: number of enrolled students exceeds term (room) capacity.");
+        }
+
         // For midterms, labs, and lectures - register all approved students
         if (termType == TermType.MIDTERM_EXAM || termType == TermType.LAB || termType == TermType.LECTURE) {
             RegisterForAll(term);
             return;
         }
-        
+
         // For final exams - only register eligible students
         if (termType == TermType.EXAM) {
-            Course course = term.getCourse();
             CourseEndType endType = course.getCompletedBy();
             Set<StudentCourse> studentCourses = course.getStudentCourses();
             Set<StudentTerm> students = new HashSet<StudentTerm>();
@@ -310,25 +318,25 @@ public class TermService {
     }
 
     /**
-     * Registers the given midterm to all students who have this course.
+     * Registers the given midterm/lecture/lab to all students who have this course.
      * 
-     * @param term the midterm to register
+     * @param term the midterm/lecture/lab to register
      */
-    private void RegisterForAll(Term midterm) {
-        Course course = midterm.getCourse();
+    private void RegisterForAll(Term nonExam) {
+        Course course = nonExam.getCourse();
         Set<StudentCourse> studentCourses = course.getStudentCourses();
-        Set<StudentTerm> students = midterm.getStudentTerms();
+        Set<StudentTerm> students = nonExam.getStudentTerms();
         for (StudentCourse sc : studentCourses) {
             if (sc.getStatus() == RequestStatus.APPROVED) {
                 StudentTerm studentTerm = StudentTerm.builder()
                         .student(sc.getStudent())
-                        .term(midterm)
+                        .term(nonExam)
                         .build();
                 students.add(studentTerm);
             }
         }
 
-        midterm.setStudentTerms(students);
+        nonExam.setStudentTerms(students);
     }
 
     /**
@@ -365,12 +373,13 @@ public class TermService {
     }
 
     /**
-     * Validates that adding a new term with the given maxPoints won't exceed 100 total.
+     * Validates that adding a new term with the given maxPoints won't exceed 100
+     * total.
      * Only checks graded terms (MIDTERM_EXAM, LAB, EXAM).
      * 
-     * @param course the course
+     * @param course       the course
      * @param newMaxPoints the maxPoints for the new term
-     * @param termType the type of term being created
+     * @param termType     the type of term being created
      * @throws IllegalArgumentException if total would exceed 100
      */
     private void validateTotalMaxPoints(Course course, Integer newMaxPoints, TermType termType) {
@@ -378,19 +387,20 @@ public class TermService {
         if (termType == TermType.LECTURE || newMaxPoints == null || newMaxPoints == 0) {
             return;
         }
-        
+
         // Calculate current total of max points for graded terms
         int currentTotal = course.getTerms().stream()
                 .filter(t -> t.getMaxPoints() != null && t.getTermType() != TermType.LECTURE)
                 .mapToInt(Term::getMaxPoints)
                 .sum();
-        
+
         int newTotal = currentTotal + newMaxPoints;
-        
+
         if (newTotal > 100) {
             throw new IllegalArgumentException(
-                String.format("Adding this term would exceed 100 total points. Current total: %d, new term: %d, would be: %d",
-                    currentTotal, newMaxPoints, newTotal));
+                    String.format(
+                            "Adding this term would exceed 100 total points. Current total: %d, new term: %d, would be: %d",
+                            currentTotal, newMaxPoints, newTotal));
         }
     }
 
@@ -427,8 +437,16 @@ public class TermService {
         Term term = termRepository.findById(termId)
                 .orElseThrow(() -> new NotFoundException("Term not found with ID: " + termId));
 
+        // Check term capacity
+        Integer termCapacity = termRepository.getTermCapacityById(termId);
+        long currentlyEnrolled = studentTermRepository.countByTermId(termId);
+        if (termCapacity != null && currentlyEnrolled >= termCapacity) {
+            throw new IllegalArgumentException("Term is full!");
+        }
+
         Wis2User student = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
+
 
         Course course = term.getCourse();
 
@@ -449,6 +467,13 @@ public class TermService {
         int currentRegistrations = term.getStudentTerms().size();
         if (currentRegistrations >= term.getRoom().getCapacity()) {
             throw new IllegalArgumentException("Term is full!");
+        }
+
+        if (term.getTermType() == TermType.EXAM) {
+            // Check if student is eligible for final exam
+            if (!CanRegisterForFinalExam(studentCourse, course.getCompletedBy())) {
+                throw new UnauthorizedException("Student is not eligible to register for the final exam!");
+            }
         }
 
         // Register - create and persist the StudentTerm entity
@@ -524,7 +549,7 @@ public class TermService {
         // Check if the requester is registered for this term
         Wis2User requester = userRepository.findByUsername(requesterUsername)
                 .orElseThrow(() -> new NotFoundException("User not found: " + requesterUsername));
-        
+
         boolean isRegistered = term.getStudentTerms().stream()
                 .anyMatch(st -> st.getStudent().getId().equals(requester.getId()));
 
@@ -536,7 +561,8 @@ public class TermService {
                 .endTime(term.getEndDate())
                 .roomShortcut(term.getRoom().getShortcut())
                 .courseName(term.getCourse().getName())
-                .nofEnrolled(term.getStudentTerms().size())
+                .nofEnrolled(Math.toIntExact(studentTermRepository.countByTermId(termId)))
+                .capacity(termRepository.getTermCapacityById(termId))
                 .autoregister(term.getAutoregistered())
                 .termType(term.getTermType())
                 .minPoints(term.getMinPoints())

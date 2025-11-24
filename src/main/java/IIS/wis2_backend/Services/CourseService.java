@@ -578,7 +578,7 @@ public class CourseService {
 				.map(term -> {
 					boolean isRegistered = term.getStudentTerms().stream()
 							.anyMatch(st -> st.getStudent().getId().equals(user.getId()));
-					
+
 					return new TermListDTO(
 							term.getId(),
 							term.getName(),
@@ -645,7 +645,7 @@ public class CourseService {
 				.filter(sc -> sc.getStatus() == RequestStatus.APPROVED)
 				.map(sc -> {
 					Wis2User student = sc.getStudent();
-					
+
 					// Calculate term grades with enrollment status
 					List<TermGradeDTO> termGrades = course.getTerms().stream()
 							.map(term -> {
@@ -654,7 +654,7 @@ public class CourseService {
 										.filter(st -> st.getStudent().getId().equals(student.getId()))
 										.findFirst()
 										.orElse(null);
-								
+
 								return TermGradeDTO.builder()
 										.termId(term.getId())
 										.termName(term.getName())
@@ -664,7 +664,7 @@ public class CourseService {
 										.build();
 							})
 							.collect(Collectors.toList());
-					
+
 					// Calculate total points from enrolled terms
 					Integer totalPoints = termGrades.stream()
 							.filter(tg -> tg.getEnrolled() && tg.getPoints() != null)
@@ -705,6 +705,36 @@ public class CourseService {
 
 		studentTerm.setPoints(points);
 		studentTermRepository.save(studentTerm);
+
+		// Update total points in StudentCourse
+		updateStudentCoursePoints(courseId, studentId);
+	}
+
+	private void updateStudentCoursePoints(Long courseId, Long studentId) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new NotFoundException("Course not found"));
+
+		StudentCourse studentCourse = course.getStudentCourses().stream()
+				.filter(sc -> sc.getStudent().getId().equals(studentId))
+				.findFirst()
+				.orElseThrow(() -> new NotFoundException("Student not enrolled in course"));
+
+		// Calculate total points from all terms
+		int totalPoints = course.getTerms().stream()
+				.flatMap(term -> term.getStudentTerms().stream())
+				.filter(st -> st.getStudent().getId().equals(studentId) && st.getPoints() != null)
+				.mapToInt(StudentTerm::getPoints)
+				.sum();
+
+		studentCourse.setPoints(totalPoints);
+
+		// If exam is passed, update final grade
+		if (studentCourse.getCompleted()
+				&& course.getCompletedBy() != CourseEndType.UNIT_CREDIT) {
+			studentCourse.setFinalGrade(calculateFinalGrade(totalPoints));
+		}
+
+		courseRepository.save(course);
 	}
 
 	/**

@@ -26,8 +26,6 @@ public class StudentTerm {
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "student_id")
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private Wis2User student;
 
     /**
@@ -35,8 +33,6 @@ public class StudentTerm {
      */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "term_id")
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private Term term;
 
     /**
