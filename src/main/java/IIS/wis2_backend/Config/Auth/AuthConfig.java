@@ -94,7 +94,7 @@ public class AuthConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "//TODO"));
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "https://iis-wis2.netlify.app"));
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);
