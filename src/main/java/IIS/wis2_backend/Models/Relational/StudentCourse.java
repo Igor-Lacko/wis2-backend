@@ -46,14 +46,16 @@ public class StudentCourse {
     private Integer points = 0;
 
     /**
-     * If the student has earned the unit credit for this course. Can be nullable (exam-only courses).
+     * If the student has earned the unit credit for this course.
      */
-    private Boolean unitCredit;
+    @Builder.Default
+    private Boolean unitCredit = false;
 
     /**
-     * If the student has passed the exam for this course. Also can be nullable.
+     * If the student has passed the exam for this course.
      */
-    private Boolean examPassed;
+    @Builder.Default
+    private Boolean examPassed = false;
     
     /**
      * Final grade for the course. Can also be nullable (non-classified unit-credit courses).

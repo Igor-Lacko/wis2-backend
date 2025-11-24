@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 
 import IIS.wis2_backend.DTO.Request.Room.OfficeShortcutDTO;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
+import IIS.wis2_backend.DTO.Response.Course.ElectronicIndexDTO;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.User.AdminUserDTO;
 import IIS.wis2_backend.DTO.Response.User.PendingRequestDTO;
@@ -181,5 +182,17 @@ public class UserController {
         OfficeShortcutDTO officeShortcut = userService.GetOfficeShortcut(authentication.getName());
         return ResponseEntity.ok(officeShortcut);
     }
-    
+
+    /**
+	 * Returns the user's electronic index (so basically a different overview of studied courses).
+	 * 
+	 * @param authentication The authentication object of the current user.
+	 * @return A ResponseEntity containing the electronic index DTO.
+	 */
+	@GetMapping("/electronic-index")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<ElectronicIndexDTO> GetElectronicIndex(Authentication authentication) {
+		ElectronicIndexDTO electronicIndex = userService.GetElectronicIndex(authentication.getName());
+		return ResponseEntity.ok(electronicIndex);
+	}
 }

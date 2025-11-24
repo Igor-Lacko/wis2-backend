@@ -731,7 +731,11 @@ public class CourseService {
 		// If exam is passed, update final grade
 		if (studentCourse.getCompleted()
 				&& course.getCompletedBy() != CourseEndType.UNIT_CREDIT) {
-			studentCourse.setFinalGrade(calculateFinalGrade(totalPoints));
+			var grade = calculateFinalGrade(totalPoints);
+			studentCourse.setFinalGrade(grade);
+			if (grade == 4.0) {
+				studentCourse.setFailed(true);
+			}
 		}
 
 		courseRepository.save(course);
@@ -969,13 +973,13 @@ public class CourseService {
 				.orElseThrow(() -> new NotFoundException("Student not found in course"));
 
 		// Check if exam already granted
-		if (Boolean.TRUE.equals(studentCourse.getExamPassed())) {
+		if (studentCourse.getExamPassed()) {
 			throw new AlreadySetException("Exam already granted to this student!");
 		}
 
 		// For UNIT_CREDIT_EXAM, student must have credit first
 		if (course.getCompletedBy() == CourseEndType.UNIT_CREDIT_EXAM) {
-			if (!Boolean.TRUE.equals(studentCourse.getUnitCredit())) {
+			if (!studentCourse.getUnitCredit()) {
 				throw new IllegalArgumentException("Student must have unit credit before granting exam!");
 			}
 		}
@@ -987,7 +991,7 @@ public class CourseService {
 		}
 
 		// Set exam as passed
-		studentCourse.setExamPassed(true);
+		studentCourse.setExamPassed(points >= 50);
 
 		// Calculate final grade (only if not UNIT_CREDIT)
 		if (course.getCompletedBy() != CourseEndType.UNIT_CREDIT) {

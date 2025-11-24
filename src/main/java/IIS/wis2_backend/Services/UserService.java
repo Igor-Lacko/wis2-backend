@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import IIS.wis2_backend.DTO.Request.Auth.RegisterDTO;
 import IIS.wis2_backend.DTO.Request.Room.OfficeShortcutDTO;
 import IIS.wis2_backend.DTO.Request.User.UpdateUserRequest;
+import IIS.wis2_backend.DTO.Response.Course.ElectronicIndexDTO;
+import IIS.wis2_backend.DTO.Response.Course.ElectronicIndexItemDTO;
 import IIS.wis2_backend.DTO.Response.Course.UserCoursesDTO;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.CourseDTOForTeacher;
 import IIS.wis2_backend.DTO.Response.NestedDTOs.OfficeDTOForTeacher;
@@ -28,6 +30,7 @@ import IIS.wis2_backend.Enum.RequestStatus;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.InternalException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.NotFoundException;
 import IIS.wis2_backend.Exceptions.ExceptionTypes.UserAlreadyExistsException;
+import IIS.wis2_backend.Models.Course;
 import IIS.wis2_backend.Models.Schedule;
 import IIS.wis2_backend.Models.User.*;
 import IIS.wis2_backend.Repositories.CourseRepository;
@@ -465,5 +468,50 @@ public class UserService {
 		}
 
 		return new OfficeShortcutDTO(user.getOffice().getShortcut());
+	}
+
+	/**
+	 * Returns the user's electronic index.
+	 * 
+	 * @param username The username of the user.
+	 * @return ElectronicIndexDTO containing the electronic index.
+	 */
+	public ElectronicIndexDTO GetElectronicIndex(String username) {
+		Wis2User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+
+		Double gpa = 0.0;
+		int gradedCoursesCount = 0;
+		List<ElectronicIndexItemDTO> courses = new ArrayList<>();
+		for (var sc : user.getStudentCourses()) {
+			if (sc.getStatus() != RequestStatus.APPROVED) {
+				continue;
+			}
+
+			// Update GPA if final grade is present
+			var grade = sc.getFinalGrade();
+			if (grade != null) {
+				gpa += grade;
+				gradedCoursesCount++;
+			}
+
+			Course course = sc.getCourse();
+			courses.add(ElectronicIndexItemDTO.builder()
+				.courseName(course.getName())
+				.courseShortcut(course.getShortcut())
+				.hasUnitCredit(sc.getUnitCredit())
+				.examPassed(sc.getExamPassed())
+				.finalGrade(sc.getFinalGrade())
+				.hasFailed(sc.getFailed())
+				.points(sc.getPoints())
+				.courseEndType(course.getCompletedBy())
+				.build());
+		}
+
+		double averageGpa = gradedCoursesCount == 0 ? 0.0 : gpa / gradedCoursesCount;
+		return ElectronicIndexDTO.builder()
+			.gpa(averageGpa)
+			.courses(courses)
+			.build();
 	}
 }

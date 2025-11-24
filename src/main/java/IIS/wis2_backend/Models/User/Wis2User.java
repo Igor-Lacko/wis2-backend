@@ -106,12 +106,6 @@ public class Wis2User {
     private List<RefreshToken> refreshTokens = new ArrayList<>();
 
     // --- Student Fields ---
-
-    /**
-     * Student's GPA
-     */
-    private Float gradeAverage;
-
     /**
      * Relation to courses.
      */

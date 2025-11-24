@@ -484,5 +484,4 @@ public class CourseController {
 		FullTermDTO term = termService.GetFullTermDTO(termId, authentication.getName());
 		return ResponseEntity.ok(term);
 	}
-	
 }
