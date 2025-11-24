@@ -464,12 +464,6 @@ public class TermService {
             throw new IllegalArgumentException("Student is already registered for this term!");
         }
 
-        // Check capacity (room capacity)
-        int currentRegistrations = term.getStudentTerms().size();
-        if (currentRegistrations >= term.getRoom().getCapacity()) {
-            throw new IllegalArgumentException("Term is full!");
-        }
-
         // Check if the term hasn't already taken place
         if (term.getDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Cannot register for a term that has already taken place!");

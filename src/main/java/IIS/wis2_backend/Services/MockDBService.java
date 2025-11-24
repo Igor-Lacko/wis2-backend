@@ -209,7 +209,7 @@ public class MockDBService {
 					.shortcut(shortcut)
 					.building("Offices")
 					.floor("1")
-					.capacity(5)
+					.capacity(10)
 					.build();
 
 			if (office == null) {
@@ -239,7 +239,7 @@ public class MockDBService {
 		lec.setShortcut(shortcut);
 		lec.setBuilding(building);
 		lec.setFloor(floor);
-		lec.setCapacity(100);
+		lec.setCapacity(150);
 		roomRepository.save(lec);
 	}
 
