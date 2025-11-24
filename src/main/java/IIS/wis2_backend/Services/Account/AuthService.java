@@ -145,14 +145,16 @@ public class AuthService {
         // Make cookies (also known as baking)
         ResponseCookie jwtCookie = ResponseCookie.from("JWT", jwt)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("None")
+                .secure(true)
                 .path("/")
                 .maxAge(jwtExpirationMs / 1000)
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("None")
+                .secure(true)
                 .path("/")
                 .maxAge(refreshExpirationMs / 1000)
                 .build();
