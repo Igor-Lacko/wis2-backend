@@ -414,6 +414,15 @@ public class MockDBService {
 		InsertMockCourseIfNotExists("Introduction to Artificial Intelligence", 1700.0, "IZU", CourseEndType.UNIT_CREDIT,
 				lucas, izuTeachers);
 
+		// Add IZP (Introduction to Programming) - basic first-year course
+		java.util.Set<Wis2User> izpTeachers = new java.util.HashSet<>();
+		if (paul != null)
+			izpTeachers.add(paul);
+		if (monica != null)
+			izpTeachers.add(monica);
+		InsertMockCourseIfNotExists("Introduction to Programming Systems", 1000.0, "IZP", CourseEndType.UNIT_CREDIT_EXAM,
+				paul, izpTeachers);
+
 		// descriptions (~5 lines each)
 		java.util.Map<String, String> descriptions = new java.util.HashMap<>();
 		descriptions.put("IIS",
@@ -464,6 +473,12 @@ public class MockDBService {
 						+ "Students apply algorithms to problem solving and data-driven tasks.\n"
 						+ "Ethical considerations and real-world applications are discussed.\n"
 						+ "Hands-on projects illustrate the strengths and limits of AI methods.");
+		descriptions.put("IZP",
+				"Introduction to Programming Systems teaches basic programming concepts.\n"
+						+ "Students learn C language fundamentals, data types and control structures.\n"
+						+ "Memory management and pointers are introduced systematically.\n"
+						+ "Weekly programming assignments build problem-solving skills.\n"
+						+ "This foundational course prepares students for advanced programming.");
 
 		// apply descriptions to courses
 		for (java.util.Map.Entry<String, String> e : descriptions.entrySet()) {
@@ -648,6 +663,62 @@ public class MockDBService {
 
 		createTermWithPoints(courseShortcut, "Final Exam - Slot 3", TermType.EXAM, "LEC_1",
 				LocalDateTime.now().plusDays(12).withHour(10).withMinute(0), supervisor.getUsername(), 50, false);
+
+		// 5. Add completed and graded courses for student1 to show impressive history
+		enrichStudentWithCompletedCourses(student1);
+	}
+
+	/**
+	 * Enriches a student with multiple completed and graded courses for presentation purposes.
+	 */
+	private void enrichStudentWithCompletedCourses(Wis2User student) {
+		// Completed courses with excellent grades
+		enrollStudentWithGrade(student, "IIS", 92, 1.0, true, false, true, true);
+		enrollStudentWithGrade(student, "IDS", 85, 1.5, true, false, true, true);
+		enrollStudentWithGrade(student, "IUS", 78, 2.0, true, false, true, false);
+		
+		// Completed with unit credit (no exam)
+		enrollStudentWithGrade(student, "ISA", 88, 1.5, true, false, true, true);
+		enrollStudentWithGrade(student, "IZU", 75, 2.0, true, false, true, false);
+		
+		// Current semester courses - in progress with partial points
+		enrollStudentWithGrade(student, "IPK", 45, null, false, false, false, false);
+		enrollStudentWithGrade(student, "IOS", 38, null, false, false, false, false);
+		enrollStudentWithGrade(student, "IFJ", 52, null, false, false, true, false); // Has unit credit already
+		
+		// One failed course to show realistic scenario
+		enrollStudentWithGrade(student, "IZP", 35, 4.0, false, true, false, false);
+	}
+
+	/**
+	 * Enrolls a student in a course with specific grade and status for presentation.
+	 */
+	private void enrollStudentWithGrade(Wis2User student, String courseShortcut, int points, Double finalGrade,
+			boolean completed, boolean failed, boolean unitCredit, boolean examPassed) {
+		Course course = courseRepository.findByShortcut(courseShortcut).orElse(null);
+		if (course == null) {
+			return;
+		}
+
+		// Check if already enrolled
+		boolean alreadyEnrolled = course.getStudentCourses().stream()
+				.anyMatch(sc -> sc.getStudent().getId().equals(student.getId()));
+
+		if (!alreadyEnrolled) {
+			StudentCourse sc = StudentCourse.builder()
+					.student(student)
+					.course(course)
+					.points(points)
+					.finalGrade(finalGrade)
+					.completed(completed)
+					.failed(failed)
+					.unitCredit(unitCredit)
+					.examPassed(examPassed)
+					.status(RequestStatus.APPROVED)
+					.build();
+			course.getStudentCourses().add(sc);
+			courseRepository.save(course);
+		}
 	}
 
 	private void enrollStudentDirectly(Course course, Wis2User student) {
