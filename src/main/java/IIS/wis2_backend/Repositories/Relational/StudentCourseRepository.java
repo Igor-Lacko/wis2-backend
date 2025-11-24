@@ -17,23 +17,19 @@ import IIS.wis2_backend.Models.Relational.StudentCourse;
 @Repository
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, Long> {
     /**
-     * Fetches all StudentCourse entries for a given course shortcut with the given status.
+     * Fetches all StudentCourse entries for a given course shortcut with the given
+     * status.
      */
     List<StudentCourse> findByCourseShortcutAndStatus(String shortcut, RequestStatus status);
 
     /**
      * The same, but also for a specific student username.
      */
-    Optional<StudentCourse> findByCourseShortcutAndStatusAndStudentUsername(String shortcut, RequestStatus status, String username);
+    Optional<StudentCourse> findByCourseShortcutAndStatusAndStudentUsername(String shortcut, RequestStatus status,
+            String username);
 
     /**
      * Fetches all StudentCourse entries for a given course ID.
      */
     List<StudentCourse> findAllByCourseId(Long courseId);
-
-    /**
-     * Sets the studencourse points to sum of all studentterm points for the given studentcourse id.
-     * todo
-     */
-    
 }

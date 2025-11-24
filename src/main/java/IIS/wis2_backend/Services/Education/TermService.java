@@ -1,5 +1,6 @@
 package IIS.wis2_backend.Services.Education;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -469,6 +470,11 @@ public class TermService {
             throw new IllegalArgumentException("Term is full!");
         }
 
+        // Check if the term hasn't already taken place
+        if (term.getDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Cannot register for a term that has already taken place!");
+        }
+
         if (term.getTermType() == TermType.EXAM) {
             // Check if student is eligible for final exam
             if (!CanRegisterForFinalExam(studentCourse, course.getCompletedBy())) {
@@ -503,8 +509,17 @@ public class TermService {
                 .orElseThrow(() -> new NotFoundException("Student not found with username: " + username));
 
         // Verify student is registered
-        studentTermRepository.findByTermIdAndStudentId(termId, student.getId())
+        StudentTerm studentTerm = studentTermRepository.findByTermIdAndStudentId(termId, student.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Student is not registered for this term!"));
+
+        // Do NOT allow him to unregister if:
+        // 1. The term has already taken place
+        // 2. Or he has points assigned
+        if (term.getDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Cannot unregister from a term that has already taken place!");
+        } else if (studentTerm.getPoints() != null) {
+            throw new IllegalArgumentException("Cannot unregister from a term that has already been graded!");
+        }
 
         // Update schedule first (before deleting the entity)
         scheduleService.RemoveTermFromUserSchedule(term, student);
